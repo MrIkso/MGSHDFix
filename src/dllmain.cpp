@@ -1,17 +1,25 @@
 #include "stdafx.h"
 #include "helper.hpp"
+#include <string>
+#include <string_view>
 
 #include <inipp/inipp.h>
 #include <spdlog/spdlog.h>
 #include <spdlog/sinks/base_sink.h>
 #include <safetyhook.hpp>
 
+
+
+
+
 HMODULE baseModule = GetModuleHandle(NULL);
 HMODULE unityPlayer;
 
 // Version
 string sFixName = "MGSHDFix";
-string sFixVer = "2.3.1";
+string sFixVer = "2.4.0";
+int iConfigVersion = 1; //increment this when making config changes, along with the number at the bottom of the config file
+                        //that way we can sanity check to ensure people don't have broken/disabled features due to old config files.
 
 // Logger
 std::shared_ptr<spdlog::logger> logger;
@@ -38,11 +46,14 @@ bool bBorderlessMode;
 bool bFramebufferFix;
 bool bSkipIntroLogos;
 int iAnisotropicFiltering;
+bool bDisableTextureFiltering;
 int iTextureBufferSizeMB;
 bool bMouseSensitivity;
 float fMouseSensitivityXMulti;
 float fMouseSensitivityYMulti;
 bool bDisableCursor;
+bool bDisableVectorLineFix;
+double iVectorLineScale;
 
 // Launcher ini variables
 bool bLauncherConfigSkipLauncher = false;
@@ -125,7 +136,7 @@ const LPCSTR sClassName = "CSD3DWND";
 SafetyHookInline CreateWindowExA_hook{};
 HWND WINAPI CreateWindowExA_hooked(DWORD dwExStyle, LPCSTR lpClassName, LPCSTR lpWindowName, DWORD dwStyle, int X, int Y, int nWidth, int nHeight, HWND hWndParent, HMENU hMenu, HINSTANCE hInstance, LPVOID lpParam)
 {
-    if (std::string(lpClassName) == std::string(sClassName)) 
+    if (std::string(lpClassName) == std::string(sClassName))
     {
         if (bBorderlessMode && (eGameType != MgsGame::Unknown))
         {
@@ -255,15 +266,17 @@ void Logging()
     // spdlog initialisation
     {
         try {
+            if(!std::filesystem::is_directory("logs"))
+                std::filesystem::create_directory("logs"); //create a "logs" subdirectory in the game folder to keep the main directory tidy.
             // Create 10MB truncated logger
-            logger = std::make_shared<spdlog::logger>(sLogFile, std::make_shared<size_limited_sink<std::mutex>>(sExePath.string() + sLogFile, 10 * 1024 * 1024));
+            logger = std::make_shared<spdlog::logger>(sLogFile, std::make_shared<size_limited_sink<std::mutex>>(sExePath.string() + "logs\\" + sLogFile, 10 * 1024 * 1024));
             spdlog::set_default_logger(logger);
 
             spdlog::flush_on(spdlog::level::debug);
             spdlog::info("----------");
             spdlog::info("{} v{} loaded.", sFixName.c_str(), sFixVer.c_str());
             spdlog::info("----------");
-            spdlog::info("Log file: {}", sExePath.string() + sLogFile);
+            spdlog::info("Log file: {}", sExePath.string() + "logs\\" + sLogFile);
             spdlog::info("----------");
 
             // Log module details
@@ -301,6 +314,18 @@ void ReadConfig()
         ini.parse(iniFile);
     }
 
+    int loadedConfigVersion;
+    inipp::get_value(ini.sections["Config Version"], "Version", loadedConfigVersion);
+    if (loadedConfigVersion != iConfigVersion) {
+        AllocConsole();
+        FILE* dummy;
+        freopen_s(&dummy, "CONOUT$", "w", stdout);
+        std::cout << "" << sFixName.c_str() << " v" << sFixVer.c_str() << " loaded." << std::endl;
+        std::cout << "MGSHDFix CONFIG ERROR: Outdated config file!" << std::endl;
+        std::cout << "MGSHDFix CONFIG ERROR: Please install -all- the files from the latest release!" << std::endl;
+        FreeLibraryAndExitThread(baseModule, 1);
+    }
+
     // Grab desktop resolution
     DesktopDimensions = Util::GetPhysicalDesktopDimensions();
 
@@ -313,7 +338,10 @@ void ReadConfig()
     inipp::get_value(ini.sections["Internal Resolution"], "Width", iInternalResX);
     inipp::get_value(ini.sections["Internal Resolution"], "Height", iInternalResY);
     inipp::get_value(ini.sections["Anisotropic Filtering"], "Samples", iAnisotropicFiltering);
+    inipp::get_value(ini.sections["Disable Texture Filtering"], "DisableTextureFiltering", bDisableTextureFiltering);
     inipp::get_value(ini.sections["Framebuffer Fix"], "Enabled", bFramebufferFix);
+    inipp::get_value(ini.sections["Vector Line Fix"], "Disable", bDisableVectorLineFix);
+    inipp::get_value(ini.sections["Vector Line Fix"], "Line Scale", iVectorLineScale);
     inipp::get_value(ini.sections["Skip Intro Logos"], "Enabled", bSkipIntroLogos);
     inipp::get_value(ini.sections["Mouse Sensitivity"], "Enabled", bMouseSensitivity);
     inipp::get_value(ini.sections["Mouse Sensitivity"], "X Multiplier", fMouseSensitivityXMulti);
@@ -361,7 +389,10 @@ void ReadConfig()
         iAnisotropicFiltering = std::clamp(iAnisotropicFiltering, 0, 16);
         spdlog::info("Config Parse: iAnisotropicFiltering value invalid, clamped to {}", iAnisotropicFiltering);
     }
+    spdlog::info("Config Parse: bDisableTextureFiltering: {}", bDisableTextureFiltering);
     spdlog::info("Config Parse: bFramebufferFix: {}", bFramebufferFix);
+    spdlog::info("Config Parse: bDisableVectorLineFix: {}", bDisableVectorLineFix);
+    spdlog::info("Config Parse: iVectorLineScale: {}", iVectorLineScale);
     spdlog::info("Config Parse: bSkipIntroLogos: {}", bSkipIntroLogos);
     spdlog::info("Config Parse: bMouseSensitivity: {}", bMouseSensitivity);
     spdlog::info("Config Parse: fMouseSensitivityXMulti: {}", fMouseSensitivityXMulti);
@@ -421,14 +452,14 @@ bool DetectGame()
 
 void FixDPIScaling()
 {
-    if (eGameType == MgsGame::MGS2 || eGameType == MgsGame::MGS3 || eGameType == MgsGame::MG){
+    if (eGameType == MgsGame::MGS2 || eGameType == MgsGame::MGS3 || eGameType == MgsGame::MG) {
         SetProcessDPIAware();
         spdlog::info("MG/MG2 | MGS 2 | MGS 3: High-DPI scaling fixed.");
     }
 }
 
 void CustomResolution()
-{ 
+{
     if ((eGameType == MgsGame::MGS2 || eGameType == MgsGame::MGS3 || eGameType == MgsGame::MG) && bOutputResolution)
     {
         // MGS 2 | MGS 3: Custom Resolution
@@ -437,6 +468,18 @@ void CustomResolution()
         uint8_t* MGS2_MGS3_OutputResolution2ScanResult = Memory::PatternScan(baseModule, "80 ?? ?? 00 41 ?? ?? ?? ?? ?? 48 ?? ?? ?? BA ?? ?? ?? ?? 8B ??");
         if (MGS2_MGS3_InternalResolutionScanResult && MGS2_MGS3_OutputResolution1ScanResult && MGS2_MGS3_OutputResolution2ScanResult)
         {
+            uint8_t* MGS2_MGS3_FSR_Result = Memory::PatternScan(baseModule, "83 E8 ?? 74 ?? 83 E8 ?? 74 ?? 83 F8 ?? 75 ?? C7 06");
+
+            if (MGS2_MGS3_FSR_Result){
+                static SafetyHookMid FSRWarningMidHook{};
+                FSRWarningMidHook = safetyhook::create_mid(MGS2_MGS3_FSR_Result,
+                    [](SafetyHookContext& ctx)
+                    {
+                        spdlog::warn("MGS 2 | MGS 3: Custom Resolution: Game is using main launcher's FSR Upscaling resolution options! Unintended side effects (ie pixelization, mipmap issues) may occur!");
+                    });
+                
+            }
+
             // Output resolution 1
             spdlog::info("MG/MG2 | MGS 2 | MGS 3: Custom Resolution: Output 1: Address is {:s}+{:x}", sExeName.c_str(), (uintptr_t)MGS2_MGS3_OutputResolution1ScanResult - (uintptr_t)baseModule);
             static SafetyHookMid OutputResolution1MidHook{};
@@ -445,7 +488,7 @@ void CustomResolution()
                 {
                     ctx.rbx = iOutputResX;
                     ctx.rdi = iOutputResY;
-                });    
+                });
 
             // Output resolution 2
             spdlog::info("MG/MG2 | MGS 2 | MGS 3: Custom Resolution: Output 2: Address is {:s}+{:x}", sExeName.c_str(), (uintptr_t)MGS2_MGS3_OutputResolution2ScanResult - (uintptr_t)baseModule);
@@ -471,6 +514,73 @@ void CustomResolution()
                         *reinterpret_cast<int*>(ctx.rbx + 0x58) = iInternalResY;
                     }
                 });
+            
+            // Replace loading screens with the appropriate resolutions.
+            if (iOutputResY >= 1080) {
+                if (!Memory::PatternScan(baseModule, "5F 34 6B 2E 63 74 78 72 00")) //  _4k.ctxr - Make sure the game is a version with 4k loadingscreens
+                    spdlog::warn("MGS 2 | MGS 3: Custom Resolution: Splashscreens {}: Incompatible game version. Skipping.");
+                else 
+                {
+                    uint8_t* MGS2_MGS3_SplashscreenResult = Memory::PatternScan(baseModule, "FF 15 ?? ?? ?? ?? 48 8B 05 ?? ?? ?? ?? 4C 8D 44 24 ?? 48 8D 54 24 ?? 48 8B 08 48 8B 01 FF 50 ?? 48 8B 58");
+                    if (!MGS2_MGS3_SplashscreenResult)
+                    {
+                        spdlog::error("MGS 2 | MGS 3: Custom Resolution: Splashscreens {}: Pattern scan failed.");
+                    }
+                    else
+                    {
+                        static SafetyHookMid MGS2_MGS3_SplashScreenMidHook{};
+                        MGS2_MGS3_SplashScreenMidHook = safetyhook::create_mid(MGS2_MGS3_SplashscreenResult,
+                            [](SafetyHookContext& ctx)
+                            {
+                                std::string fileName = reinterpret_cast<char*>(ctx.rdx);
+                                if (fileName.ends_with("_720.ctxr")) {
+                                    fileName.replace(fileName.end() - 8, fileName.begin(), iOutputResY >= 2160 ? "4k.ctxr" : 
+                                                                                           iOutputResY >= 1440 ? "wqhd.ctxr":
+                                                                                         /*iOutputResY >= 1080*/ "fhd.ctxr");
+                                    ctx.rdx = reinterpret_cast<uintptr_t>(fileName.c_str());
+                                }
+                            });
+                        spdlog::info("MGS 2 | MGS 3: Custom Resolution: Splashscreens patched at {:s}+{:x}", sExeName.c_str(), (uintptr_t)MGS2_MGS3_SplashscreenResult - (uintptr_t)baseModule);
+                    }
+
+                    uint8_t* MGS2_MGS3_LoadingScreenEngScanResult = Memory::PatternScan(baseModule, "48 8D 8C 24 ?? ?? ?? ?? FF 15 ?? ?? ?? ?? 48 8D 15 ?? ?? ?? ?? 48 8D 8C 24 ?? ?? ?? ?? FF 15 ?? ?? ?? ?? 48 8D 15 ?? ?? ?? ?? 48 8D 8C 24 ?? ?? ?? ?? FF 15 ?? ?? ?? ?? 48 8D 15 ?? ?? ?? ?? 48 8D 8C 24"); //    /loading.ctxr 
+                    if (!MGS2_MGS3_LoadingScreenEngScanResult)
+                    {
+                        spdlog::error("MGS 2 | MGS 3: Custom Resolution: Loading Screen (ENG) {}: Pattern scan failed.");
+                    }
+                    else
+                    {
+                        static SafetyHookMid MGS2_MGS3_LoadingScreenEngMidHook{};
+                        MGS2_MGS3_LoadingScreenEngMidHook = safetyhook::create_mid(MGS2_MGS3_LoadingScreenEngScanResult,
+                            [](SafetyHookContext& ctx)
+                            {
+                                ctx.rdx = iOutputResY >= 2160 ? reinterpret_cast<uintptr_t>(&"$/misc/loading/****/loading_4k.ctxr") :
+                                          iOutputResY >= 1440 ? reinterpret_cast<uintptr_t>(&"$/misc/loading/****/loading_wqhd.ctxr") :
+                                        /*iOutputResY >= 1080*/ reinterpret_cast<uintptr_t>(&"$/misc/loading/****/loading_fhd.ctxr");
+                            });
+                        spdlog::info("MGS 2 | MGS 3: Custom Resolution: Loading Screen (ENG) patched at {:s}+{:x}", sExeName.c_str(), (uintptr_t)MGS2_MGS3_LoadingScreenEngScanResult - (uintptr_t)baseModule);
+                    }
+
+                    uint8_t* MGS2_MGS3_LoadingScreenJPScanResult = Memory::PatternScan(baseModule, "48 8D 4C 24 ?? FF 15 ?? ?? ?? ?? 48 8D 15 ?? ?? ?? ?? 48 8D 4C 24"); //    /loading_jp.ctxr 
+                    if (!MGS2_MGS3_LoadingScreenJPScanResult)
+                    {
+                        spdlog::error("MGS 2 | MGS 3: Custom Resolution: Loading Screen (JPN) {}: Pattern scan failed.");
+                    }
+                    else
+                    {
+                        static SafetyHookMid MGS2_MGS3_LoadingScreenJPMidHook{};
+                        MGS2_MGS3_LoadingScreenJPMidHook = safetyhook::create_mid(MGS2_MGS3_LoadingScreenJPScanResult,
+                            [](SafetyHookContext& ctx)
+                            {
+                                ctx.rdx = iOutputResY >= 2160 ? reinterpret_cast<uintptr_t>(&"$/misc/loading/****/loading_jp_4k.ctxr") :
+                                          iOutputResY >= 1440 ? reinterpret_cast<uintptr_t>(&"$/misc/loading/****/loading_jp_wqhd.ctxr") :
+                                        /*iOutputResY >= 1080*/ reinterpret_cast<uintptr_t>(&"$/misc/loading/****/loading_jp_fhd.ctxr");
+                            });
+                        spdlog::info("MGS 2 | MGS 3: Custom Resolution: Loading Screen (JP) patched at {:s}+{:x}", sExeName.c_str(), (uintptr_t)MGS2_MGS3_LoadingScreenJPScanResult - (uintptr_t)baseModule);
+                    }
+                }
+
+            }
         }
         else if (!MGS2_MGS3_InternalResolutionScanResult || !MGS2_MGS3_OutputResolution1ScanResult || !MGS2_MGS3_OutputResolution2ScanResult)
         {
@@ -501,7 +611,7 @@ void CustomResolution()
         {
             spdlog::error("MG/MG2 | MGS 2 | MGS 3: WindowedMode: Pattern scan failed.");
         }
-        
+
         // MG 1/2 | MGS 2 | MGS 3: CreateWindowExA
         CreateWindowExA_hook = safetyhook::create_inline(CreateWindowExA, reinterpret_cast<void*>(CreateWindowExA_hooked));
         spdlog::info("MG/MG2 | MGS 2 | MGS 3: CreateWindowExA: Hooked function.");
@@ -569,7 +679,7 @@ void CustomResolution()
             {
                 spdlog::info("MG/MG2 | MGS 2 | MGS 3: Windowed Framebuffer: Address is {:s}+{:x}", sExeName.c_str(), (uintptr_t)MGS2_MGS3_WindowedFramebufferFixScanResult - (uintptr_t)baseModule);
                 Memory::PatchBytes((uintptr_t)MGS2_MGS3_WindowedFramebufferFixScanResult, "\xEB", 1);
-                if (eGameType == MgsGame::MGS3)
+                if (eGameType == MgsGame::MGS3 || eGameType == MgsGame::MG)
                     Memory::PatchBytes((uintptr_t)MGS2_MGS3_WindowedFramebufferFixScanResult + 0x2A, "\xEB", 1);
                 if (eGameType == MgsGame::MGS2)
                     Memory::PatchBytes((uintptr_t)MGS2_MGS3_WindowedFramebufferFixScanResult + 0x27, "\xEB", 1);
@@ -579,8 +689,8 @@ void CustomResolution()
             {
                 spdlog::error("MG/MG2 | MGS 2 | MGS 3: Windowed Framebuffer: Pattern scan failed.");
             }
-        }   
-    }   
+        }
+    }
 }
 
 void IntroSkip()
@@ -687,6 +797,352 @@ void ScaleEffects()
     }
 }
 
+
+////////////////////////////
+////////////////////////////   START OF VECTOR LINES FIX
+////////////////////////////
+
+
+
+void* global_shader_bytecode_pointer = nullptr;
+SIZE_T global_shader_blob_bytecode_size = 0;
+void* usable_shader_handle = NULL;
+void* D3DContextHandle = nullptr;
+void* D3DDeviceHandle = nullptr;
+
+//compiles shader
+typedef HRESULT(WINAPI* pD3DCompile)(
+    LPCVOID pSrcData,
+    SIZE_T SrcDataSize,
+    LPCSTR pSourceName,
+    const void* pDefines,
+    const void* pInclude,
+    LPCSTR pEntrypoint,
+    LPCSTR pTarget,
+    UINT Flags1,
+    UINT Flags2,
+    void** ppCode,
+    void** ppErrorMsgs
+    );
+
+static pD3DCompile D3DCompileFunc;
+
+static SafetyHookInline MGS23VectorLineFix{};
+static SafetyHookInline MGS23VectorLineFix2{};
+
+
+
+
+
+
+
+//topologyType is directx11 D3D11_PRIMITIVE_TOPOLOGY enum or at least corresponds
+uint64_t MGS23_VectorLine_FixMethod(void* whatever, int topologyType, int something, int something2, int something3, int sizeorsomething, int indexcountorsomething)
+{
+
+    void** vtable = *(void***)D3DContextHandle;
+
+    auto GSSetShader = (void (*)(void*, void*, void*, UINT))vtable[23];  //gets GSSetShader from d3ddevicecontext vtable
+
+    bool needsset = topologyType == 0x1 || topologyType == 0x2;
+
+    if (needsset)
+        GSSetShader(D3DContextHandle, usable_shader_handle, nullptr, 0);
+
+
+    auto ret = MGS23VectorLineFix.call<uint64_t>(whatever, topologyType, something, something2, something3, sizeorsomething, indexcountorsomething);
+
+    if (needsset)
+        GSSetShader(D3DContextHandle, nullptr, nullptr, 0);
+
+
+
+    return ret;
+
+}
+
+
+
+//global struct is some big struct with d3d object pointers
+
+bool MGS23_VectorLine_FixMethod2(void* global_struct)
+{
+
+    bool ret = MGS23VectorLineFix2.call<bool>(global_struct);
+
+    if (ret) {
+
+
+        D3DContextHandle = *(void**)((uintptr_t)global_struct + 0x2a0);
+
+        D3DDeviceHandle = *(void**)((uintptr_t)global_struct + 0x298); // pointer to id3d11device
+
+
+        if (usable_shader_handle == nullptr && global_shader_bytecode_pointer != nullptr && D3DDeviceHandle != nullptr)
+        {
+
+            void** vtable = *(void***)D3DDeviceHandle;
+
+
+
+            auto CreateGeometryShader = (HRESULT(__fastcall*)(void*, const void*, SIZE_T, void*, void**))vtable[13]; //CreateGeometryShader, index 13 on vtable
+
+            auto result = CreateGeometryShader(D3DDeviceHandle, global_shader_bytecode_pointer, global_shader_blob_bytecode_size, NULL, &usable_shader_handle);
+
+            if (FAILED(result))
+                spdlog::error("MGS23_VectorLine_FixMethod2: Failed to create geometry shader on device");
+            else
+                spdlog::info("MGS23_VectorLine_FixMethod2: Successfully created geometry shader on device.");
+        }
+    }
+
+    return ret;
+}
+
+
+
+
+
+
+
+
+void CompileGeometryShader()
+{
+
+    HMODULE d3dcompiler = LoadLibraryA("d3dcompiler_43.dll");
+    if (!d3dcompiler)
+    {
+        spdlog::error("CompileGeometryShader: Failed to load d3dcompiler_43.dll");
+        return;
+    }
+
+
+    pD3DCompile D3DCompileFunc = reinterpret_cast<pD3DCompile>(GetProcAddress(d3dcompiler, "D3DCompile"));
+    if (!D3DCompileFunc)
+    {
+        spdlog::error("CompileGeometryShader: Failed to get address for D3DCompile");
+        return;
+    }
+
+    if (iVectorLineScale < 1) {
+        spdlog::info("CompileGeometryShader: Invalid line scale! Defaulting to 360");
+        iVectorLineScale = 360;
+    }
+    else {
+        spdlog::info("CompileGeometryShader: Line Scale before: {}", iVectorLineScale);
+    }
+    iVectorLineScale = round(iCurrentResY / iVectorLineScale);
+    spdlog::info("CompileGeometryShader: Target Pixel Width = : {}", iVectorLineScale);
+    iVectorLineScale = (iCurrentResY / iVectorLineScale);
+    spdlog::info("CompileGeometryShader: Line Scale after rounding: {}", iVectorLineScale);
+
+
+
+    //geometry shader that thickens lines in screen space and ignores depth
+
+    std::string shaderString = R"(
+
+
+                    //in/out struct taken from renderdoc
+
+                    struct VS_OUTPUT {
+                        float4 Position : SV_Position; 
+                        float4 param1 : TEXCOORD0;     
+                        float4 param2 : TEXCOORD1;    
+                    };
+
+
+                    struct GS_OUTPUT {
+                        float4 Position : SV_Position;
+                        float4 param1 : TEXCOORD0;
+                        float4 param2 : TEXCOORD1;
+                    };
+
+
+                    [maxvertexcount(4)]
+                    void GS_LineToQuad(line VS_OUTPUT input[2], inout TriangleStream<GS_OUTPUT> OutputStream)
+                    {
+
+                        float aspect = )" + std::to_string(fAspectRatio) + R"(;   // <------------------------------------- ASPECT RATIO
+
+
+                        float thicknessFraction = 1.0 / )" + std::to_string(static_cast<float>(iVectorLineScale)) + R"(;      // <------------------ THICKNESS
+
+
+                        float4 p0_clip = input[0].Position;
+                        float4 p1_clip = input[1].Position;
+
+                        float thicknessNDC = thicknessFraction * 2.0f; // NDC is in the range of -1, 1
+
+                        float2 p0_ndc = p0_clip.xy / p0_clip.w;
+                        float2 p1_ndc = p1_clip.xy / p1_clip.w;
+
+                        float2 dir_ndc = normalize(p1_ndc - p0_ndc);
+                        float2 perp_ndc = float2(-dir_ndc.y, dir_ndc.x);
+
+                        float2 offset = perp_ndc * (0.5f * thicknessNDC) * float2(1.0/aspect, 1.0);
+
+                        float2 v0_ndc = p0_ndc - offset;
+                        float2 v1_ndc = p0_ndc + offset;
+                        float2 v2_ndc = p1_ndc + offset;
+                        float2 v3_ndc = p1_ndc - offset;
+
+
+                        GS_OUTPUT v0, v1, v2, v3;
+
+                        // Convert NDC positions back to clip space
+                        v0.Position = float4(v0_ndc * p0_clip.w, p0_clip.z, p0_clip.w);
+                        v1.Position = float4(v1_ndc * p0_clip.w, p0_clip.z, p0_clip.w);
+                        v2.Position = float4(v2_ndc * p1_clip.w, p1_clip.z, p1_clip.w);
+                        v3.Position = float4(v3_ndc * p1_clip.w, p1_clip.z, p1_clip.w);
+
+                        v0.param1 = input[0].param1;
+                        v0.param2 = input[0].param2;
+                        v1.param1 = input[0].param1;
+                        v1.param2 = input[0].param2;
+                        v2.param1 = input[1].param1;
+                        v2.param2 = input[1].param2;
+                        v3.param1 = input[1].param1;
+                        v3.param2 = input[1].param2;
+
+                        OutputStream.Append(v0);
+                        OutputStream.Append(v1);
+                        OutputStream.Append(v3);
+                        OutputStream.Append(v2);
+
+                        OutputStream.RestartStrip();
+                    }
+                )";
+
+
+
+
+    const char* shaderCode = shaderString.c_str();
+
+
+
+
+
+
+    void* compiledShader = nullptr;
+    void* errorMsgs = nullptr;
+    HRESULT hr = D3DCompileFunc(
+        shaderCode,          // Shader source code
+        strlen(shaderCode),  // Shader size
+        "geometry_shader",   // Optional name (for error messages)
+        nullptr,             // Optional macros
+        nullptr,             // Optional includes
+        "GS_LineToQuad",     // Entry point name
+        "gs_4_0",            // Target shader model (geometry shader)
+        0,                   // Flags
+        0,                   // More flags
+        &compiledShader,     // Output compiled shader
+        &errorMsgs           // Error messages (if any)
+    );
+
+    if (FAILED(hr))
+    {
+        if (errorMsgs)
+        {
+            //errorMsgs is an ID3DBlob
+
+            void* blobPtr = errorMsgs;
+
+            void** vtable = *(void***)blobPtr;
+
+            auto getBufferPointer = (void* (*)(void*))vtable[0x18 / sizeof(void*)]; // Offset 0x18, string error offset
+            auto getBufferSize = (SIZE_T(*)(void*))vtable[0x20 / sizeof(void*)]; // Offset 0x20, string error size
+
+            void* bufferPtr = getBufferPointer(blobPtr);
+            SIZE_T bufferSize = getBufferSize(blobPtr);
+
+            spdlog::error("CompileGeometryShader: Shader compile failed with error: {}", std::string(static_cast<char*>(bufferPtr), bufferSize));
+
+        }
+        else
+        {
+            spdlog::error("CompileGeometryShader: Shader compile failed with HRESULT: 0x{:08X}", hr);
+        }
+        return;
+    }
+
+
+
+    void* blobPtr = compiledShader;
+
+    void** vtable = *(void***)compiledShader;
+
+    auto getBufferPointer = (void* (*)(void*))vtable[0x18 / sizeof(void*)];
+    auto getBufferSize = (SIZE_T(*)(void*))vtable[0x20 / sizeof(void*)];
+
+    global_shader_bytecode_pointer = getBufferPointer(blobPtr);
+    global_shader_blob_bytecode_size = getBufferSize(blobPtr);
+
+
+    spdlog::info("MGS 2/3 Geometry shader compiled successfully!");
+
+
+}
+
+
+
+
+void VectorLineFix() {
+    if (bDisableVectorLineFix || !(eGameType == MgsGame::MGS3 || eGameType == MgsGame::MGS2)) {
+        return;
+    }
+
+
+    //these patches were primarily written for mgs2, but it seems like they work for both 2 and 3 just fine
+
+
+
+    CompileGeometryShader();
+
+
+
+    //patch the method responsible for drawing line objects.
+
+    uint8_t* MGS23_VectorLine_ScanResult = Memory::PatternScan(baseModule, "48 89 5C 24 ?? 57 48 83 EC 20 FF 41 ?? 41 8B ??");
+
+    if (MGS23_VectorLine_ScanResult)
+    {
+        spdlog::info("MGS 2/3: Fix Vector Line 1: Pattern Scan Found.");
+
+        MGS23VectorLineFix = safetyhook::create_inline(reinterpret_cast<void*>(MGS23_VectorLine_ScanResult), reinterpret_cast<void*>(MGS23_VectorLine_FixMethod));
+
+    }
+    else
+    {
+        spdlog::info("MGS 2/3: Fix Vector Line 1: Pattern Scan Failed.");
+    }
+
+
+    //yoink the d3d context during a nearby method that maps/updates arrays
+
+    uint8_t* MGS23_VectorLine_ScanResult_2 = Memory::PatternScan(baseModule, "40 55 53 56 57 41 54 41 55 41 56 41 57 48 8D");
+
+    if (MGS23_VectorLine_ScanResult_2)
+    {
+        spdlog::info("MGS 2/3: Fix Vector Line 2: Pattern Scan Found.");
+
+        MGS23VectorLineFix2 = safetyhook::create_inline(reinterpret_cast<void*>(MGS23_VectorLine_ScanResult_2), reinterpret_cast<void*>(MGS23_VectorLine_FixMethod2));
+    }
+    else
+    {
+        spdlog::info("MGS 2/3: Fix Vector Line 2: Pattern Scan Failed.");
+    }
+
+}
+
+
+////////////////////////////
+////////////////////////////   END OF LINES FIX
+////////////////////////////
+
+
+
+
 void AspectFOVFix()
 {
     // Fix aspect ratio
@@ -711,7 +1167,7 @@ void AspectFOVFix()
         {
             spdlog::error("MG/MG2 | MGS 3: Aspect Ratio: Pattern scan failed.");
         }
-    }  
+    }
     else if (eGameType == MgsGame::MGS2 && bAspectFix)
     {
         // MGS 2: Fix gameplay aspect ratio
@@ -734,7 +1190,7 @@ void AspectFOVFix()
             spdlog::error("MGS 2: Aspect Ratio: Pattern scan failed.");
         }
     }
-    
+
     // Convert FOV to vert- to match 16:9 horizontal field of view
     if (eGameType == MgsGame::MGS3 && bFOVFix)
     {
@@ -816,7 +1272,7 @@ void HUDFix()
         {
             spdlog::error("MGS 2: HUD: Pattern scan failed.");
         }
-        
+
         // MGS 2: Radar
         uint8_t* MGS2_RadarWidthScanResult = Memory::PatternScan(baseModule, "44 ?? ?? 8B ?? 0F ?? ?? ?? 41 ?? ?? 0F ?? ?? ?? 44 ?? ?? ?? ?? ?? ?? 0F ?? ?? ?? 99");
         if (MGS2_RadarWidthScanResult)
@@ -865,7 +1321,7 @@ void HUDFix()
         {
             spdlog::error("MGS 2: Radar Fix: Pattern scan failed.");
         }
-        
+
         // MGS 2: Codec Portraits
         // TODO: Reassess this, it's not right.
         uint8_t* MGS2_CodecPortraitsScanResult = Memory::PatternScan(baseModule, "F3 0F ?? ?? ?? F3 0F ?? ?? F3 0F ?? ?? ?? F3 0F ?? ?? 66 0F ?? ?? 0F ?? ??");
@@ -884,7 +1340,7 @@ void HUDFix()
                     }
                     else if (fAspectRatio < fNativeAspect)
                     {
-                        ctx.xmm5.f32[0] /= fAspectMultiplier; 
+                        ctx.xmm5.f32[0] /= fAspectMultiplier;
                     }
                 });
         }
@@ -934,7 +1390,7 @@ void HUDFix()
         else if (!MGS3_HUDWidthScanResult)
         {
             spdlog::error("MG1/2 | MGS 3: HUD Width: Pattern scan failed.");
-        } 
+        }
     }
 
     if ((eGameType == MgsGame::MGS2 || eGameType == MgsGame::MGS3) && bHUDFix)
@@ -993,12 +1449,12 @@ void Miscellaneous()
         }
     }
 
-    if (iAnisotropicFiltering > 0 && (eGameType == MgsGame::MGS3 || eGameType == MgsGame::MGS2))
+    if ((bDisableTextureFiltering || iAnisotropicFiltering > 0) && (eGameType == MgsGame::MGS3 || eGameType == MgsGame::MGS2))
     {
         uint8_t* MGS3_SetSamplerStateInsnScanResult = Memory::PatternScan(baseModule, "48 8B ?? ?? ?? ?? ?? 44 39 ?? ?? 38 ?? ?? ?? 74 ?? 44 89 ?? ?? ?? ?? ?? ?? EB ?? 48 ?? ??");
         if (MGS3_SetSamplerStateInsnScanResult)
         {
-            spdlog::info("MGS 2 | MGS 3: Anisotropic Filtering: Address is {:s}+{:x}", sExeName.c_str(), (uintptr_t)MGS3_SetSamplerStateInsnScanResult - (uintptr_t)baseModule);
+            spdlog::info("MGS 2 | MGS 3: Texture Filtering: Address is {:s}+{:x}", sExeName.c_str(), (uintptr_t)MGS3_SetSamplerStateInsnScanResult - (uintptr_t)baseModule);
 
             static SafetyHookMid SetSamplerStateInsnXMidHook{};
             SetSamplerStateInsnXMidHook = safetyhook::create_mid(MGS3_SetSamplerStateInsnScanResult + 0x7,
@@ -1009,13 +1465,14 @@ void Miscellaneous()
 
                     // Override filter mode in r9d with aniso value and run compare from orig game code
                     // Game code will then copy in r9d & update D3D etc when r9d is different to existing value
-                    ctx.r9 = 0x55;
+                    //0x1 = D3D11_FILTER_MIN_MAG_POINT_MIP_LINEAR (Linear mips is essentially perspective correction.) 0x55 = D3D11_FILTER_ANISOTROPIC
+                    ctx.r9 = bDisableTextureFiltering ? 0x1 : 0x55;
                 });
 
         }
         else if (!MGS3_SetSamplerStateInsnScanResult)
         {
-            spdlog::error("MGS 2 | MGS 3: Anisotropic Filtering: Pattern scan failed.");
+            spdlog::error("MGS 2 | MGS 3: Texture Filtering: Pattern scan failed.");
         }
     }
 
@@ -1046,7 +1503,7 @@ void Miscellaneous()
             spdlog::error("MGS 3: Mouse Sensitivity: Pattern scan failed.");
         }
     }
-   
+
     if (iTextureBufferSizeMB > 128 && (eGameType == MgsGame::MGS3 || eGameType == MgsGame::MG))
     {
         // MG/MG2 | MGS3: texture buffer size extension
@@ -1091,7 +1548,7 @@ void Miscellaneous()
             }
         }
     }
-    
+
 }
 
 void ViewportFix()
@@ -1268,6 +1725,26 @@ void LauncherConfigOverride()
         }
         return;
     }
+    //Fixes a windows crash error message that sometimes appears when exiting through the main menu (which normally reopens the launcher.)
+    else if (bLauncherConfigSkipLauncher && (eGameType == MgsGame::MG || eGameType == MgsGame::MGS2 || eGameType == MgsGame::MGS3)) {
+        uint8_t* ShouldStartLauncher_mbResult = Memory::PatternScan(baseModule, "85 DB 74 ?? 48 83 C4");
+        if (ShouldStartLauncher_mbResult)
+        {
+            static SafetyHookMid ShouldStartLauncher_mbHook{};
+            ShouldStartLauncher_mbHook = safetyhook::create_mid(ShouldStartLauncher_mbResult,
+                [](SafetyHookContext& ctx)
+                {
+                    spdlog::info("MG/MG2 | MGS 2 | MGS 3: Exit crash fixed.");
+                    ctx.rbx = 0; //ebx -> rbx
+                });
+        }
+        else
+        {
+            spdlog::error("MG/MG2 | MGS 2 | MGS 3: Launcher Config: SkipLauncher - exit crashfix patternscan failed!");
+        }
+    }
+    
+
 
     // Certain config such as language/button style is normally passed from launcher to game via arguments
     // When game EXE gets ran directly this config is left at default (english game, xbox buttons)
@@ -1368,8 +1845,13 @@ DWORD __stdcall Main(void*)
         HUDFix();
         Miscellaneous();
         ViewportFix();
+        VectorLineFix();
         SkyboxFix();
     }
+
+
+
+
 
     // Signal any threads which might be waiting for us before continuing
     {
@@ -1406,10 +1888,10 @@ void* __cdecl memset_Hook(void* Dst, int Val, size_t Size)
     return memset_Fn(Dst, Val, Size);
 }
 
-BOOL APIENTRY DllMain( HMODULE hModule,
-                       DWORD  ul_reason_for_call,
-                       LPVOID lpReserved
-                     )
+BOOL APIENTRY DllMain(HMODULE hModule,
+    DWORD  ul_reason_for_call,
+    LPVOID lpReserved
+)
 {
     switch (ul_reason_for_call)
     {
@@ -1439,4 +1921,3 @@ BOOL APIENTRY DllMain( HMODULE hModule,
     }
     return TRUE;
 }
-
