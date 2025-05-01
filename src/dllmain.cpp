@@ -1591,6 +1591,27 @@ void ViewportFix()
     }
 }
 
+// cipherxof's Skybox Rendering Fix
+void SkyboxFix()
+{
+    if (eGameType != MgsGame::MGS2)
+    {
+        return;
+    }
+
+    uintptr_t MGS2_CreateSkyUtilScanResult = (uintptr_t)Memory::PatternScan(baseModule, "81 4F ?? ?? 30 00 00 4D 85 FF");
+
+    if (!MGS2_CreateSkyUtilScanResult)
+    {
+        spdlog::error("MGS 2: Skybox: Pattern scan failed.");
+        return;
+    }
+
+    Memory::PatchBytes(MGS2_CreateSkyUtilScanResult, "\x90\x90\x90\x90\x90\x90\x90", 7);
+
+    spdlog::info("MGS 2: Skybox: Patch successful. Address is {:s}+{:x}", sExeName.c_str(), MGS2_CreateSkyUtilScanResult - (uintptr_t)baseModule);
+}
+
 using NHT_COsContext_SetControllerID_Fn = void (*)(int controllerType);
 NHT_COsContext_SetControllerID_Fn NHT_COsContext_SetControllerID = nullptr;
 void NHT_COsContext_SetControllerID_Hook(int controllerType)
@@ -1825,6 +1846,7 @@ DWORD __stdcall Main(void*)
         Miscellaneous();
         ViewportFix();
         VectorLineFix();
+        SkyboxFix();
     }
 
 
