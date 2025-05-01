@@ -8,6 +8,10 @@
 #include <spdlog/sinks/base_sink.h>
 #include <safetyhook.hpp>
 
+
+
+
+
 HMODULE baseModule = GetModuleHandle(NULL);
 HMODULE unityPlayer;
 
@@ -48,6 +52,8 @@ bool bMouseSensitivity;
 float fMouseSensitivityXMulti;
 float fMouseSensitivityYMulti;
 bool bDisableCursor;
+bool bDisableVectorLineFix;
+double iVectorLineScale;
 
 // Launcher ini variables
 bool bLauncherConfigSkipLauncher = false;
@@ -130,7 +136,7 @@ const LPCSTR sClassName = "CSD3DWND";
 SafetyHookInline CreateWindowExA_hook{};
 HWND WINAPI CreateWindowExA_hooked(DWORD dwExStyle, LPCSTR lpClassName, LPCSTR lpWindowName, DWORD dwStyle, int X, int Y, int nWidth, int nHeight, HWND hWndParent, HMENU hMenu, HINSTANCE hInstance, LPVOID lpParam)
 {
-    if (std::string(lpClassName) == std::string(sClassName)) 
+    if (std::string(lpClassName) == std::string(sClassName))
     {
         if (bBorderlessMode && (eGameType != MgsGame::Unknown))
         {
@@ -334,6 +340,8 @@ void ReadConfig()
     inipp::get_value(ini.sections["Anisotropic Filtering"], "Samples", iAnisotropicFiltering);
     inipp::get_value(ini.sections["Disable Texture Filtering"], "DisableTextureFiltering", bDisableTextureFiltering);
     inipp::get_value(ini.sections["Framebuffer Fix"], "Enabled", bFramebufferFix);
+    inipp::get_value(ini.sections["Vector Line Fix"], "Disable", bDisableVectorLineFix);
+    inipp::get_value(ini.sections["Vector Line Fix"], "Line Scale", iVectorLineScale);
     inipp::get_value(ini.sections["Skip Intro Logos"], "Enabled", bSkipIntroLogos);
     inipp::get_value(ini.sections["Mouse Sensitivity"], "Enabled", bMouseSensitivity);
     inipp::get_value(ini.sections["Mouse Sensitivity"], "X Multiplier", fMouseSensitivityXMulti);
@@ -383,6 +391,8 @@ void ReadConfig()
     }
     spdlog::info("Config Parse: bDisableTextureFiltering: {}", bDisableTextureFiltering);
     spdlog::info("Config Parse: bFramebufferFix: {}", bFramebufferFix);
+    spdlog::info("Config Parse: bDisableVectorLineFix: {}", bDisableVectorLineFix);
+    spdlog::info("Config Parse: iVectorLineScale: {}", iVectorLineScale);
     spdlog::info("Config Parse: bSkipIntroLogos: {}", bSkipIntroLogos);
     spdlog::info("Config Parse: bMouseSensitivity: {}", bMouseSensitivity);
     spdlog::info("Config Parse: fMouseSensitivityXMulti: {}", fMouseSensitivityXMulti);
@@ -442,14 +452,14 @@ bool DetectGame()
 
 void FixDPIScaling()
 {
-    if (eGameType == MgsGame::MGS2 || eGameType == MgsGame::MGS3 || eGameType == MgsGame::MG){
+    if (eGameType == MgsGame::MGS2 || eGameType == MgsGame::MGS3 || eGameType == MgsGame::MG) {
         SetProcessDPIAware();
         spdlog::info("MG/MG2 | MGS 2 | MGS 3: High-DPI scaling fixed.");
     }
 }
 
 void CustomResolution()
-{ 
+{
     if ((eGameType == MgsGame::MGS2 || eGameType == MgsGame::MGS3 || eGameType == MgsGame::MG) && bOutputResolution)
     {
         // MGS 2 | MGS 3: Custom Resolution
@@ -478,7 +488,7 @@ void CustomResolution()
                 {
                     ctx.rbx = iOutputResX;
                     ctx.rdi = iOutputResY;
-                });    
+                });
 
             // Output resolution 2
             spdlog::info("MG/MG2 | MGS 2 | MGS 3: Custom Resolution: Output 2: Address is {:s}+{:x}", sExeName.c_str(), (uintptr_t)MGS2_MGS3_OutputResolution2ScanResult - (uintptr_t)baseModule);
@@ -601,7 +611,7 @@ void CustomResolution()
         {
             spdlog::error("MG/MG2 | MGS 2 | MGS 3: WindowedMode: Pattern scan failed.");
         }
-        
+
         // MG 1/2 | MGS 2 | MGS 3: CreateWindowExA
         CreateWindowExA_hook = safetyhook::create_inline(CreateWindowExA, reinterpret_cast<void*>(CreateWindowExA_hooked));
         spdlog::info("MG/MG2 | MGS 2 | MGS 3: CreateWindowExA: Hooked function.");
@@ -679,8 +689,8 @@ void CustomResolution()
             {
                 spdlog::error("MG/MG2 | MGS 2 | MGS 3: Windowed Framebuffer: Pattern scan failed.");
             }
-        }   
-    }   
+        }
+    }
 }
 
 void IntroSkip()
@@ -787,6 +797,352 @@ void ScaleEffects()
     }
 }
 
+
+////////////////////////////
+////////////////////////////   START OF VECTOR LINES FIX
+////////////////////////////
+
+
+
+void* global_shader_bytecode_pointer = nullptr;
+SIZE_T global_shader_blob_bytecode_size = 0;
+void* usable_shader_handle = NULL;
+void* D3DContextHandle = nullptr;
+void* D3DDeviceHandle = nullptr;
+
+//compiles shader
+typedef HRESULT(WINAPI* pD3DCompile)(
+    LPCVOID pSrcData,
+    SIZE_T SrcDataSize,
+    LPCSTR pSourceName,
+    const void* pDefines,
+    const void* pInclude,
+    LPCSTR pEntrypoint,
+    LPCSTR pTarget,
+    UINT Flags1,
+    UINT Flags2,
+    void** ppCode,
+    void** ppErrorMsgs
+    );
+
+static pD3DCompile D3DCompileFunc;
+
+static SafetyHookInline MGS23VectorLineFix{};
+static SafetyHookInline MGS23VectorLineFix2{};
+
+
+
+
+
+
+
+//topologyType is directx11 D3D11_PRIMITIVE_TOPOLOGY enum or at least corresponds
+uint64_t MGS23_VectorLine_FixMethod(void* whatever, int topologyType, int something, int something2, int something3, int sizeorsomething, int indexcountorsomething)
+{
+
+    void** vtable = *(void***)D3DContextHandle;
+
+    auto GSSetShader = (void (*)(void*, void*, void*, UINT))vtable[23];  //gets GSSetShader from d3ddevicecontext vtable
+
+    bool needsset = topologyType == 0x1 || topologyType == 0x2;
+
+    if (needsset)
+        GSSetShader(D3DContextHandle, usable_shader_handle, nullptr, 0);
+
+
+    auto ret = MGS23VectorLineFix.call<uint64_t>(whatever, topologyType, something, something2, something3, sizeorsomething, indexcountorsomething);
+
+    if (needsset)
+        GSSetShader(D3DContextHandle, nullptr, nullptr, 0);
+
+
+
+    return ret;
+
+}
+
+
+
+//global struct is some big struct with d3d object pointers
+
+bool MGS23_VectorLine_FixMethod2(void* global_struct)
+{
+
+    bool ret = MGS23VectorLineFix2.call<bool>(global_struct);
+
+    if (ret) {
+
+
+        D3DContextHandle = *(void**)((uintptr_t)global_struct + 0x2a0);
+
+        D3DDeviceHandle = *(void**)((uintptr_t)global_struct + 0x298); // pointer to id3d11device
+
+
+        if (usable_shader_handle == nullptr && global_shader_bytecode_pointer != nullptr && D3DDeviceHandle != nullptr)
+        {
+
+            void** vtable = *(void***)D3DDeviceHandle;
+
+
+
+            auto CreateGeometryShader = (HRESULT(__fastcall*)(void*, const void*, SIZE_T, void*, void**))vtable[13]; //CreateGeometryShader, index 13 on vtable
+
+            auto result = CreateGeometryShader(D3DDeviceHandle, global_shader_bytecode_pointer, global_shader_blob_bytecode_size, NULL, &usable_shader_handle);
+
+            if (FAILED(result))
+                spdlog::error("MGS23_VectorLine_FixMethod2: Failed to create geometry shader on device");
+            else
+                spdlog::info("MGS23_VectorLine_FixMethod2: Successfully created geometry shader on device.");
+        }
+    }
+
+    return ret;
+}
+
+
+
+
+
+
+
+
+void CompileGeometryShader()
+{
+
+    HMODULE d3dcompiler = LoadLibraryA("d3dcompiler_43.dll");
+    if (!d3dcompiler)
+    {
+        spdlog::error("CompileGeometryShader: Failed to load d3dcompiler_43.dll");
+        return;
+    }
+
+
+    pD3DCompile D3DCompileFunc = reinterpret_cast<pD3DCompile>(GetProcAddress(d3dcompiler, "D3DCompile"));
+    if (!D3DCompileFunc)
+    {
+        spdlog::error("CompileGeometryShader: Failed to get address for D3DCompile");
+        return;
+    }
+
+    if (iVectorLineScale < 1) {
+        spdlog::info("CompileGeometryShader: Invalid line scale! Defaulting to 360");
+        iVectorLineScale = 360;
+    }
+    else {
+        spdlog::info("CompileGeometryShader: Line Scale before: {}", iVectorLineScale);
+    }
+    iVectorLineScale = round(iCurrentResY / iVectorLineScale);
+    spdlog::info("CompileGeometryShader: Target Pixel Width = : {}", iVectorLineScale);
+    iVectorLineScale = (iCurrentResY / iVectorLineScale);
+    spdlog::info("CompileGeometryShader: Line Scale after rounding: {}", iVectorLineScale);
+
+
+
+    //geometry shader that thickens lines in screen space and ignores depth
+
+    std::string shaderString = R"(
+
+
+                    //in/out struct taken from renderdoc
+
+                    struct VS_OUTPUT {
+                        float4 Position : SV_Position; 
+                        float4 param1 : TEXCOORD0;     
+                        float4 param2 : TEXCOORD1;    
+                    };
+
+
+                    struct GS_OUTPUT {
+                        float4 Position : SV_Position;
+                        float4 param1 : TEXCOORD0;
+                        float4 param2 : TEXCOORD1;
+                    };
+
+
+                    [maxvertexcount(4)]
+                    void GS_LineToQuad(line VS_OUTPUT input[2], inout TriangleStream<GS_OUTPUT> OutputStream)
+                    {
+
+                        float aspect = )" + std::to_string(fAspectRatio) + R"(;   // <------------------------------------- ASPECT RATIO
+
+
+                        float thicknessFraction = 1.0 / )" + std::to_string(static_cast<float>(iVectorLineScale)) + R"(;      // <------------------ THICKNESS
+
+
+                        float4 p0_clip = input[0].Position;
+                        float4 p1_clip = input[1].Position;
+
+                        float thicknessNDC = thicknessFraction * 2.0f; // NDC is in the range of -1, 1
+
+                        float2 p0_ndc = p0_clip.xy / p0_clip.w;
+                        float2 p1_ndc = p1_clip.xy / p1_clip.w;
+
+                        float2 dir_ndc = normalize(p1_ndc - p0_ndc);
+                        float2 perp_ndc = float2(-dir_ndc.y, dir_ndc.x);
+
+                        float2 offset = perp_ndc * (0.5f * thicknessNDC) * float2(1.0/aspect, 1.0);
+
+                        float2 v0_ndc = p0_ndc - offset;
+                        float2 v1_ndc = p0_ndc + offset;
+                        float2 v2_ndc = p1_ndc + offset;
+                        float2 v3_ndc = p1_ndc - offset;
+
+
+                        GS_OUTPUT v0, v1, v2, v3;
+
+                        // Convert NDC positions back to clip space
+                        v0.Position = float4(v0_ndc * p0_clip.w, p0_clip.z, p0_clip.w);
+                        v1.Position = float4(v1_ndc * p0_clip.w, p0_clip.z, p0_clip.w);
+                        v2.Position = float4(v2_ndc * p1_clip.w, p1_clip.z, p1_clip.w);
+                        v3.Position = float4(v3_ndc * p1_clip.w, p1_clip.z, p1_clip.w);
+
+                        v0.param1 = input[0].param1;
+                        v0.param2 = input[0].param2;
+                        v1.param1 = input[0].param1;
+                        v1.param2 = input[0].param2;
+                        v2.param1 = input[1].param1;
+                        v2.param2 = input[1].param2;
+                        v3.param1 = input[1].param1;
+                        v3.param2 = input[1].param2;
+
+                        OutputStream.Append(v0);
+                        OutputStream.Append(v1);
+                        OutputStream.Append(v3);
+                        OutputStream.Append(v2);
+
+                        OutputStream.RestartStrip();
+                    }
+                )";
+
+
+
+
+    const char* shaderCode = shaderString.c_str();
+
+
+
+
+
+
+    void* compiledShader = nullptr;
+    void* errorMsgs = nullptr;
+    HRESULT hr = D3DCompileFunc(
+        shaderCode,          // Shader source code
+        strlen(shaderCode),  // Shader size
+        "geometry_shader",   // Optional name (for error messages)
+        nullptr,             // Optional macros
+        nullptr,             // Optional includes
+        "GS_LineToQuad",     // Entry point name
+        "gs_4_0",            // Target shader model (geometry shader)
+        0,                   // Flags
+        0,                   // More flags
+        &compiledShader,     // Output compiled shader
+        &errorMsgs           // Error messages (if any)
+    );
+
+    if (FAILED(hr))
+    {
+        if (errorMsgs)
+        {
+            //errorMsgs is an ID3DBlob
+
+            void* blobPtr = errorMsgs;
+
+            void** vtable = *(void***)blobPtr;
+
+            auto getBufferPointer = (void* (*)(void*))vtable[0x18 / sizeof(void*)]; // Offset 0x18, string error offset
+            auto getBufferSize = (SIZE_T(*)(void*))vtable[0x20 / sizeof(void*)]; // Offset 0x20, string error size
+
+            void* bufferPtr = getBufferPointer(blobPtr);
+            SIZE_T bufferSize = getBufferSize(blobPtr);
+
+            spdlog::error("CompileGeometryShader: Shader compile failed with error: {}", std::string(static_cast<char*>(bufferPtr), bufferSize));
+
+        }
+        else
+        {
+            spdlog::error("CompileGeometryShader: Shader compile failed with HRESULT: 0x{:08X}", hr);
+        }
+        return;
+    }
+
+
+
+    void* blobPtr = compiledShader;
+
+    void** vtable = *(void***)compiledShader;
+
+    auto getBufferPointer = (void* (*)(void*))vtable[0x18 / sizeof(void*)];
+    auto getBufferSize = (SIZE_T(*)(void*))vtable[0x20 / sizeof(void*)];
+
+    global_shader_bytecode_pointer = getBufferPointer(blobPtr);
+    global_shader_blob_bytecode_size = getBufferSize(blobPtr);
+
+
+    spdlog::info("MGS 2/3 Geometry shader compiled successfully!");
+
+
+}
+
+
+
+
+void VectorLineFix() {
+    if (bDisableVectorLineFix || !(eGameType == MgsGame::MGS3 || eGameType == MgsGame::MGS2)) {
+        return;
+    }
+
+
+    //these patches were primarily written for mgs2, but it seems like they work for both 2 and 3 just fine
+
+
+
+    CompileGeometryShader();
+
+
+
+    //patch the method responsible for drawing line objects.
+
+    uint8_t* MGS23_VectorLine_ScanResult = Memory::PatternScan(baseModule, "48 89 5C 24 ?? 57 48 83 EC 20 FF 41 ?? 41 8B ??");
+
+    if (MGS23_VectorLine_ScanResult)
+    {
+        spdlog::info("MGS 2/3: Fix Vector Line 1: Pattern Scan Found.");
+
+        MGS23VectorLineFix = safetyhook::create_inline(reinterpret_cast<void*>(MGS23_VectorLine_ScanResult), reinterpret_cast<void*>(MGS23_VectorLine_FixMethod));
+
+    }
+    else
+    {
+        spdlog::info("MGS 2/3: Fix Vector Line 1: Pattern Scan Failed.");
+    }
+
+
+    //yoink the d3d context during a nearby method that maps/updates arrays
+
+    uint8_t* MGS23_VectorLine_ScanResult_2 = Memory::PatternScan(baseModule, "40 55 53 56 57 41 54 41 55 41 56 41 57 48 8D");
+
+    if (MGS23_VectorLine_ScanResult_2)
+    {
+        spdlog::info("MGS 2/3: Fix Vector Line 2: Pattern Scan Found.");
+
+        MGS23VectorLineFix2 = safetyhook::create_inline(reinterpret_cast<void*>(MGS23_VectorLine_ScanResult_2), reinterpret_cast<void*>(MGS23_VectorLine_FixMethod2));
+    }
+    else
+    {
+        spdlog::info("MGS 2/3: Fix Vector Line 2: Pattern Scan Failed.");
+    }
+
+}
+
+
+////////////////////////////
+////////////////////////////   END OF LINES FIX
+////////////////////////////
+
+
+
+
 void AspectFOVFix()
 {
     // Fix aspect ratio
@@ -811,7 +1167,7 @@ void AspectFOVFix()
         {
             spdlog::error("MG/MG2 | MGS 3: Aspect Ratio: Pattern scan failed.");
         }
-    }  
+    }
     else if (eGameType == MgsGame::MGS2 && bAspectFix)
     {
         // MGS 2: Fix gameplay aspect ratio
@@ -834,7 +1190,7 @@ void AspectFOVFix()
             spdlog::error("MGS 2: Aspect Ratio: Pattern scan failed.");
         }
     }
-    
+
     // Convert FOV to vert- to match 16:9 horizontal field of view
     if (eGameType == MgsGame::MGS3 && bFOVFix)
     {
@@ -916,7 +1272,7 @@ void HUDFix()
         {
             spdlog::error("MGS 2: HUD: Pattern scan failed.");
         }
-        
+
         // MGS 2: Radar
         uint8_t* MGS2_RadarWidthScanResult = Memory::PatternScan(baseModule, "44 ?? ?? 8B ?? 0F ?? ?? ?? 41 ?? ?? 0F ?? ?? ?? 44 ?? ?? ?? ?? ?? ?? 0F ?? ?? ?? 99");
         if (MGS2_RadarWidthScanResult)
@@ -965,7 +1321,7 @@ void HUDFix()
         {
             spdlog::error("MGS 2: Radar Fix: Pattern scan failed.");
         }
-        
+
         // MGS 2: Codec Portraits
         // TODO: Reassess this, it's not right.
         uint8_t* MGS2_CodecPortraitsScanResult = Memory::PatternScan(baseModule, "F3 0F ?? ?? ?? F3 0F ?? ?? F3 0F ?? ?? ?? F3 0F ?? ?? 66 0F ?? ?? 0F ?? ??");
@@ -984,7 +1340,7 @@ void HUDFix()
                     }
                     else if (fAspectRatio < fNativeAspect)
                     {
-                        ctx.xmm5.f32[0] /= fAspectMultiplier; 
+                        ctx.xmm5.f32[0] /= fAspectMultiplier;
                     }
                 });
         }
@@ -1034,7 +1390,7 @@ void HUDFix()
         else if (!MGS3_HUDWidthScanResult)
         {
             spdlog::error("MG1/2 | MGS 3: HUD Width: Pattern scan failed.");
-        } 
+        }
     }
 
     if ((eGameType == MgsGame::MGS2 || eGameType == MgsGame::MGS3) && bHUDFix)
@@ -1147,7 +1503,7 @@ void Miscellaneous()
             spdlog::error("MGS 3: Mouse Sensitivity: Pattern scan failed.");
         }
     }
-   
+
     if (iTextureBufferSizeMB > 128 && (eGameType == MgsGame::MGS3 || eGameType == MgsGame::MG))
     {
         // MG/MG2 | MGS3: texture buffer size extension
@@ -1192,7 +1548,7 @@ void Miscellaneous()
             }
         }
     }
-    
+
 }
 
 void ViewportFix()
@@ -1468,7 +1824,12 @@ DWORD __stdcall Main(void*)
         HUDFix();
         Miscellaneous();
         ViewportFix();
+        VectorLineFix();
     }
+
+
+
+
 
     // Signal any threads which might be waiting for us before continuing
     {
@@ -1505,10 +1866,10 @@ void* __cdecl memset_Hook(void* Dst, int Val, size_t Size)
     return memset_Fn(Dst, Val, Size);
 }
 
-BOOL APIENTRY DllMain( HMODULE hModule,
-                       DWORD  ul_reason_for_call,
-                       LPVOID lpReserved
-                     )
+BOOL APIENTRY DllMain(HMODULE hModule,
+    DWORD  ul_reason_for_call,
+    LPVOID lpReserved
+)
 {
     switch (ul_reason_for_call)
     {
@@ -1538,4 +1899,3 @@ BOOL APIENTRY DllMain( HMODULE hModule,
     }
     return TRUE;
 }
-
