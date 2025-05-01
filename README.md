@@ -19,14 +19,16 @@ This is a fix that adds custom resolutions, ultrawide support and much more to t
 - Mouse cursor toggle.
 - Mouse sensitivity adjustment (MGS3).
 - Corrects gameplay/cutscene aspect ratio (MGS2/MGS3).
-- Corrects window size on displays with High DPI scaling enabled. #127
+- Corrects window size on displays with High DPI scaling enabled. [PR #127](https://github.com/Lyall/MGSHDFix/pull/127)
 - Corrects the monitor going to sleep during long cutscenes.
 - Launcher skip (see ini to configure).
 - Skip intro logos (MGS2/MGS3).
 - Adjustable anisotropic filtering (MGS2/MGS3).
+- Option to disable bilinear texture filtering, giving the games a pixel art/retro appearance. [PR #138](https://github.com/Lyall/MGSHDFix/pull/138)
 - Increased texture size limits (MG1/MG2/MGS3).
 - Fixed water surface rendering (MGS3). See [PR #71](https://github.com/Lyall/MGSHDFix/pull/71) for a breakdown of the issue.
 - Fixed vector effects / line based rendering scaling (ie rain, lasers, bullet trails.) [PR #140](https://github.com/Lyall/MGSHDFix/pull/140)
+- Fixes broken skybox initialization procs in MGS2. [PR#142](https://github.com/Lyall/MGSHDFix/pull/140)
 
 ## Installation
 - Grab the latest release of MGSHDFix from [here.](https://github.com/Lyall/MGSHDFix/releases)
@@ -55,14 +57,18 @@ This list will contain bugs which may or may not be fixed.
 
 | ![ezgif-3-82fd6eedda](https://github.com/Lyall/MGSHDFix/assets/695941/b01453c7-b4ee-4903-bd34-340371873ecb) |
 |:--:|
+![2131640_20250428235619_1](https://github.com/user-attachments/assets/0ea1f53b-3be6-459b-9a7a-686dd14cf4e6)
+![2131640_20250428225953_1](https://github.com/user-attachments/assets/73c80569-dd37-4879-a6fb-97dbb46c2f9b)
 | Metal Gear Solid 2 |
 
 | ![ezgif-3-982e93f49a](https://github.com/Lyall/MGSHDFix/assets/695941/5530a42e-6b6a-4eb0-a714-ba3e7c3a1dc3) |
 |:--:|
+![2131650_20250429005837_1](https://github.com/user-attachments/assets/01b4258a-e6f3-4b24-8609-c1d21834426b)
+![vlcsnap-2025-04-30-01h48m54s182](https://github.com/user-attachments/assets/aba7a75d-f114-4c7b-b41a-668cdbdefab3)
 | Metal Gear Solid 3 |
 
 ## Credits
-[@emoose](https://github.com/emoose), [@cipherxof](https://github.com/cipherxof), & [@ShizCalev/Afevis](https://github.com/shizcalev) for contributing fixes. <br />
+[@emoose](https://github.com/emoose), [@cipherxof](https://github.com/cipherxof), [@ShizCalev/Afevis](https://github.com/shizcalev), & [@Bud11](https://github.com/bud11) for contributing fixes. <br />
 [Ultimate ASI Loader](https://github.com/ThirteenAG/Ultimate-ASI-Loader) for ASI loading. <br />
 [inipp](https://github.com/mcmtroffaes/inipp) for ini reading. <br />
 [spdlog](https://github.com/gabime/spdlog) for logging. <br />
