@@ -1142,17 +1142,17 @@ void SkyboxFix()
         return;
     }
 
-    uintptr_t MGS3_CreateSkyUtilScanResult = (uintptr_t)Memory::PatternScan(baseModule, "81 4F 58 00 30 00 00");
+    uintptr_t MGS2_CreateSkyUtilScanResult = (uintptr_t)Memory::PatternScan(baseModule, "81 4F 58 00 30 00 00");
 
-    if (MGS3_CreateSkyUtilScanResult)
+    if (MGS2_CreateSkyUtilScanResult)
     {
-        Memory::PatchBytes(MGS3_CreateSkyUtilScanResult, "\x90\x90\x90\x90\x90\x90\x90", 7);
+        Memory::PatchBytes(MGS2_CreateSkyUtilScanResult, "\x90\x90\x90\x90\x90\x90\x90", 7);
 
-        spdlog::info("MGS 3: Skybox: Patch successful. Address is {:s}+{:x}", sExeName.c_str(), MGS3_CreateSkyUtilScanResult - (uintptr_t)baseModule);
+        spdlog::info("MGS 2: Skybox: Patch successful. Address is {:s}+{:x}", sExeName.c_str(), MGS2_CreateSkyUtilScanResult - (uintptr_t)baseModule);
     }
     else
     {
-        spdlog::error("MGS 3:  Skybox: Pattern scan failed.");
+        spdlog::error("MGS 2:  Skybox: Pattern scan failed.");
     }
 }
 
