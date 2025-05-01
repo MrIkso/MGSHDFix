@@ -1134,6 +1134,28 @@ void ViewportFix()
     }
 }
 
+// cipherxof's Skybox Rendering Fix
+void SkyboxFix()
+{
+    if (eGameType != MgsGame::MGS2)
+    {
+        return;
+    }
+
+    uintptr_t MGS3_CreateSkyUtilScanResult = (uintptr_t)Memory::PatternScan(baseModule, "81 4F 58 00 30 00 00");
+
+    if (MGS3_CreateSkyUtilScanResult)
+    {
+        Memory::PatchBytes(MGS3_CreateSkyUtilScanResult, "\x90\x90\x90\x90\x90\x90\x90", 7);
+
+        spdlog::info("MGS 3: Skybox: Patch successful. Address is {:s}+{:x}", sExeName.c_str(), MGS3_CreateSkyUtilScanResult - (uintptr_t)baseModule);
+    }
+    else
+    {
+        spdlog::error("MGS 3:  Skybox: Pattern scan failed.");
+    }
+}
+
 using NHT_COsContext_SetControllerID_Fn = void (*)(int controllerType);
 NHT_COsContext_SetControllerID_Fn NHT_COsContext_SetControllerID = nullptr;
 void NHT_COsContext_SetControllerID_Hook(int controllerType)
@@ -1347,6 +1369,7 @@ DWORD __stdcall Main(void*)
         HUDFix();
         Miscellaneous();
         ViewportFix();
+        SkyboxFix();
     }
 
     // Signal any threads which might be waiting for us before continuing
