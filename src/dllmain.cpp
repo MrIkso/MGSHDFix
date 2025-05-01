@@ -1147,6 +1147,7 @@ void SkyboxFix()
     if (!MGS2_CreateSkyUtilScanResult)
     {
         spdlog::error("MGS 2:  Skybox: Pattern scan failed.");
+        return;
     }
 
     Memory::PatchBytes(MGS2_CreateSkyUtilScanResult, "\x90\x90\x90\x90\x90\x90\x90", 7);
