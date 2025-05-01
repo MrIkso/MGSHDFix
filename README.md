@@ -28,7 +28,7 @@ This is a fix that adds custom resolutions, ultrawide support and much more to t
 - Increased texture size limits (MG1/MG2/MGS3).
 - Fixed water surface rendering (MGS3). See [PR #71](https://github.com/Lyall/MGSHDFix/pull/71) for a breakdown of the issue.
 - Fixed vector effects / line based rendering scaling (ie rain, lasers, bullet trails.) [PR #140](https://github.com/Lyall/MGSHDFix/pull/140)
-- Fixes broken skybox initialization procs in MGS2. [PR#142](https://github.com/Lyall/MGSHDFix/pull/140)
+- Fixed broken skybox initialization procs (MGS2). [PR#142](https://github.com/Lyall/MGSHDFix/pull/142)
 
 ## Installation
 - Grab the latest release of MGSHDFix from [here.](https://github.com/Lyall/MGSHDFix/releases)
@@ -59,6 +59,8 @@ This list will contain bugs which may or may not be fixed.
 |:--:|
 ![2131640_20250428235619_1](https://github.com/user-attachments/assets/0ea1f53b-3be6-459b-9a7a-686dd14cf4e6)
 ![2131640_20250428225953_1](https://github.com/user-attachments/assets/73c80569-dd37-4879-a6fb-97dbb46c2f9b)
+![2131640_20250501025301_1](https://github.com/user-attachments/assets/3f5eb079-1b64-45a6-992f-e0b421f414ad)
+![2131640_20250501025407_1](https://github.com/user-attachments/assets/c9337d0e-16fa-47e8-beba-efc067e98acb)
 | Metal Gear Solid 2 |
 
 | ![ezgif-3-982e93f49a](https://github.com/Lyall/MGSHDFix/assets/695941/5530a42e-6b6a-4eb0-a714-ba3e7c3a1dc3) |
