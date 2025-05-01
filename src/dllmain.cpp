@@ -1146,7 +1146,7 @@ void SkyboxFix()
 
     if (!MGS2_CreateSkyUtilScanResult)
     {
-        spdlog::error("MGS 2:  Skybox: Pattern scan failed.");
+        spdlog::error("MGS 2: Skybox: Pattern scan failed.");
         return;
     }
 
