@@ -17,7 +17,7 @@ HMODULE unityPlayer;
 
 // Version
 string sFixName = "MGSHDFix";
-string sFixVer = "2.4.0";
+string sFixVer = "2.4.1";
 int iConfigVersion = 1; //increment this when making config changes, along with the number at the bottom of the config file
                         //that way we can sanity check to ensure people don't have broken/disabled features due to old config files.
 
