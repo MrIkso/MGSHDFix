@@ -17,13 +17,14 @@ HMODULE unityPlayer;
 
 // Version
 string sFixName = "MGSHDFix";
-string sFixVer = "2.4.1";
+string sFixVer = "2.4.2";
 int iConfigVersion = 1; //increment this when making config changes, along with the number at the bottom of the config file
                         //that way we can sanity check to ensure people don't have broken/disabled features due to old config files.
 
 // Logger
 std::shared_ptr<spdlog::logger> logger;
 std::string sLogFile = sFixName + ".log";
+std::string sFixPath;
 std::filesystem::path sExePath;
 std::string sExeName;
 
@@ -242,7 +243,6 @@ void CalculateAspectRatio(bool bLog)
 
     if (bLog) {
         // Log details about current resolution
-        spdlog::info("----------");
         spdlog::info("Current Resolution: Resolution: {}x{}", iCurrentResX, iCurrentResY);
         spdlog::info("Current Resolution: fAspectRatio: {}", fAspectRatio);
         spdlog::info("Current Resolution: fAspectMultiplier: {}", fAspectMultiplier);
@@ -263,11 +263,19 @@ void Logging()
     sExeName = sExePath.filename().string();
     sExePath = sExePath.remove_filename();
 
+    std::string paths[4] = {"", "plugins\\", "scripts\\", "update\\"};
+    for (int i = 0; i < (sizeof(paths) / sizeof(paths[0])); i++) {
+        if (std::filesystem::exists(sExePath.string() + paths[i] + sFixName + ".asi")) {
+            sFixPath = paths[i];
+            break;
+        }
+    }
+
     // spdlog initialisation
     {
         try {
-            if(!std::filesystem::is_directory("logs"))
-                std::filesystem::create_directory("logs"); //create a "logs" subdirectory in the game folder to keep the main directory tidy.
+            if(!std::filesystem::is_directory(sExePath.string() + "logs"))
+                std::filesystem::create_directory(sExePath.string() + "logs"); //create a "logs" subdirectory in the game folder to keep the main directory tidy.
             // Create 10MB truncated logger
             logger = std::make_shared<spdlog::logger>(sLogFile, std::make_shared<size_limited_sink<std::mutex>>(sExePath.string() + "logs\\" + sLogFile, 10 * 1024 * 1024));
             spdlog::set_default_logger(logger);
@@ -275,6 +283,7 @@ void Logging()
             spdlog::flush_on(spdlog::level::debug);
             spdlog::info("----------");
             spdlog::info("{} v{} loaded.", sFixName.c_str(), sFixVer.c_str());
+            spdlog::info("ASI plugin location: {}", sExePath.string() + sFixPath + sFixName + ".asi");
             spdlog::info("----------");
             spdlog::info("Log file: {}", sExePath.string() + "logs\\" + sLogFile);
             spdlog::info("----------");
@@ -299,18 +308,18 @@ void Logging()
 void ReadConfig()
 {
     // Initialise config
-    std::ifstream iniFile(sExePath.string() + sConfigFile);
+    std::ifstream iniFile(sExePath.string() + sFixPath + sConfigFile);
     if (!iniFile) {
         AllocConsole();
         FILE* dummy;
         freopen_s(&dummy, "CONOUT$", "w", stdout);
         std::cout << "" << sFixName.c_str() << " v" << sFixVer.c_str() << " loaded." << std::endl;
         std::cout << "ERROR: Could not locate config file." << std::endl;
-        std::cout << "ERROR: Make sure " << sConfigFile.c_str() << " is located in " << sExePath.string().c_str() << std::endl;
+        std::cout << "ERROR: Make sure " << sConfigFile.c_str() << " is located in " << sExePath.string().c_str() + sFixPath << std::endl;
         FreeLibraryAndExitThread(baseModule, 1);
     }
     else {
-        spdlog::info("Config file: {}", sExePath.string() + sConfigFile);
+        spdlog::info("Config file: {}", sExePath.string() + sFixPath + sConfigFile);
         ini.parse(iniFile);
     }
 
@@ -1080,6 +1089,7 @@ void CompileGeometryShader()
 
 
     spdlog::info("MGS 2/3 Geometry shader compiled successfully!");
+    spdlog::info("----------");
 
 
 }
@@ -1588,6 +1598,7 @@ void ViewportFix()
         {
             spdlog::error("MGS 3: Get Viewport Camera Offset: Pattern scan failed.");
         }
+        spdlog::info("----------");
     }
 }
 
