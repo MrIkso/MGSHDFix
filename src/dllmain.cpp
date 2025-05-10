@@ -1,7 +1,6 @@
 #include "stdafx.h"
 #include "helper.hpp"
 #include <string>
-#include <string_view>
 
 #include <inipp/inipp.h>
 #include <spdlog/spdlog.h>
@@ -114,7 +113,7 @@ struct GameInfo
     int SteamAppId;
 };
 
-enum class MgsGame
+enum class MgsGame : std::uint8_t
 {
     Unknown,
     MGS2,
@@ -263,16 +262,18 @@ void Logging()
     sExeName = sExePath.filename().string();
     sExePath = sExePath.remove_filename();
 
-    std::string paths[4] = {"", "plugins\\", "scripts\\", "update\\"};
-    for (int i = 0; i < (sizeof(paths) / sizeof(paths[0])); i++) {
-        if (std::filesystem::exists(sExePath.string() + paths[i] + sFixName + ".asi")) {
-            if (sFixPath.length()) { //multiple versions found
+    std::string paths[4] = {"\\", "plugins\\", "scripts\\", "update\\"};
+    for (int i = 0; i < (sizeof(paths) / sizeof(paths[0])); i++) 
+    {
+        if (std::filesystem::exists(sExePath.string() + paths[i] + sFixName + ".asi")) 
+        {
+            if (!sFixPath.empty()) //multiple versions found
+            { 
                 AllocConsole();
                 FILE* dummy;
                 freopen_s(&dummy, "CONOUT$", "w", stdout);
-                std::cout << "\n" << sFixName + " ERROR: Duplicate .asi installations found! Please make sure to delete any old versions!" << std::endl;
+                std::cout << "\n" << sFixName + " ERROR: Duplicate .asi installations found! Please make sure to delete any old versions!" << "\n";
                 FreeLibraryAndExitThread(baseModule, 1);
-                return;
             }
             sFixPath = paths[i];
         }
@@ -840,8 +841,6 @@ typedef HRESULT(WINAPI* pD3DCompile)(
     void** ppCode,
     void** ppErrorMsgs
     );
-
-static pD3DCompile D3DCompileFunc;
 
 static SafetyHookInline MGS23VectorLineFix{};
 static SafetyHookInline MGS23VectorLineFix2{};
