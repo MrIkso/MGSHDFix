@@ -1,5 +1,5 @@
 # Metal Gear Solid Master Collection Fix
-[MG1 / MG2 NexusMods Page](https://www.nexusmods.com/metalgearandmetalgear2mc/mods/9) | [MGS2 NexusMods Page](https://www.nexusmods.com/metalgearsolid2mc/mods/49) | [MGS3 NexusMods Page](https://www.nexusmods.com/metalgearsolid3mc/mods/139) | **GitHub Repo (You're already here!)**<br />
+[MG1 / MG2 Nexus Page](https://www.nexusmods.com/metalgearandmetalgear2mc/mods/9) | [MGS2 Nexus Page](https://www.nexusmods.com/metalgearsolid2mc/mods/49) | [MGS3 Nexus Page](https://www.nexusmods.com/metalgearsolid3mc/mods/139) | **GitHub Repo (You're already here!)**<br />
 
 [![Github All Releases](https://img.shields.io/github/downloads/ShizCalev/MGSHDFix/total.svg)](https://github.com/ShizCalev/MGSHDFix/releases)<br />
 
