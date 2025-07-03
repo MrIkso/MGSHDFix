@@ -61,6 +61,9 @@ jobs:
               newTitle = newTitle.replace(match[0], '').trim();
             }
 
+            // clean up leading colon and spaces
+            newTitle = newTitle.replace(/^[:\s]+/, '').trim();
+
             if (labelsToAdd.size > 0) {
               console.log(`✅ Adding labels: ${Array.from(labelsToAdd).join(', ')}`);
               await github.rest.issues.addLabels({
