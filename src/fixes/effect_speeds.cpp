@@ -38,7 +38,7 @@ int64_t __fastcall MGS2_solidusFireDashAct(int64_t work)
             g_EffectSpeedFix.solidusDashAct_NextUpdate = current_time;
         }
 
-        double duration = 34.0; // Slightly slower than PS2_IOP_CLOCKSPEED to account for particle related performance slowdown on PS2 hardware had during closeup shots.
+        double duration = (PS2_IOP_CLOCKSPEED-1); // Slightly slower than PS2_IOP_CLOCKSPEED to account for particle related performance slowdown on PS2 hardware had during closeup shots.
                                 // !!!!! PCSX2 doesn't properly emulate the PS2's slowdown during these scenes either, so do any comparisons against real PS2 hardware if you change this value. !!!!!
         if (strcmp(g_GameVars.GetCurrentStage(), "d045p01") != 0)
         {
@@ -51,6 +51,7 @@ int64_t __fastcall MGS2_solidusFireDashAct(int64_t work)
     return 0;
 }
 
+#ifdef _MGSDEBUGGING
 SafetyHookInline createDebrisTex_hook {};
 int64_t __fastcall MGS2_createDebrisTex(int64_t a1, float* a2, float* a3, unsigned int a4, int a5, int a6, float a7)
 {
@@ -74,18 +75,22 @@ int64_t __fastcall MGS2_createDebrisTex(int64_t a1, float* a2, float* a3, unsign
     *(int*)(a1 + 100) = effect_duration;
     return result;
 }
+#endif
+
+#ifdef _MGSDEBUGGING
 
 SafetyHookInline splashSplash_hook {};
 int64_t __fastcall MGS2_splashSplash(struct _exception* a1)
 {
     return 120;
 }
+#endif
 
+#ifdef _MGSDEBUGGING
 
 SafetyHookInline splashPartsSlow_hook {};
 int64_t __fastcall MGS2_splashPartsSlow(DWORD* a1, __int16* a2, float duration)
 {
-#ifdef cutscenes
     if (strcmp(currentStage, "d001p01") == 0)
     {
         return splashPartsSlow_hook.fastcall<int64_t>(a1, a2, duration / 2);
@@ -94,9 +99,9 @@ int64_t __fastcall MGS2_splashPartsSlow(DWORD* a1, __int16* a2, float duration)
     {
         return splashPartsSlow_hook.fastcall<int64_t>(a1, a2, duration / 2);
     }
-#endif
     return splashPartsSlow_hook.fastcall<int64_t>(a1, a2, duration);
 }
+#endif
 
 void EffectSpeedFix::Initialize() const
 {
@@ -215,10 +220,13 @@ void EffectSpeedFix::Initialize() const
     if (uint8_t* MGS2_createDebrisTexOffset = Memory::PatternScan(baseModule, "44 6B C0 0F 8B CB",
         "MGS 2: Effect Speed Fix: demo\\debris_tex.c\\CreateDebrisTexture()", nullptr, nullptr))
     {
-        //createDebrisTex_hook = safetyhook::create_inline(reinterpret_cast<void*>(MGS2_createDebrisScanResult), reinterpret_cast<void*>(MGS2_createDebrisTex));
-        //LOG_HOOK(createDebrisTex_hook, "MGS 2: Effect Speed Fix: demo\\debris_tex.c\\CreateDebrisTexture()", NULL, NULL)
+#ifdef _MGSDEBUGGING
+        createDebrisTex_hook = safetyhook::create_inline(reinterpret_cast<void*>(MGS2_createDebrisTexOffset), reinterpret_cast<void*>(MGS2_createDebrisTex));
+        LOG_HOOK(createDebrisTex_hook, "MGS 2: Effect Speed Fix: demo\\debris_tex.c\\CreateDebrisTexture()", NULL, NULL);
+#else
         Memory::PatchBytes((uintptr_t)MGS2_createDebrisTexOffset + 0x3, "\x1E", 1);
         spdlog::info("MGS 2: Effect Speed Fix: demo\\debris_tex.c\\CreateDebrisTexture() patched.");
+#endif
     }
 
     if (uint8_t* MGS2_solidusFireDashActScanResult = Memory::PatternScan(baseModule, "?? ?? ?? ?? ?? 49 8D AB 68 FE FF FF 48 81 EC 88", "MGS 2: Effect Speed Fix : effect\\solidas_dash_fire.c", NULL, NULL))

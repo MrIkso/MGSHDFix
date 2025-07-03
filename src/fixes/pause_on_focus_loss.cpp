@@ -13,55 +13,57 @@ bool PauseOnFocusLoss::ShouldFixPauseState()
 
 void PauseOnFocusLoss::Initialize()
 {
-    if (!(eGameType & (MG|MGS2|MGS3)))
+    if (g_PauseOnFocusLoss.bSpeedrunnerBugfixOverride || !(eGameType & (MG|MGS2|MGS3)))
     {
         return;
     }
 
-    if (uint8_t* NHT_COsContext_SetShouldPauseApplicationResult = Memory::PatternScan(baseModule, "44 8B 2D ?? ?? ?? ?? 46 89 B4 A6", "BP_COsContext_ShouldPauseApplication", NULL, NULL))
+    if (eGameType & MGS2)
     {
-        static SafetyHookMid NHT_COsContext_SetShouldPauseApplicationMidHook {};
-        NHT_COsContext_SetShouldPauseApplicationMidHook = safetyhook::create_mid(NHT_COsContext_SetShouldPauseApplicationResult,
-            [](SafetyHookContext& ctx)
-            {
-                if (g_PauseOnFocusLoss.ShouldFixPauseState())
+        if (uint8_t* NHT_COsContext_SetShouldPauseApplicationResult = Memory::PatternScan(baseModule, "44 8B 2D ?? ?? ?? ?? 46 89 B4 A6", "NHT_COsContext_SetShouldPauseApplication", NULL, NULL))
+        {
+            static SafetyHookMid NHT_COsContext_SetShouldPauseApplicationMidHook {};
+            NHT_COsContext_SetShouldPauseApplicationMidHook = safetyhook::create_mid(NHT_COsContext_SetShouldPauseApplicationResult,
+                [](SafetyHookContext& ctx)
                 {
-                    ctx.rax = 0;
-                }
-            });
-        LOG_HOOK(NHT_COsContext_SetShouldPauseApplicationMidHook, "Alt-Tab Fix: BP_COsContext_ShouldPauseApplication", NULL, NULL)
+                    if (g_PauseOnFocusLoss.ShouldFixPauseState())
+                    {
+                        ctx.rax = 0;
+                    }
+                });
+            LOG_HOOK(NHT_COsContext_SetShouldPauseApplicationMidHook, "Alt-Tab Fix: NHT_COsContext_SetShouldPauseApplication", NULL, NULL)
+        }
+
+
+        if (uint8_t* BP_COsContext_ShouldPauseApplication_SomeGlobalPlace_Result = Memory::PatternScan(baseModule, "85 C0 74 ?? F7 05 ?? ?? ?? ?? ?? ?? ?? ?? 75", "BP_COsContext_ShouldPauseApplication_SomeGlobalPlace", NULL, NULL))
+        {
+            static SafetyHookMid BP_COsContext_ShouldPauseApplication_SomeGlobalPlaceMidHook {};
+            BP_COsContext_ShouldPauseApplication_SomeGlobalPlaceMidHook = safetyhook::create_mid(BP_COsContext_ShouldPauseApplication_SomeGlobalPlace_Result,
+                [](SafetyHookContext& ctx)
+                {
+                    if (g_PauseOnFocusLoss.ShouldFixPauseState())
+                    {
+                        ctx.rax = 0;
+                    }
+                });
+            LOG_HOOK(BP_COsContext_ShouldPauseApplication_SomeGlobalPlaceMidHook, "Alt-Tab Fix: BP_COsContext_ShouldPauseApplication_SomeGlobalPlace", NULL, NULL)
+        }
+
+        if (uint8_t* BP_COsContext_ShouldPauseApplication_InputsNProcess_Result = Memory::PatternScan(baseModule, "85 C0 74 ?? 48 83 C6", "BP_COsContext_ShouldPauseApplication_InputsAndProcessing", NULL, NULL))
+        {
+            static SafetyHookMid BP_COsContext_ShouldPauseApplication_InputsNProcessMidHook {};
+            BP_COsContext_ShouldPauseApplication_InputsNProcessMidHook = safetyhook::create_mid(BP_COsContext_ShouldPauseApplication_InputsNProcess_Result,
+                [](SafetyHookContext& ctx)
+                {
+                    if (g_PauseOnFocusLoss.ShouldFixPauseState())
+                    {
+                        ctx.rax = 0;
+                    }
+                });
+            LOG_HOOK(BP_COsContext_ShouldPauseApplication_InputsNProcessMidHook, "Alt-Tab Fix: BP_COsContext_ShouldPauseApplication_InputsNProcess", NULL, NULL)
+        }
     }
 
-
-    if (uint8_t* BP_COsContext_ShouldPauseApplication_SomeGlobalPlace_Result = Memory::PatternScan(baseModule, "85 C0 74 ?? F7 05 ?? ?? ?? ?? ?? ?? ?? ?? 75", "BP_COsContext_ShouldPauseApplication_SomeGlobalPlace", NULL, NULL))
-    {
-        static SafetyHookMid BP_COsContext_ShouldPauseApplication_SomeGlobalPlaceMidHook {};
-        BP_COsContext_ShouldPauseApplication_SomeGlobalPlaceMidHook = safetyhook::create_mid(BP_COsContext_ShouldPauseApplication_SomeGlobalPlace_Result,
-            [](SafetyHookContext& ctx)
-            {
-                if (g_PauseOnFocusLoss.ShouldFixPauseState())
-                {
-                    ctx.rax = 0;
-                }
-            });
-        LOG_HOOK(BP_COsContext_ShouldPauseApplication_SomeGlobalPlaceMidHook, "Alt-Tab Fix: BP_COsContext_ShouldPauseApplication_SomeGlobalPlace", NULL, NULL)
-    }
-
-    if (uint8_t* BP_COsContext_ShouldPauseApplication_InputsNProcess_Result = Memory::PatternScan(baseModule, "85 C0 74 ?? 48 83 C6", "BP_COsContext_ShouldPauseApplication_InputsAndProcessing", NULL, NULL))
-    {
-        static SafetyHookMid BP_COsContext_ShouldPauseApplication_InputsNProcessMidHook {};
-        BP_COsContext_ShouldPauseApplication_InputsNProcessMidHook = safetyhook::create_mid(BP_COsContext_ShouldPauseApplication_InputsNProcess_Result,
-            [](SafetyHookContext& ctx)
-            {
-                if (g_PauseOnFocusLoss.ShouldFixPauseState())
-                {
-                    ctx.rax = 0;
-                }
-            });
-        LOG_HOOK(BP_COsContext_ShouldPauseApplication_InputsNProcessMidHook, "Alt-Tab Fix: BP_COsContext_ShouldPauseApplication_InputsNProcess", NULL, NULL)
-    }
-
-    
     if (uint8_t* NHT_GetIsMinimizedResult = Memory::PatternScan(baseModule, "48 85 C0 75 ?? C3 83 B8", "NHT_GetIsMinimized", NULL, NULL))
     {
         static SafetyHookMid NHT_GetIsMinimizedMidHook {};

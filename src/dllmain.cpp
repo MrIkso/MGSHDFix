@@ -255,6 +255,8 @@ void Init_ReadConfig()
     g_IntroSkip.isEnabled = Util::stringToBool(ini.sections["Skip Intro Logos"]["Enabled"]);
     g_StereoAudioFix.isEnabled = Util::stringToBool(ini.sections["Force Stereo Audio"]["Enabled"]);
     g_PauseOnFocusLoss.bPauseOnFocusLoss = Util::stringToBool(ini.sections["Pause On Focus Loss"]["Enabled"]);
+    g_PauseOnFocusLoss.bSpeedrunnerBugfixOverride = Util::stringToBool(ini.sections["Pause On Focus Loss"]["SpeedrunnerBugfixOverride"]);
+
 
     /*//INITIALIZE(Init_GammaShader());
     //INITIALIZE(g_DistanceCulling.Initialize());
@@ -345,6 +347,8 @@ void Init_ReadConfig()
     }
     spdlog::info("Config Parse: Skip Intro Videos: {}", g_IntroSkip.isEnabled);
     spdlog::info("Config Parse: Pause On Focus Loss: {}", g_PauseOnFocusLoss.bPauseOnFocusLoss);
+    spdlog::info("Config Parse: Cutscene Asset Loading Fix - Speedrunner Bugfix Override: {}", g_PauseOnFocusLoss.bSpeedrunnerBugfixOverride);
+
     spdlog::info("Config Parse: Force Stereo Audio: {}", g_StereoAudioFix.isEnabled);
     ConfigParse_Fix_LineScaling();
 
@@ -1416,19 +1420,18 @@ void afterD3D11CreateDevice()
 
 void InitializeSubsystems()
 {
-    INITIALIZE(g_Logging.LogSysInfo());
-    INITIALIZE(Init_ASILoaderSanityChecks());
-    INITIALIZE(DetectGame());
-    
     //Initialization order (these systems initialize vars used by following ones.)
-    INITIALIZE(g_GameVars.Initialize());           //1
-    INITIALIZE(Init_D3D11Hooks());                 //2 Caches the D3DDevice, DXGIFactory, and D3DContext from D3DCreateDevice/DXGICreateFactory
-    INITIALIZE(Init_ReadConfig());                 //3
-    INITIALIZE(Init_ReshadeCompatibilityChecks()); //4 Dependent on ReadConfig, must also be before LauncherConfigOverride
-    INITIALIZE(Init_CalculateScreenSize());        //4
-    INITIALIZE(Init_LauncherConfigOverride());     //5
-    INITIALIZE(Init_FixDPIScaling());              //6 Needs to be anywhere before the window is created in CustomResolution.
-    INITIALIZE(Init_CustomResolution());           //7
+    INITIALIZE(g_Logging.LogSysInfo());            //0
+    INITIALIZE(Init_ASILoaderSanityChecks());      //1
+    INITIALIZE(DetectGame());                      //2
+    INITIALIZE(g_GameVars.Initialize());           //3
+    INITIALIZE(Init_D3D11Hooks());                 //4 Caches the D3DDevice, DXGIFactory, and D3DContext from D3DCreateDevice/DXGICreateFactory
+    INITIALIZE(Init_ReadConfig());                 //5
+    INITIALIZE(Init_ReshadeCompatibilityChecks()); //6 Dependent on ReadConfig, must also be before LauncherConfigOverride
+    INITIALIZE(Init_CalculateScreenSize());        //7
+    INITIALIZE(Init_LauncherConfigOverride());     //8
+    INITIALIZE(Init_FixDPIScaling());              //9 Needs to be anywhere before the window is created in CustomResolution.
+    INITIALIZE(Init_CustomResolution());           //10
     INITIALIZE(Init_ScaleEffects());
     INITIALIZE(Init_AspectFOVFix());
     INITIALIZE(Init_HUDFix());

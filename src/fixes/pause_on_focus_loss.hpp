@@ -5,6 +5,7 @@ class PauseOnFocusLoss
 private:
 public:
     bool bPauseOnFocusLoss;
+    bool bSpeedrunnerBugfixOverride;
     void Initialize();
     bool ShouldFixPauseState();
     
