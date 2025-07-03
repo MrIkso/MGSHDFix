@@ -1,6 +1,8 @@
 # Metal Gear Solid Master Collection Fix
 [![Patreon-Button](https://github.com/Lyall/FISTFix/assets/695941/19c468ac-52af-4790-b4eb-5187c06af949)](https://www.patreon.com/Wintermance) [![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/W7W01UAI9)<br />
-[![Github All Releases](https://img.shields.io/github/downloads/Lyall/MGSHDFix/total.svg)](https://github.com/Lyall/MGSHDFix/releases)
+[MG1 / MG2 Nexus Page](https://www.nexusmods.com/metalgearandmetalgear2mc/mods/9) | [MGS2 Nexus Page](https://www.nexusmods.com/metalgearsolid2mc/mods/49) | [MGS3 Nexus Page](https://www.nexusmods.com/metalgearsolid3mc/mods/139) | **GitHub Repo (You're already here!)**<br />
+
+[![Github All Releases](https://img.shields.io/github/downloads/Lyall/MGSHDFix/total.svg)](https://github.com/Lyall/MGSHDFix/releases)<br />
 
 This is a fix that adds custom resolutions, ultrawide support and much more to the Metal Gear Solid Master Collection.<br />
 
@@ -70,7 +72,9 @@ This list will contain bugs which may or may not be fixed.
 | Metal Gear Solid 3 |
 
 ## Credits
-[@emoose](https://github.com/emoose), [@cipherxof](https://github.com/cipherxof), [@ShizCalev/Afevis](https://github.com/shizcalev), & [@Bud11](https://github.com/bud11) for contributing fixes. <br />
+[@Lyall](https://codeberg.org/Lyall) for their amazing work making widescreen fix mods, and most importantly, the original creation of this mod!<br />
+[@ShizCalev/Afevis](https://github.com/shizcalev) for long-term maintenance and contributing fixes.<br />
+[@emoose](https://github.com/emoose), [@cipherxof](https://github.com/cipherxof), & [@Bud11](https://github.com/bud11) for contributing fixes. <br />
 [Ultimate ASI Loader](https://github.com/ThirteenAG/Ultimate-ASI-Loader) for ASI loading. <br />
 [inipp](https://github.com/mcmtroffaes/inipp) for ini reading. <br />
 [spdlog](https://github.com/gabime/spdlog) for logging. <br />

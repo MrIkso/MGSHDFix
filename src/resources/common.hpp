@@ -1,0 +1,45 @@
+#pragma once
+#include "helper.hpp"
+#include <inipp/inipp.h>
+
+extern std::string const VERSION_STRING;
+
+extern std::string sExeName;
+
+extern HMODULE engineModule;
+
+struct GameInfo
+{
+    std::string GameTitle;
+    std::string ExeName;
+    int SteamAppId;
+};
+extern const GameInfo* game;
+
+enum MgsGame : std::uint8_t
+{
+    NONE     = 0,
+    MGS2     = 1 << 0,
+    MGS3     = 1 << 1,
+    MG       = 1 << 2,
+    LAUNCHER = 1 << 3,
+    UNKNOWN  = 1 << 4
+};
+extern const std::map<MgsGame, GameInfo> kGames;
+extern MgsGame eGameType;
+
+extern inipp::Ini<char> ini;
+extern HMODULE baseModule;
+extern std::string sGameVersion;
+extern std::filesystem::path sExePath;
+extern std::string sFixName;
+
+
+//Config Options
+extern int iOutputResY;
+extern int iInternalResY;
+extern float fAspectRatio;
+extern bool bOutdatedReshade;
+extern bool bLauncherConfigSkipLauncher;
+extern int iTextureBufferSizeMB;
+
