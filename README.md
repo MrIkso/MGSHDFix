@@ -1,8 +1,8 @@
 # Metal Gear Solid Master Collection Fix
 [![Patreon-Button](https://github.com/Lyall/FISTFix/assets/695941/19c468ac-52af-4790-b4eb-5187c06af949)](https://www.patreon.com/Wintermance) [![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/W7W01UAI9)<br />
-[MG1 / MG2 Nexus Page](https://www.nexusmods.com/metalgearandmetalgear2mc/mods/9) | [MGS2 Nexus Page](https://www.nexusmods.com/metalgearsolid2mc/mods/49) | [MGS3 Nexus Page](https://www.nexusmods.com/metalgearsolid3mc/mods/139) | **GitHub Repo (You're already here!)**<br />
-
 [![Github All Releases](https://img.shields.io/github/downloads/Lyall/MGSHDFix/total.svg)](https://github.com/Lyall/MGSHDFix/releases)<br />
+
+[MG1 / MG2 Nexus Page](https://www.nexusmods.com/metalgearandmetalgear2mc/mods/9) | [MGS2 Nexus Page](https://www.nexusmods.com/metalgearsolid2mc/mods/49) | [MGS3 Nexus Page](https://www.nexusmods.com/metalgearsolid3mc/mods/139) | **GitHub Repo (You're already here!)**<br />
 
 This is a fix that adds custom resolutions, ultrawide support and much more to the Metal Gear Solid Master Collection.<br />
 
@@ -59,16 +59,16 @@ This list will contain bugs which may or may not be fixed.
 
 | ![ezgif-3-82fd6eedda](https://github.com/Lyall/MGSHDFix/assets/695941/b01453c7-b4ee-4903-bd34-340371873ecb) |
 |:--:|
-![2131640_20250428235619_1](https://github.com/user-attachments/assets/0ea1f53b-3be6-459b-9a7a-686dd14cf4e6)
-![2131640_20250428225953_1](https://github.com/user-attachments/assets/73c80569-dd37-4879-a6fb-97dbb46c2f9b)
-![2131640_20250501025301_1](https://github.com/user-attachments/assets/3f5eb079-1b64-45a6-992f-e0b421f414ad)
-![2131640_20250501025407_1](https://github.com/user-attachments/assets/c9337d0e-16fa-47e8-beba-efc067e98acb)
+![2131640_20250428235619_1](https://github.com/user-attachments/assets/610b1318-5d8c-4c36-ada2-3c883f38b33b)
+![2131640_20250428225953_1](https://github.com/user-attachments/assets/2bf8fbdf-e274-4454-83c3-1a8c82f5c11c)
+![2131640_20250501025301_1](https://github.com/user-attachments/assets/7872b59e-27e9-4e29-a19f-9f468007f9d0)
+![2131640_20250501025407_1](https://github.com/user-attachments/assets/7dd0b26c-915d-4549-9f74-03346ecea812)
 | Metal Gear Solid 2 |
 
 | ![ezgif-3-982e93f49a](https://github.com/Lyall/MGSHDFix/assets/695941/5530a42e-6b6a-4eb0-a714-ba3e7c3a1dc3) |
 |:--:|
-![2131650_20250429005837_1](https://github.com/user-attachments/assets/01b4258a-e6f3-4b24-8609-c1d21834426b)
-![vlcsnap-2025-04-30-01h48m54s182](https://github.com/user-attachments/assets/aba7a75d-f114-4c7b-b41a-668cdbdefab3)
+![2131650_20250429005837_1](https://github.com/user-attachments/assets/b5ea0b75-3944-422e-a0c9-0c542d22a55c)
+![vlcsnap-2025-04-30-01h48m54s182](https://github.com/user-attachments/assets/725a0b36-1862-4e91-b524-82aff39616ef)
 | Metal Gear Solid 3 |
 
 ## Credits
