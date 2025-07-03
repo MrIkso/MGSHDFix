@@ -18,6 +18,18 @@ void PauseOnFocusLoss::Initialize()
         return;
     }
 
+    if (eGameType & MGS3)
+    {
+
+
+
+
+
+
+
+
+    }
+
     if (eGameType & MGS2)
     {
         if (uint8_t* NHT_COsContext_SetShouldPauseApplicationResult = Memory::PatternScan(baseModule, "44 8B 2D ?? ?? ?? ?? 46 89 B4 A6", "NHT_COsContext_SetShouldPauseApplication", NULL, NULL))
