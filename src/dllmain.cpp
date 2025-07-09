@@ -1432,7 +1432,7 @@ void InitializeSubsystems()
     INITIALIZE(Init_LauncherConfigOverride());     //8
     INITIALIZE(Init_FixDPIScaling());              //9 Needs to be anywhere before the window is created in CustomResolution.
     INITIALIZE(Init_CustomResolution());           //10
-    INITIALIZE(Init_ScaleEffects());
+    INITIALIZE(Init_ScaleEffects());               
     INITIALIZE(Init_AspectFOVFix());
     INITIALIZE(Init_HUDFix());
     INITIALIZE(Init_Miscellaneous());

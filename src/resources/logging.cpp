@@ -134,18 +134,12 @@ std::string GetSteamOSVersion()
             return line.substr(13); // fallback
         }
     }
-    return "";
+    return "SteamOS (Unknown Version)";
 }
 
 ///Prints CPU, GPU, and RAM info to the log to expedite common troubleshooting.
 void Logging::LogSysInfo()
 {
-#ifndef _WIN32
-    spdlog::info("System Details - Steam Deck/Linux");
-    return;
-#endif
-
-
     std::array<int, 4> integerBuffer = {};
     constexpr size_t sizeofIntegerBuffer = sizeof(int) * integerBuffer.size();
     std::array<char, 64> charBuffer = {};
