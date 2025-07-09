@@ -34,9 +34,6 @@
     <ClCompile Include="src\features\gamma_correction.cpp">
       <Filter>WIP</Filter>
     </ClCompile>
-    <ClCompile Include="src\fixes\pause_on_focus_loss.cpp">
-      <Filter>WIP</Filter>
-    </ClCompile>
     <ClCompile Include="src\fixes\aiming_after_equip.cpp">
       <Filter>WIP</Filter>
     </ClCompile>
@@ -94,6 +91,9 @@
     </ClCompile>
     <ClCompile Include="src\warnings\corrupt_save_message.cpp">
       <Filter>Fixes</Filter>
+    </ClCompile>
+    <ClCompile Include="src\fixes\pause_on_focus_loss.cpp">
+      <Filter>Features</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

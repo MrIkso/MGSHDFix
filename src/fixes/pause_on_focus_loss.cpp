@@ -13,25 +13,70 @@ bool PauseOnFocusLoss::ShouldFixPauseState()
 
 void PauseOnFocusLoss::Initialize()
 {
-    if (g_PauseOnFocusLoss.bSpeedrunnerBugfixOverride || !(eGameType & (MG|MGS2|MGS3)))
+    if (g_PauseOnFocusLoss.bSpeedrunnerBugfixOverride)
     {
         return;
     }
 
-    if (eGameType & MGS3)
+    if (Util::CheckForASIFiles("MGSALTTABPatch", false, false, nullptr))
+    {
+        std::cout << "MOD COMPATIBILITY WARNING: MGSAltTabPatch's functionality has been added directly to MGSHDFix." << std::endl;
+        std::cout << "MOD COMPATIBILITY WARNING: MGSAltTabPatch is no longer need & can cause crashes due to conflicts if not removed." << std::endl;
+        std::cout << "MOD COMPATIBILITY WARNING: Pause On Focus Loss has been forced OFF while MGSAltTabPatch.asi is present." << std::endl;
+        spdlog::error("MOD COMPATIBILITY WARNING: MGSAltTabPatch's functionality has been added directly to MGSHDFix.");
+        spdlog::error("MOD COMPATIBILITY WARNING: MGSAltTabPatch is no longer needed & can cause crashes due to conflicts if not removed.");
+        spdlog::info("MOD COMPATIBILITY WARNING: Pause On Focus Loss has been forced OFF while MGSAltTabPatch.asi is present.");
+        g_PauseOnFocusLoss.bPauseOnFocusLoss = false;
+    }
+
+    if (!(eGameType & (MG|MGS2|MGS3)))
+    {
+        return;
+    }
+
+    if (g_PauseOnFocusLoss.bPauseOnFocusLoss && eGameType & MGS3)
     {
 
-
-
-
-
-
-
-
+        if (uint8_t* BP_COsContext_ShouldPauseApplication_Result = Memory::PatternScan(baseModule, "E8 ?? ?? ?? ?? 4C 8B 6C 24 ?? 48 8D 1D", "BP_COsContext_ShouldPauseApplication", NULL, NULL))
+        {
+            uintptr_t BP_COsContext_ShouldPauseApplication_Loc = Memory::GetRelativeOffset(BP_COsContext_ShouldPauseApplication_Result + 0x1);
+            Memory::PatchBytes(BP_COsContext_ShouldPauseApplication_Loc, "\x31\xC0\xC3", 3);
+            
+        }
+             
     }
 
     if (eGameType & MGS2)
     {
+
+        if (uint8_t* FirstGetMinFailureTestResult = Memory::PatternScan(baseModule, "48 8D 0D ?? ?? ?? ?? 33 D2 E8 ?? ?? ?? ?? 33 C0", "Alt-Tab Fix: MemSet 1", NULL, NULL))
+        {
+            static SafetyHookMid AltTabMemsetOneMidHook {};
+            AltTabMemsetOneMidHook = safetyhook::create_mid(FirstGetMinFailureTestResult,
+                [](SafetyHookContext& ctx)
+                {
+                    if (g_PauseOnFocusLoss.ShouldFixPauseState())
+                    {
+                        spdlog::info("Alt-Tab Fix: Memset 1 failure");
+                    }
+                });
+            LOG_HOOK(AltTabMemsetOneMidHook, "Alt-Tab Fix: MemSet 1", NULL, NULL)
+        }
+
+        if (uint8_t* SecondFailureTestResult = Memory::PatternScan(baseModule, "33 C9 E8 ?? ?? ?? ?? 48 8B 6C 24 ?? B8", "Alt-Tab Fix: Test Loc 2", NULL, NULL))
+        {
+            static SafetyHookMid AltTabTestLocTwoMidHook {};
+            AltTabTestLocTwoMidHook = safetyhook::create_mid(SecondFailureTestResult,
+                [](SafetyHookContext& ctx)
+                {
+                    if (g_PauseOnFocusLoss.ShouldFixPauseState())
+                    {
+                        spdlog::info("Alt-Tab Fix: Test loc 2 failure");
+                    }
+                });
+            LOG_HOOK(AltTabTestLocTwoMidHook, "Alt-Tab Fix: Test loc 2", NULL, NULL)
+        }
+
         if (uint8_t* NHT_COsContext_SetShouldPauseApplicationResult = Memory::PatternScan(baseModule, "44 8B 2D ?? ?? ?? ?? 46 89 B4 A6", "NHT_COsContext_SetShouldPauseApplication", NULL, NULL))
         {
             static SafetyHookMid NHT_COsContext_SetShouldPauseApplicationMidHook {};
@@ -61,7 +106,7 @@ void PauseOnFocusLoss::Initialize()
             LOG_HOOK(BP_COsContext_ShouldPauseApplication_SomeGlobalPlaceMidHook, "Alt-Tab Fix: BP_COsContext_ShouldPauseApplication_SomeGlobalPlace", NULL, NULL)
         }
 
-        if (uint8_t* BP_COsContext_ShouldPauseApplication_InputsNProcess_Result = Memory::PatternScan(baseModule, "85 C0 74 ?? 48 83 C6", "BP_COsContext_ShouldPauseApplication_InputsAndProcessing", NULL, NULL))
+        if (uint8_t* BP_COsContext_ShouldPauseApplication_InputsNProcess_Result = Memory::PatternScan(baseModule, eGameType & MG ? "85 C0 74 ?? 8B C5" : "85 C0 74 ?? 48 83 C6", "BP_COsContext_ShouldPauseApplication_InputsAndProcessing", NULL, NULL))
         {
             static SafetyHookMid BP_COsContext_ShouldPauseApplication_InputsNProcessMidHook {};
             BP_COsContext_ShouldPauseApplication_InputsNProcessMidHook = safetyhook::create_mid(BP_COsContext_ShouldPauseApplication_InputsNProcess_Result,

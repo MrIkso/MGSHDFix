@@ -29,7 +29,7 @@ if ((eGameType == MgsGame::MGS2) || (eGameType == MgsGame::MGS3))
     }
     */
 
-void AimAfterEquipFix::Initialize() const
+void AimAfterEquipFix::Initialize()
 {
     if (!(eGameType & (MGS2 | MGS3)))
     {

@@ -4,7 +4,7 @@ class AimAfterEquipFix
 {
 public:
     bool isEnabled;
-    void Initialize() const;
+    static void Initialize();
 };
 
 inline AimAfterEquipFix g_AimAfterEquipFix;

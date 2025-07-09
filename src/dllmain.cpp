@@ -347,7 +347,7 @@ void Init_ReadConfig()
     }
     spdlog::info("Config Parse: Skip Intro Videos: {}", g_IntroSkip.isEnabled);
     spdlog::info("Config Parse: Pause On Focus Loss: {}", g_PauseOnFocusLoss.bPauseOnFocusLoss);
-    spdlog::info("Config Parse: Cutscene Asset Loading Fix - Speedrunner Bugfix Override: {}", g_PauseOnFocusLoss.bSpeedrunnerBugfixOverride);
+    spdlog::info("Config Parse: Cutscene Asset Loading Fix - Speedrunner Override: {}", g_PauseOnFocusLoss.bSpeedrunnerBugfixOverride);
 
     spdlog::info("Config Parse: Force Stereo Audio: {}", g_StereoAudioFix.isEnabled);
     ConfigParse_Fix_LineScaling();
