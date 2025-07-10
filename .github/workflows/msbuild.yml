@@ -22,6 +22,7 @@ jobs:
       uses: microsoft/setup-msbuild@v1.1
       
     - run: msbuild ${{ github.event.repository.name }}.sln -t:rebuild -verbosity:diag -property:Configuration=Release -property:Platform=x64
+    - run: mkdir .\dist
     - run: cp x64\Release\${{ github.event.repository.name }}.asi ${{ github.event.repository.name }}.asi
 
     - uses: robinraju/release-downloader@v1.8
@@ -29,22 +30,23 @@ jobs:
         repository: "ThirteenAG/Ultimate-ASI-Loader"
         latest: true
         fileName: "Ultimate-ASI-Loader_x64.zip"
-    - run: unzip Ultimate-ASI-Loader_x64.zip -d .\
-    - run: C:\msys64\usr\bin\wget.exe -O .\UltimateASILoader_LICENSE.md https://raw.githubusercontent.com/ThirteenAG/Ultimate-ASI-Loader/master/license 
-    - run: cp .\dinput8.dll .\wininet.dll
-    - run: mv .\dinput8.dll .\winhttp.dll
-    - run: mkdir .\logs
-    - run: cp .\README.md .\logs\${{ github.event.repository.name }}.log
-    - run: mkdir .\plugins
-    - run: mv .\README.md .\plugins\${{ github.event.repository.name }}_README.md
-    - run: mv .\${{ github.event.repository.name }}.ini .\plugins\${{ github.event.repository.name }}.ini
-    - run: mv .\${{ github.event.repository.name }}.asi .\plugins\${{ github.event.repository.name }}.asi
-    - run: 7z a -tzip ${{ github.event.repository.name }}-run-${{ github.run_number }}.zip wininet.dll winhttp.dll UltimateASILoader_LICENSE.md
-    - run: 7z a ${{ github.event.repository.name }}-run-${{ github.run_number }}.zip plugins\
-    - run: 7z a ${{ github.event.repository.name }}-run-${{ github.run_number }}.zip logs\
+    - run: unzip Ultimate-ASI-Loader_x64.zip -d .\dist
+    - run: C:\msys64\usr\bin\wget.exe -O .\dist\UltimateASILoader_LICENSE.md https://raw.githubusercontent.com/ThirteenAG/Ultimate-ASI-Loader/master/license 
+    - run: cp .\dist\dinput8.dll .\dist\wininet.dll
+    - run: mv .\dist\dinput8.dll .\dist\winhttp.dll
+    - run: mkdir .\dist\logs
+    - run: cp .\README.md .\dist\logs\${{ github.event.repository.name }}.log
+    - run: mkdir .\dist\plugins
+    - run: mv .\README.md .\dist\plugins\${{ github.event.repository.name }}_README.md
+    - run: mv .\${{ github.event.repository.name }}.ini .\dist\plugins\${{ github.event.repository.name }}.ini
+    - run: mv .\${{ github.event.repository.name }}.asi .\dist\plugins\${{ github.event.repository.name }}.asi
+
+    - name: Create release zip
+      run: |
+        7z a -tzip ${{ github.event.repository.name }}-run-${{ github.run_number }}.zip dist\
 
     - name: Upload Artifact
       uses: actions/upload-artifact@v4
       with:
         name: ${{ github.event.repository.name }}-run-${{ github.run_number }}
-        path: ${{ github.event.repository.name }}-run-${{ github.run_number }}.zip
+        path: dist/

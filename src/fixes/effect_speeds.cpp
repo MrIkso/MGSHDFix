@@ -27,7 +27,7 @@
 SafetyHookInline solidusFireDashAct_hook {};
 int64_t __fastcall MGS2_solidusFireDashAct(int64_t work)
 {
-    if (!g_GameVars.InCutscene()) // only slow down during cutscenes. boss fight (which includes pad demos) runs at normal game speed.
+    if (!g_GameVars.InCutscene()) // only slow down during cutscenes. the boss fight (which includes pad demos) runs properly at normal game speed.
         return solidusFireDashAct_hook.fastcall<int64_t>(work);
 
     std::chrono::time_point<std::chrono::high_resolution_clock> current_time = std::chrono::high_resolution_clock::now();
