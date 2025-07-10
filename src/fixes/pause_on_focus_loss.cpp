@@ -34,7 +34,40 @@ void PauseOnFocusLoss::Initialize()
         return;
     }
 
-    if (g_PauseOnFocusLoss.bPauseOnFocusLoss && eGameType & MGS3)
+    if (eGameType & MG)
+    {
+
+        if (uint8_t* MG1NHT_GetIsMinimizedCallOneResult = Memory::PatternScan(baseModule, "84 C0 0F 85 ?? ?? ?? ?? E8", "Alt-Tab Fix: ?NHT_GetIsMinimized@@YA_NXZ call 1", NULL, NULL))
+        {
+            static SafetyHookMid MG1NHT_GetIsMinimizedCallOneMidHook {};
+            MG1NHT_GetIsMinimizedCallOneMidHook = safetyhook::create_mid(MG1NHT_GetIsMinimizedCallOneResult,
+                [](SafetyHookContext& ctx)
+                {
+                    if (g_PauseOnFocusLoss.ShouldFixPauseState())
+                    {
+                        ctx.rax &= ~0xFF; 
+                    }
+                });
+            LOG_HOOK(MG1NHT_GetIsMinimizedCallOneMidHook, "Alt-Tab Fix: ?NHT_GetIsMinimized@@YA_NXZ call 1", NULL, NULL)
+        }
+
+        if (uint8_t* sub_7FF7271FD220Result = Memory::PatternScan(baseModule, "84 C0 0F 84 ?? ?? ?? ?? 83 3F", "Alt-Tab Fix: sub_7FF7271FD220", NULL, NULL))
+        {
+            static SafetyHookMid sub_7FF7271FD220MidHook {};
+            sub_7FF7271FD220MidHook = safetyhook::create_mid(sub_7FF7271FD220Result,
+                [](SafetyHookContext& ctx)
+                {
+                    if (g_PauseOnFocusLoss.ShouldFixPauseState())
+                    {
+                        ctx.rax = (ctx.rax & ~0xFF) | 0x01;
+                    }
+                });
+            LOG_HOOK(sub_7FF7271FD220MidHook, "Alt-Tab Fix: sub_7FF7271FD220", NULL, NULL)
+        }
+
+    }
+
+    if (!g_PauseOnFocusLoss.bPauseOnFocusLoss && eGameType & MGS3)
     {
 
         if (uint8_t* BP_COsContext_ShouldPauseApplication_Result = Memory::PatternScan(baseModule, "E8 ?? ?? ?? ?? 4C 8B 6C 24 ?? 48 8D 1D", "BP_COsContext_ShouldPauseApplication", NULL, NULL))

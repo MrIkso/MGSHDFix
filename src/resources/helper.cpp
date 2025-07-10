@@ -120,13 +120,13 @@ namespace Memory
             {
                 if (successMessage)
                 {
-                    spdlog::info("{} Address: {:s}+{:x}", successMessage, sExeName.c_str(), (uintptr_t)foundPattern - (uintptr_t)baseModule);
+                    spdlog::info("{} Address: {:s}+{:x}", successMessage, sExeName.c_str(), (uintptr_t)foundPattern - (uintptr_t)module);
 
                 }
                 else
                 {
                 
-                    spdlog::info("{}: Pattern scan found. Address: {:s}+{:x}", prefix, sExeName.c_str(), (uintptr_t)foundPattern - (uintptr_t)baseModule);
+                    spdlog::info("{}: Pattern scan found. Address: {:s}+{:x}", prefix, sExeName.c_str(), (uintptr_t)foundPattern - (uintptr_t)module);
                 }
             }
         }

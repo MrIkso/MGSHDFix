@@ -412,9 +412,9 @@ void Init_CustomResolution()
     if (eGameType & (MG|MGS2|MGS3) && bOutputResolution)
     {
         // MGS 2 | MGS 3: Custom Resolution
-        uint8_t* MGS2_MGS3_InternalResolutionScanResult = Memory::PatternScanSilent(baseModule, "F2 0F ?? ?? ?? B9 05 00 00 00 E8 ?? ?? ?? ?? 85 ?? 75 ??");
-        uint8_t* MGS2_MGS3_OutputResolution1ScanResult = Memory::PatternScanSilent(baseModule, "40 ?? ?? 74 ?? 8B ?? ?? ?? ?? ?? 8B ?? ?? ?? ?? ?? EB ?? B9 06 00 00 00");
-        uint8_t* MGS2_MGS3_OutputResolution2ScanResult = Memory::PatternScanSilent(baseModule, "80 ?? ?? 00 41 ?? ?? ?? ?? ?? 48 ?? ?? ?? BA ?? ?? ?? ?? 8B ??");
+        uint8_t* MGS2_MGS3_InternalResolutionScanResult = Memory::PatternScan(baseModule, "F2 0F ?? ?? ?? B9 05 00 00 00 E8 ?? ?? ?? ?? 85 ?? 75 ??", "MGS2_MGS3_InternalResolutionScan", NULL, NULL);
+        uint8_t* MGS2_MGS3_OutputResolution1ScanResult = Memory::PatternScan(baseModule, "40 ?? ?? 74 ?? 8B ?? ?? ?? ?? ?? 8B ?? ?? ?? ?? ?? EB ?? B9 06 00 00 00", "MGS2_MGS3_OutputResolution1Scan", NULL, NULL);
+        uint8_t* MGS2_MGS3_OutputResolution2ScanResult = Memory::PatternScan(baseModule, "80 ?? ?? 00 41 ?? ?? ?? ?? ?? 48 ?? ?? ?? BA ?? ?? ?? ?? 8B ??", "MGS2_MGS3_OutputResolution2Scan", NULL, NULL);
         if (MGS2_MGS3_InternalResolutionScanResult && MGS2_MGS3_OutputResolution1ScanResult && MGS2_MGS3_OutputResolution2ScanResult)
         {
             uint8_t* MGS2_MGS3_FSR_Result = Memory::PatternScanSilent(baseModule, "83 E8 ?? 74 ?? 83 E8 ?? 74 ?? 83 F8 ?? 75 ?? C7 06");
@@ -434,7 +434,6 @@ void Init_CustomResolution()
             }
 
             // Output resolution 1
-            spdlog::info("MG/MG2 | MGS 2 | MGS 3: Custom Resolution: Output 1: Address is {:s}+{:x}", sExeName.c_str(), (uintptr_t)MGS2_MGS3_OutputResolution1ScanResult - (uintptr_t)baseModule);
             static SafetyHookMid OutputResolution1MidHook{};
             OutputResolution1MidHook = safetyhook::create_mid(MGS2_MGS3_OutputResolution1ScanResult,
                 [](SafetyHookContext& ctx)
@@ -444,7 +443,6 @@ void Init_CustomResolution()
                 });
 
             // Output resolution 2
-            spdlog::info("MG/MG2 | MGS 2 | MGS 3: Custom Resolution: Output 2: Address is {:s}+{:x}", sExeName.c_str(), (uintptr_t)MGS2_MGS3_OutputResolution2ScanResult - (uintptr_t)baseModule);
             static SafetyHookMid OutputResolution2MidHook{};
             OutputResolution2MidHook = safetyhook::create_mid(MGS2_MGS3_OutputResolution2ScanResult,
                 [](SafetyHookContext& ctx)
@@ -454,7 +452,6 @@ void Init_CustomResolution()
                 });
 
             // Internal resolution
-            spdlog::info("MG/MG2 | MGS 2 | MGS 3: Custom Resolution: Internal: Address is {:s}+{:x}", sExeName.c_str(), (uintptr_t)MGS2_MGS3_InternalResolutionScanResult - (uintptr_t)baseModule);
             static SafetyHookMid InternalResolutionMidHook{};
             InternalResolutionMidHook = safetyhook::create_mid(MGS2_MGS3_InternalResolutionScanResult + 0x5,
                 [](SafetyHookContext& ctx)
@@ -473,13 +470,13 @@ void Init_CustomResolution()
             if (iOutputResY >= 1080) 
             {
                 if (!Memory::PatternScanSilent(baseModule, "5F 34 6B 2E 63 74 78 72 00")) //  _4k.ctxr - Make sure the game is a version with 4k loadingscreens
-                    spdlog::warn("MGS 2 | MGS 3: Custom Resolution: Splashscreens {}: Incompatible game version. Skipping.");
+                    spdlog::warn("MGS 2 | MGS 3: Custom Resolution: Splashscreens: Incompatible game version. Skipping.");
                 else 
                 {
                     uint8_t* MGS2_MGS3_SplashscreenResult = Memory::PatternScanSilent(baseModule, "FF 15 ?? ?? ?? ?? 48 8B 05 ?? ?? ?? ?? 4C 8D 44 24 ?? 48 8D 54 24 ?? 48 8B 08 48 8B 01 FF 50 ?? 48 8B 58");
                     if (!MGS2_MGS3_SplashscreenResult)
                     {
-                        spdlog::error("MGS 2 | MGS 3: Custom Resolution: Splashscreens {}: Pattern scan failed.");
+                        spdlog::error("MGS 2 | MGS 3: Custom Resolution: Splashscreens: Pattern scan failed.");
                     }
                     else
                     {
@@ -544,10 +541,8 @@ void Init_CustomResolution()
         }
 
         // MG 1/2 | MGS 2 | MGS 3: WindowedMode
-        uint8_t* MGS2_MGS3_WindowedModeScanResult = Memory::PatternScanSilent(baseModule, "48 ?? ?? E8 ?? ?? ?? ?? 84 ?? 0F 84 ?? ?? ?? ?? 48 ?? ?? ?? ?? ?? ?? 41 ?? 03 00 00 00");
-        if (MGS2_MGS3_WindowedModeScanResult)
+        if (uint8_t* MGS2_MGS3_WindowedModeScanResult = Memory::PatternScan(baseModule, "48 ?? ?? E8 ?? ?? ?? ?? 84 ?? 0F 84 ?? ?? ?? ?? 48 ?? ?? ?? ?? ?? ?? 41 ?? 03 00 00 00", "WindowedMode", NULL, NULL))
         {
-            spdlog::info("MG/MG2 | MGS 2 | MGS 3: WindowedMode: Address is {:s}+{:x}", sExeName.c_str(), (uintptr_t)MGS2_MGS3_WindowedModeScanResult - (uintptr_t)baseModule);
             static SafetyHookMid WindowedModeMidHook{};
             WindowedModeMidHook = safetyhook::create_mid(MGS2_MGS3_WindowedModeScanResult,
                 [](SafetyHookContext& ctx)
@@ -563,18 +558,14 @@ void Init_CustomResolution()
                     }
                 });
         }
-        else if (!MGS2_MGS3_WindowedModeScanResult)
-        {
-            spdlog::error("MG/MG2 | MGS 2 | MGS 3: WindowedMode: Pattern scan failed.");
-        }
+
 
         // MG 1/2 | MGS 2 | MGS 3: CreateWindowExA
         CreateWindowExA_hook = safetyhook::create_inline(CreateWindowExA, reinterpret_cast<void*>(CreateWindowExA_hooked));
         spdlog::info("MG/MG2 | MGS 2 | MGS 3: CreateWindowExA: Hooked function.");
 
         // MG 1/2 | MGS 2 | MGS 3: SetWindowPos
-        uint8_t* MGS2_MGS3_SetWindowPosScanResult = Memory::PatternScanSilent(baseModule, "33 ?? 48 ?? ?? ?? FF ?? ?? ?? ?? ?? 8B ?? ?? BA 02 00 00 00");
-        if (MGS2_MGS3_SetWindowPosScanResult)
+        if (uint8_t* MGS2_MGS3_SetWindowPosScanResult = Memory::PatternScan(baseModule, "33 ?? 48 ?? ?? ?? FF ?? ?? ?? ?? ?? 8B ?? ?? BA 02 00 00 00", "SetWindowPos", NULL, NULL))
         {
             static SafetyHookMid SetWindowPosMidHook{};
             SetWindowPosMidHook = safetyhook::create_mid(MGS2_MGS3_SetWindowPosScanResult,
@@ -601,12 +592,8 @@ void Init_CustomResolution()
                     }
                 });
 
-            spdlog::info("MG/MG2 | MGS 2 | MGS 3: SetWindowPos: Address is {:s}+{:x}", sExeName.c_str(), (uintptr_t)MGS2_MGS3_SetWindowPosScanResult - (uintptr_t)baseModule);
         }
-        else if (!MGS2_MGS3_SetWindowPosScanResult)
-        {
-            spdlog::error("MG/MG2 | MGS 2 | MGS 3: SetWindowPos: Pattern scan failed.");
-        }
+
 
         // MGS 2 | MGS 3: Framebuffer fix, stops the framebuffer from being set to maximum display resolution.
         // Thanks emoose!
@@ -616,34 +603,28 @@ void Init_CustomResolution()
             for (int i = 1; i <= 2; ++i)
             {
                 // Fullscreen framebuffer
-                uint8_t* MGS2_MGS3_FullscreenFramebufferFixScanResult = Memory::PatternScanSilent(baseModule, "03 ?? 41 ?? ?? ?? C7 ?? ?? ?? ?? ?? ?? 00 00 00");
-                if (MGS2_MGS3_FullscreenFramebufferFixScanResult)
+                if (uint8_t* MGS2_MGS3_FullscreenFramebufferFixScanResult = Memory::PatternScanSilent(baseModule, "03 ?? 41 ?? ?? ?? C7 ?? ?? ?? ?? ?? ?? 00 00 00"))
                 {
-                    spdlog::info("MG/MG2 | MGS 2 | MGS 3: Fullscreen Framebuffer {}: Address is {:s}+{:x}", i, sExeName.c_str(), (uintptr_t)MGS2_MGS3_FullscreenFramebufferFixScanResult - (uintptr_t)baseModule);
                     Memory::PatchBytes((uintptr_t)MGS2_MGS3_FullscreenFramebufferFixScanResult + 0x2, "\x90\x90\x90\x90", 4);
                     spdlog::info("MG/MG2 | MGS 2 | MGS 3: Fullscreen Framebuffer {}: Patched instruction.", i);
-                }
-                else if (!MGS2_MGS3_FullscreenFramebufferFixScanResult)
-                {
-                    spdlog::error("MG/MG2 | MGS 2 | MGS 3: Fullscreen Framebuffer {}: Pattern scan failed.", i);
                 }
             }
 
             // Windowed framebuffer
-            uint8_t* MGS2_MGS3_WindowedFramebufferFixScanResult = Memory::PatternScanSilent(baseModule, "?? ?? F3 0F ?? ?? 41 ?? ?? F3 0F ?? ?? F3 0F ?? ?? 66 0F ?? ?? 0F ?? ??");
-            if (MGS2_MGS3_WindowedFramebufferFixScanResult)
+            
+            if (uint8_t* MGS2_MGS3_WindowedFramebufferFixScanResult = Memory::PatternScan(baseModule, "?? ?? F3 0F ?? ?? 41 ?? ?? F3 0F ?? ?? F3 0F ?? ?? 66 0F ?? ?? 0F ?? ??", "Windowed Framebuffer", NULL, NULL))
             {
-                spdlog::info("MG/MG2 | MGS 2 | MGS 3: Windowed Framebuffer: Address is {:s}+{:x}", sExeName.c_str(), (uintptr_t)MGS2_MGS3_WindowedFramebufferFixScanResult - (uintptr_t)baseModule);
                 Memory::PatchBytes((uintptr_t)MGS2_MGS3_WindowedFramebufferFixScanResult, "\xEB", 1);
                 if (eGameType & MG|MGS3)
+                {
                     Memory::PatchBytes((uintptr_t)MGS2_MGS3_WindowedFramebufferFixScanResult + 0x2A, "\xEB", 1);
+                }
+                    
                 if (eGameType & MGS2)
+                {
                     Memory::PatchBytes((uintptr_t)MGS2_MGS3_WindowedFramebufferFixScanResult + 0x27, "\xEB", 1);
+                }
                 spdlog::info("MG/MG2 | MGS 2 | MGS 3: Windowed Framebuffer: Patched instructions.");
-            }
-            else if (!MGS2_MGS3_WindowedFramebufferFixScanResult)
-            {
-                spdlog::error("MG/MG2 | MGS 2 | MGS 3: Windowed Framebuffer: Pattern scan failed.");
             }
         }
     }
