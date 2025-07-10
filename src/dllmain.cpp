@@ -367,6 +367,7 @@ bool DetectGame()
             {
                 spdlog::info("Detected launcher for game: {} (app {})", info.GameTitle.c_str(), info.SteamAppId);
                 eGameType = LAUNCHER;
+                unityPlayer = GetModuleHandleA("UnityPlayer.dll");
                 game = &info;
                 return true;
             }
@@ -384,9 +385,7 @@ bool DetectGame()
             eGameType = type;
             game = &info;
 
-            engineModule = GetModuleHandleA("Engine.dll");
-            HMODULE engineModule = GetModuleHandleA("Engine.dll");
-            if (!engineModule)
+            if (engineModule = GetModuleHandleA("Engine.dll"); !engineModule)
             {
                 spdlog::error("Failed to get Engine.dll module handle");
             }
@@ -765,10 +764,8 @@ void Init_AspectFOVFix()
     if (eGameType & MGS3 && bAspectFix)
     {
         // MGS 3: Fix gameplay aspect ratio
-        uint8_t* MGS3_GameplayAspectScanResult = Memory::PatternScanSilent(baseModule, "F3 0F ?? ?? E8 ?? ?? ?? ?? 48 8D ?? ?? ?? ?? ?? F3 0F ?? ?? ?? ?? ?? ??");
-        if (MGS3_GameplayAspectScanResult)
+        if (uint8_t* MGS3_GameplayAspectScanResult = Memory::PatternScan(baseModule, "F3 0F ?? ?? E8 ?? ?? ?? ?? 48 8D ?? ?? ?? ?? ?? F3 0F ?? ?? ?? ?? ?? ??", "MGS 3: Aspect Ratio", NULL, NULL))
         {
-            spdlog::info("MGS 3: Aspect Ratio: Address is {:s}+{:x}", sExeName.c_str(), (uintptr_t)MGS3_GameplayAspectScanResult - (uintptr_t)baseModule);
             DWORD64 MGS3_GameplayAspectAddress = Memory::GetAbsolute((uintptr_t)MGS3_GameplayAspectScanResult + 0x5);
             spdlog::info("MGS 3: Aspect Ratio: Function address is {:s}+{:x}", sExeName.c_str(), (uintptr_t)MGS3_GameplayAspectAddress - (uintptr_t)baseModule);
 
@@ -778,19 +775,15 @@ void Init_AspectFOVFix()
                 {
                     ctx.xmm1.f32[0] /= fAspectMultiplier;
                 });
-        }
-        else if (!MGS3_GameplayAspectScanResult)
-        {
-            spdlog::error("MG/MG2 | MGS 3: Aspect Ratio: Pattern scan failed.");
+            LOG_HOOK(MGS3_GameplayAspectMidHook, "MGS 3: Aspect Ratio", NULL, NULL)
+
         }
     }
     else if (eGameType & MGS2 && bAspectFix)
     {
         // MGS 2: Fix gameplay aspect ratio
-        uint8_t* MGS2_GameplayAspectScanResult = Memory::PatternScanSilent(baseModule, "48 8D ?? ?? ?? E8 ?? ?? ?? ?? E8 ?? ?? ?? ?? F3 44 ?? ?? ?? ?? ?? ?? ??");
-        if (MGS2_GameplayAspectScanResult)
+        if (uint8_t* MGS2_GameplayAspectScanResult = Memory::PatternScan(baseModule, "48 8D ?? ?? ?? E8 ?? ?? ?? ?? E8 ?? ?? ?? ?? F3 44 ?? ?? ?? ?? ?? ?? ??", "MGS 2: Aspect Ratio", NULL, NULL))
         {
-            spdlog::info("MGS 2: Aspect Ratio: Address is {:s}+{:x}", sExeName.c_str(), (uintptr_t)MGS2_GameplayAspectScanResult - (uintptr_t)baseModule);
             DWORD64 MGS2_GameplayAspectAddress = Memory::GetAbsolute((uintptr_t)MGS2_GameplayAspectScanResult + 0xB);
             spdlog::info("MGS 2: Aspect Ratio: Function address is {:s}+{:x}", sExeName.c_str(), (uintptr_t)MGS2_GameplayAspectAddress - (uintptr_t)baseModule);
 
@@ -800,10 +793,7 @@ void Init_AspectFOVFix()
                 {
                     ctx.xmm0.f32[0] /= fAspectMultiplier;
                 });
-        }
-        else if (!MGS2_GameplayAspectScanResult)
-        {
-            spdlog::error("MGS 2: Aspect Ratio: Pattern scan failed.");
+            LOG_HOOK(MGS2_GameplayAspectMidHook, "MGS 2: Aspect Ratio", NULL, NULL)
         }
     }
 
@@ -811,11 +801,8 @@ void Init_AspectFOVFix()
     if (eGameType & MGS3 && bFOVFix)
     {
         // MGS 3: FOV
-        uint8_t* MGS3_FOVScanResult = Memory::PatternScanSilent(baseModule, "F3 0F ?? ?? ?? ?? ?? ?? 44 ?? ?? ?? ?? ?? E8 ?? ?? ?? ?? F3 ?? ?? ?? ?? E8 ?? ?? ?? ??");
-        if (MGS3_FOVScanResult)
+        if (uint8_t* MGS3_FOVScanResult = Memory::PatternScan(baseModule, "F3 0F ?? ?? ?? ?? ?? ?? 44 ?? ?? ?? ?? ?? E8 ?? ?? ?? ?? F3 ?? ?? ?? ?? E8 ?? ?? ?? ??", "MGS 3: FOV", NULL, NULL))
         {
-            spdlog::info("MGS 3: FOV: Address is {:s}+{:x}", sExeName.c_str(), (uintptr_t)MGS3_FOVScanResult - (uintptr_t)baseModule);
-
             static SafetyHookMid MGS3_FOVMidHook{};
             MGS3_FOVMidHook = safetyhook::create_mid(MGS3_FOVScanResult,
                 [](SafetyHookContext& ctx)
@@ -825,20 +812,14 @@ void Init_AspectFOVFix()
                         ctx.xmm2.f32[0] *= fAspectMultiplier;
                     }
                 });
-        }
-        else if (!MGS3_FOVScanResult)
-        {
-            spdlog::error("MGS 3: FOV: Pattern scan failed.");
+            LOG_HOOK(MGS3_FOVMidHook, "MG3 2: FOV", NULL, NULL)
         }
     }
     else if (eGameType & MGS2 && bFOVFix)
     {
         // MGS 2: FOV
-        uint8_t* MGS2_FOVScanResult = Memory::PatternScanSilent(baseModule, "44 ?? ?? ?? ?? F3 0F ?? ?? ?? ?? ?? ?? 44 ?? ?? ?? ?? 48 ?? ?? 48 ?? ?? ?? ?? 00 00");
-        if (MGS2_FOVScanResult)
+        if (uint8_t* MGS2_FOVScanResult = Memory::PatternScan(baseModule, "44 ?? ?? ?? ?? F3 0F ?? ?? ?? ?? ?? ?? 44 ?? ?? ?? ?? 48 ?? ?? 48 ?? ?? ?? ?? 00 00", "MGS 2: FOV", NULL, NULL))
         {
-            spdlog::info("MGS 2: FOV: Address is {:s}+{:x}", sExeName.c_str(), (uintptr_t)MGS2_FOVScanResult - (uintptr_t)baseModule);
-
             static SafetyHookMid MGS2_FOVMidHook{};
             MGS2_FOVMidHook = safetyhook::create_mid(MGS2_FOVScanResult,
                 [](SafetyHookContext& ctx)
@@ -848,11 +829,9 @@ void Init_AspectFOVFix()
                         ctx.xmm2.f32[0] *= fAspectMultiplier;
                     }
                 });
+            LOG_HOOK(MGS2_FOVMidHook, "MGS 2: FOV", NULL, NULL)
         }
-        else if (!MGS2_FOVScanResult)
-        {
-            spdlog::error("MGS 2: FOV: Pattern scan failed.");
-        }
+        
     }
     
 }
@@ -1038,42 +1017,20 @@ void Init_Miscellaneous()
         {
             // Launcher | MG/MG2 | MGS 2 | MGS 3: Disable mouse cursor
             // Thanks again emoose!
-            uint8_t* MGS2_MGS3_MouseCursorScanResult = Memory::PatternScanSilent(baseModule, "BA 00 7F 00 00 33 ?? FF ?? ?? ?? ?? ?? 48 ?? ??");
-            if (eGameType & LAUNCHER)
+            if (uint8_t* MGS2_MGS3_MouseCursorScanResult = Memory::PatternScan(eGameType & LAUNCHER ? unityPlayer : baseModule, "BA 00 7F 00 00 33 ?? FF ?? ?? ?? ?? ?? 48 ?? ??", "Launcher | MG/MG2 | MGS 2 | MGS 3: Mouse Cursor", NULL, NULL))
             {
-                unityPlayer = GetModuleHandleA("UnityPlayer.dll");
-                MGS2_MGS3_MouseCursorScanResult = Memory::PatternScanSilent(unityPlayer, "BA 00 7F 00 00 33 ?? FF ?? ?? ?? ?? ?? 48 ?? ??");
-            }
-
-            if (MGS2_MGS3_MouseCursorScanResult)
-            {
-                if (eGameType & LAUNCHER)
-                {
-                    spdlog::info("Launcher | MG/MG2 | MGS 2 | MGS 3: Mouse Cursor: Address is {:s}+{:x}", sExeName.c_str(), (uintptr_t)MGS2_MGS3_MouseCursorScanResult - (uintptr_t)unityPlayer);
-                }
-                else
-                {
-                    spdlog::info("Launcher | MG/MG2 | MGS 2 | MGS 3: Mouse Cursor: Address is {:s}+{:x}", sExeName.c_str(), (uintptr_t)MGS2_MGS3_MouseCursorScanResult - (uintptr_t)baseModule);
-                }
                 // The game enters 32512 in the RDX register for the function USER32.LoadCursorA to load IDC_ARROW (normal select arrow in windows)
                 // Set this to 0 and no cursor icon is loaded
                 Memory::PatchBytes((uintptr_t)MGS2_MGS3_MouseCursorScanResult + 0x2, "\x00", 1);
                 spdlog::info("Launcher | MG/MG2 | MGS 2 | MGS 3: Mouse Cursor: Patched instruction.");
-            }
-            else if (!MGS2_MGS3_MouseCursorScanResult)
-            {
-                spdlog::error("Launcher | MG/MG2 | MGS 2 | MGS 3: Mouse Cursor: Pattern scan failed.");
             }
         }
     }
 
     if ((bDisableTextureFiltering || iAnisotropicFiltering > 0) && (eGameType & (MGS2|MGS3)))
     {
-        uint8_t* MGS3_SetSamplerStateInsnScanResult = Memory::PatternScanSilent(baseModule, "48 8B ?? ?? ?? ?? ?? 44 39 ?? ?? 38 ?? ?? ?? 74 ?? 44 89 ?? ?? ?? ?? ?? ?? EB ?? 48 ?? ??");
-        if (MGS3_SetSamplerStateInsnScanResult)
+        if (uint8_t* MGS3_SetSamplerStateInsnScanResult = Memory::PatternScan(baseModule, "48 8B ?? ?? ?? ?? ?? 44 39 ?? ?? 38 ?? ?? ?? 74 ?? 44 89 ?? ?? ?? ?? ?? ?? EB ?? 48 ?? ??", "MGS 2 | MGS 3: Texture Filtering", NULL, NULL))
         {
-            spdlog::info("MGS 2 | MGS 3: Texture Filtering: Address is {:s}+{:x}", sExeName.c_str(), (uintptr_t)MGS3_SetSamplerStateInsnScanResult - (uintptr_t)baseModule);
-
             static SafetyHookMid SetSamplerStateInsnXMidHook{};
             SetSamplerStateInsnXMidHook = safetyhook::create_mid(MGS3_SetSamplerStateInsnScanResult + 0x7,
                 [](SafetyHookContext& ctx)
@@ -1086,12 +1043,9 @@ void Init_Miscellaneous()
                     //0x1 = D3D11_FILTER_MIN_MAG_POINT_MIP_LINEAR (Linear mips is essentially perspective correction.) 0x55 = D3D11_FILTER_ANISOTROPIC
                     ctx.r9 = bDisableTextureFiltering ? 0x1 : 0x55;
                 });
+            LOG_HOOK(SetSamplerStateInsnXMidHook, "MGS 2 | MGS 3: Texture Filtering", NULL, NULL)
+        }
 
-        }
-        else if (!MGS3_SetSamplerStateInsnScanResult)
-        {
-            spdlog::error("MGS 2 | MGS 3: Texture Filtering: Pattern scan failed.");
-        }
     }
 
     if (eGameType & MGS3 && bMouseSensitivity)

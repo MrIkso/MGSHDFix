@@ -112,8 +112,8 @@ void Logging::Initialize()
             return FreeLibraryAndExitThread(baseModule, 1);
         }
     }
-    auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - g_Logging.initStartTime).count(); \
-        spdlog::info("---------- Logging loaded in: {} ms ----------", duration);
+    auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - g_Logging.initStartTime).count();
+    spdlog::info("---------- Logging loaded in: {} ms ----------", duration);
 }
 
 std::string GetSteamOSVersion()
