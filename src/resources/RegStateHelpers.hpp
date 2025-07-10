@@ -117,7 +117,7 @@ namespace reghelpers
 inline void Set##reg##L(safetyhook::Context& regs, uint8_t val) { regs.reg = (regs.reg & ~0xFFULL) | val; } \
 inline uint8_t Get##reg##L(const safetyhook::Context& regs) { return regs.reg & 0xFF; }
 
-    DEFINE_8BIT_LOW_HELPERS(rsi)
+        DEFINE_8BIT_LOW_HELPERS(rsi)
         DEFINE_8BIT_LOW_HELPERS(rdi)
         DEFINE_8BIT_LOW_HELPERS(rbp)
         DEFINE_8BIT_LOW_HELPERS(rsp)
