@@ -66,6 +66,7 @@
     <ClInclude Include="src\fixes\skyboxes.hpp" />
     <ClInclude Include="src\fixes\aiming_after_equip.hpp" />
     <ClInclude Include="src\fixes\color_filters.hpp" />
+    <ClInclude Include="src\resources\RegStateHelpers.hpp" />
     <ClInclude Include="src\warnings\corrupt_save_message.hpp" />
     <ClInclude Include="src\features\msaa.hpp" />
     <ClInclude Include="src\warnings\mute_warning.hpp" />

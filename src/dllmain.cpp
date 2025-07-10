@@ -1,5 +1,4 @@
 #include "common.hpp"
-#include <safetyhook.hpp>
 #include "logging.hpp"
 
 ///Resources

@@ -175,6 +175,9 @@
     <ClInclude Include="src\warnings\corrupt_save_message.hpp">
       <Filter>Fixes\Headers</Filter>
     </ClInclude>
+    <ClInclude Include="src\resources\RegStateHelpers.hpp">
+      <Filter>Utility</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Image Include="src\mgshdfix.ico">

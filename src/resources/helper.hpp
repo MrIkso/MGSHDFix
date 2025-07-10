@@ -1,7 +1,8 @@
 #pragma once
 
 #include "stdafx.h"
-#include "safetyhook.hpp"
+#include "RegStateHelpers.hpp"
+
 
 extern bool bVerboseLogging;
 
