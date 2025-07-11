@@ -114,8 +114,8 @@ namespace reghelpers
 
     // RSI, RDI, RBP, RSP (only low 8 bits available)
 #define DEFINE_8BIT_LOW_HELPERS(reg) \
-inline void Set##reg##L(safetyhook::Context& regs, uint8_t val) { regs.reg = (regs.reg & ~0xFFULL) | val; } \
-inline uint8_t Get##reg##L(const safetyhook::Context& regs) { return regs.reg & 0xFF; }
+inline void Set##reg##l(safetyhook::Context& regs, uint8_t val) { regs.reg = (regs.reg & ~0xFFULL) | val; } \
+inline uint8_t Get##reg##l(const safetyhook::Context& regs) { return regs.reg & 0xFF; }
 
         DEFINE_8BIT_LOW_HELPERS(rsi)
         DEFINE_8BIT_LOW_HELPERS(rdi)
@@ -126,8 +126,8 @@ inline uint8_t Get##reg##L(const safetyhook::Context& regs) { return regs.reg & 
 
         // R8 - R15 low 8 bits
 #define DEFINE_R8_15_8BIT_HELPERS(num) \
-inline void SetR##num##B(safetyhook::Context& regs, uint8_t val) { regs.r##num = (regs.r##num & ~0xFFULL) | val; } \
-inline uint8_t GetR##num##B(const safetyhook::Context& regs) { return regs.r##num & 0xFF; }
+inline void SetR##num##b(safetyhook::Context& regs, uint8_t val) { regs.r##num = (regs.r##num & ~0xFFULL) | val; } \
+inline uint8_t GetR##num##b(const safetyhook::Context& regs) { return regs.r##num & 0xFF; }
 
         DEFINE_R8_15_8BIT_HELPERS(8)
         DEFINE_R8_15_8BIT_HELPERS(9)
@@ -143,8 +143,8 @@ inline uint8_t GetR##num##B(const safetyhook::Context& regs) { return regs.r##nu
         // --- 16-bit helpers ---
 
 #define DEFINE_16BIT_HELPERS(reg) \
-inline void Set##reg##W(safetyhook::Context& regs, uint16_t val) { regs.reg = (regs.reg & ~0xFFFFULL) | val; } \
-inline uint16_t Get##reg##W(const safetyhook::Context& regs) { return regs.reg & 0xFFFF; }
+inline void Set##reg##w(safetyhook::Context& regs, uint16_t val) { regs.reg = (regs.reg & ~0xFFFFULL) | val; } \
+inline uint16_t Get##reg##w(const safetyhook::Context& regs) { return regs.reg & 0xFFFF; }
 
         DEFINE_16BIT_HELPERS(rax)
         DEFINE_16BIT_HELPERS(rbx)
@@ -168,8 +168,8 @@ inline uint16_t Get##reg##W(const safetyhook::Context& regs) { return regs.reg &
         // --- 32-bit helpers ---
 
 #define DEFINE_32BIT_HELPERS(reg) \
-inline void Set##reg##D(safetyhook::Context& regs, uint32_t val) { regs.reg = (regs.reg & ~0xFFFFFFFFULL) | val; } \
-inline uint32_t Get##reg##D(const safetyhook::Context& regs) { return regs.reg & 0xFFFFFFFF; }
+inline void Set##reg##d(safetyhook::Context& regs, uint32_t val) { regs.reg = (regs.reg & ~0xFFFFFFFFULL) | val; } \
+inline uint32_t Get##reg##d(const safetyhook::Context& regs) { return regs.reg & 0xFFFFFFFF; }
 
         DEFINE_32BIT_HELPERS(rax)
         DEFINE_32BIT_HELPERS(rbx)

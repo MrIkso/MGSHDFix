@@ -4,8 +4,8 @@
 
 ///PS2's I/O subprocessor clock speed in MHz. If an effect ran via a loop on the PS2, it was likely limited by this clock speed as opposed to running at 30 FPS.
 #define PS2_IOP_CLOCKSPEED 36.864
-#define FRAME_IOP_DIVIDER (PS2_IOP_CLOCKSPEED/60)
-#define FRAME_IOP_MULTIPLIER (60/PS2_IOP_CLOCKSPEED)
+const double FRAME_IOP_DIVIDER = (PS2_IOP_CLOCKSPEED / 60);
+const double FRAME_IOP_MULTIPLIER = (60 / PS2_IOP_CLOCKSPEED);
 
 /////////////////////////////////////////////////////////////////
 /// Corrects various visual effects in MGS2 which were
@@ -16,7 +16,8 @@
 /// SolidusFireAct & CreateDebrisTexture fixes originally made as
 /// part of a modding fix bounty claimed by Cipherxof/Triggerhappy
 /// and originally included in the MGSFPSUnlock mod.
-/// It has been modified to use RTC timesteps for 1:1 PS2 accurate frame-timing.
+/// They have been updated to fix numerous bugs, and upgraded (where needed) 
+/// to use RTC timesteps for 1:1 PS2 accurate frame-timing.
 /// 
 /// Overlapping integrations originating from MGSFPSUnlock are 
 /// automatically disabled when older versions of MGSFPSUnlock are
@@ -51,43 +52,20 @@ int64_t __fastcall MGS2_solidusFireDashAct(int64_t work)
     return 0;
 }
 
-#ifdef _MGSDEBUGGING
-SafetyHookInline createDebrisTex_hook {};
-int64_t __fastcall MGS2_createDebrisTex(int64_t a1, float* a2, float* a3, unsigned int a4, int a5, int a6, float a7)
-{
-    auto result = createDebrisTex_hook.fastcall<int64_t>(a1, a2, a3, a4, a5, a6, a7);
-    // Adjust duration based on cutscene
-    int effect_duration = 150;
-    
-    // Check current stage to adjust effect duration
-    if (strcmp(g_GameVars.GetCurrentStage(), "d012p01") == 0)
-    {
-        // P012_01_P01 Fortune encounter 1 polygon demo 1 (BC connecting bridge - Fortune vs Seals encounter)
-        effect_duration = 600;
-    }
-    else if (strcmp(g_GameVars.GetCurrentStage(), "d12t1") == 0)
-    {
-        // T12a1D The Seizure of Metal gear Demo (liquid ocelot first encounter)
-        effect_duration = 600;
-    }
-    
-    // Apply the effect duration
-    *(int*)(a1 + 100) = effect_duration;
-    return result;
-}
-#endif
+
 
 #ifdef _MGSDEBUGGING
-
+/*
 SafetyHookInline splashSplash_hook {};
 int64_t __fastcall MGS2_splashSplash(struct _exception* a1)
 {
     return 120;
 }
+*/
 #endif
 
 #ifdef _MGSDEBUGGING
-
+/*
 SafetyHookInline splashPartsSlow_hook {};
 int64_t __fastcall MGS2_splashPartsSlow(DWORD* a1, __int16* a2, float duration)
 {
@@ -101,6 +79,7 @@ int64_t __fastcall MGS2_splashPartsSlow(DWORD* a1, __int16* a2, float duration)
     }
     return splashPartsSlow_hook.fastcall<int64_t>(a1, a2, duration);
 }
+*/
 #endif
 
 void EffectSpeedFix::Initialize() const
@@ -109,8 +88,9 @@ void EffectSpeedFix::Initialize() const
     {
         return;
     }
-
+    
 #ifdef _MGSDEBUGGING
+    /*
     if (uint8_t* MGS2_traffic_c_Result = Memory::PatternScan(baseModule, "89 53 ?? 33 C9", "MGS 2: Effect Speed Fix : demo\\traffic.c", NULL, NULL))
     {
         static SafetyHookMid traffic_cMidHook {};
@@ -123,7 +103,8 @@ void EffectSpeedFix::Initialize() const
             });
         LOG_HOOK(traffic_cMidHook, "MGS 2: Effect Speed Fix: demo\\traffic.c", NULL, NULL)
     }
-
+    */
+    /*
     if (uint8_t* MGS2_traffic_c_2_Result = Memory::PatternScan(baseModule, "41 8B F9 0F 29 74 24 ?? 45 33 C9 45 8B F0", "MGS 2: Effect Speed Fix : demo\\traffic.c #2", NULL, NULL))
     {
         static SafetyHookMid traffic_c_2_MidHook {};
@@ -137,6 +118,7 @@ void EffectSpeedFix::Initialize() const
         LOG_HOOK(traffic_c_2_MidHook, "MGS 2: Effect Speed Fix: demo\\traffic.c #2", NULL, NULL)
     }
 
+    *//*
     if (uint8_t* MGS2_crosfade_c_Result = Memory::PatternScan(baseModule, "89 5F ?? 79 ?? 89 77", "MGS 2: Effect Speed Fix : effect1\\crosfade.c", NULL, NULL))
     {
         static SafetyHookMid crosfade_cMidHook {};
@@ -163,6 +145,7 @@ void EffectSpeedFix::Initialize() const
         LOG_HOOK(Tidal4MidHook, "MGS 2: Effect Speed Fix: effect2\\tidal4.c 1", NULL, NULL)
     }
     */
+    /*
     
     if (uint8_t* MGS2_splushSurfaceGravityManScanResult = Memory::PatternScan(baseModule, "F3 0F 11 43 ?? 45 8D 41", "MGS 2: Effect Speed Fix : effect2\\splush_surface_gravity_man.c 1", NULL, NULL))
     { // 2025-05-19 14-32-21
@@ -174,7 +157,7 @@ void EffectSpeedFix::Initialize() const
             });
         LOG_HOOK(splushSurfaceGravityMan1MidHook, "MGS 2: Effect Speed Fix: effect2\\splush_surface_gravity_man.c 1", NULL, NULL)
     }
-    
+    */
 
    /* if (uint8_t* MGS2_splushSurfaceGravityMan2ScanResult = Memory::PatternScan(baseModule, "F3 0F 11 05 ?? ?? ?? ?? F3 0F 11 0D ?? ?? ?? ?? E8 ?? ?? ?? ?? F3 0F 10 46", "MGS 2: Effect Speed Fix : effect2\\splush_surface_gravity_man.c 2", NULL, NULL))
     {
@@ -199,7 +182,7 @@ void EffectSpeedFix::Initialize() const
     */
 #endif  
 
-
+    
     if (uint8_t* MGS2_flyingSmokeSlowScanResult = Memory::PatternScan(baseModule, "E8 ?? ?? ?? ?? FF 4B ?? 83 7B ?? ?? 7D", "MGS 2: Effect Speed Fix : effect3\\flying_smoke_slow.c", NULL, NULL))
     {
         static SafetyHookMid flyingSmokeSlow_MidHook {};
@@ -216,17 +199,58 @@ void EffectSpeedFix::Initialize() const
         spdlog::info("MGS 2: Effect Speed Fix: Outdated version of MGSFPSUnlock detected, Large explosion & Solidus's Firedash fixes are disabled.");
         return;
     }
-
-    if (uint8_t* MGS2_createDebrisTexOffset = Memory::PatternScan(baseModule, "44 6B C0 0F 8B CB",
-        "MGS 2: Effect Speed Fix: demo\\debris_tex.c\\CreateDebrisTexture()", nullptr, nullptr))
+    
+    if (uint8_t* MGS2_createDebrisTexOffset = Memory::PatternScan(baseModule, "45 89 46 ?? E8", "MGS 2: Effect Speed Fix : demo\\debris_tex.c\\CreateDebrisTexture()", NULL, NULL))
     {
+        static SafetyHookMid MGS2_createDebrisTexMidHook {};
+        MGS2_createDebrisTexMidHook = safetyhook::create_mid(MGS2_createDebrisTexOffset,
+            [](SafetyHookContext& ctx)
+            {
+                g_EffectSpeedFix.iDebrisIteration++;
+                g_EffectSpeedFix.iExplosionDuration = 150; //default to double
+                // Adjust duration based on cutscene
+                
+                if (strcmp(g_GameVars.GetCurrentStage(), "d12t3") == 0) // T12a1D The Seizure of Metal gear Demo (liquid ocelot first encounter)
+                {                    
+                    switch (g_EffectSpeedFix.iDebrisIteration) //28 total, last 3 are at the end.
+                    {
+                        case 1:
+                        case 2:
+                        case 3:
+                            g_EffectSpeedFix.iExplosionDuration *= FRAME_IOP_MULTIPLIER * 7;
+                            break;
+                        case 15:
+                        case 16:
+                        case 18: //double check if 17 or 18 - is it the left one or the black rubble. black rubble needs to be the shorter one.
+                            g_EffectSpeedFix.iExplosionDuration *= FRAME_IOP_MULTIPLIER * 10;
+                            break;
+                        case 26:
+                        case 27:
+                        case 28:
+                            g_EffectSpeedFix.iExplosionDuration *= FRAME_IOP_MULTIPLIER * 10;
+                            break;
+                        default:
+                            //std::string CountString = "Explosion" + std::to_string(g_EffectSpeedFix.iDebrisIteration);
+                            //inipp::get_value(ini.sections["Debug"], CountString, g_EffectSpeedFix.iExplosionDuration);
+                            break;
+                    }
+
+                }
+                else if (strcmp(g_GameVars.GetCurrentStage(), "d012p01") == 0)
+                {
+                    // P012_01_P01 Fortune encounter 1 polygon demo 1 (BC connecting bridge - Fortune vs Seals encounter)
+                    g_EffectSpeedFix.iExplosionDuration *= (int)FRAME_IOP_MULTIPLIER * 10;
+                }
+                
 #ifdef _MGSDEBUGGING
-        createDebrisTex_hook = safetyhook::create_inline(reinterpret_cast<void*>(MGS2_createDebrisTexOffset), reinterpret_cast<void*>(MGS2_createDebrisTex));
-        LOG_HOOK(createDebrisTex_hook, "MGS 2: Effect Speed Fix: demo\\debris_tex.c\\CreateDebrisTexture()", NULL, NULL);
-#else
-        Memory::PatchBytes((uintptr_t)MGS2_createDebrisTexOffset + 0x3, "\x1E", 1);
-        spdlog::info("MGS 2: Effect Speed Fix: demo\\debris_tex.c\\CreateDebrisTexture() patched.");
+                spdlog::info("CreateDebrisTexture before {}. Config target: {}, Iteration: {}, Stage: {}", reghelpers::Getr8d(ctx), (int)g_EffectSpeedFix.iExplosionDuration, g_EffectSpeedFix.iDebrisIteration, g_GameVars.GetCurrentStage());
 #endif
+                reghelpers::Setr8d(ctx, (int)g_EffectSpeedFix.iExplosionDuration);
+
+
+            });
+        LOG_HOOK(MGS2_createDebrisTexMidHook, "MGS 2: Effect Speed Fix: demo\\debris_tex.c\\CreateDebrisTexture()", NULL, NULL)
+ 
     }
 
     if (uint8_t* MGS2_solidusFireDashActScanResult = Memory::PatternScan(baseModule, "?? ?? ?? ?? ?? 49 8D AB 68 FE FF FF 48 81 EC 88", "MGS 2: Effect Speed Fix : effect\\solidas_dash_fire.c", NULL, NULL))
@@ -236,3 +260,9 @@ void EffectSpeedFix::Initialize() const
     }
 
 }
+
+void EffectSpeedFix::Reset()
+{
+    iDebrisIteration = 0;
+}
+
