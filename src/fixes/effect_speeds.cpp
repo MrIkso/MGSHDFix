@@ -39,12 +39,11 @@ int64_t __fastcall MGS2_solidusFireDashAct(int64_t work)
             g_EffectSpeedFix.solidusDashAct_NextUpdate = current_time;
         }
 
-        double duration = (PS2_IOP_CLOCKSPEED-1); // Slightly slower than PS2_IOP_CLOCKSPEED to account for particle related performance slowdown on PS2 hardware had during closeup shots.
-                                // !!!!! PCSX2 doesn't properly emulate the PS2's slowdown during these scenes either, so do any comparisons against real PS2 hardware if you change this value. !!!!!
-        if (strcmp(g_GameVars.GetCurrentStage(), "d045p01") != 0)
+        constexpr double duration = (PS2_IOP_CLOCKSPEED - 1); 
+        /*if (strcmp(g_GameVars.GetCurrentStage(), "d045p01") != 0) //P045_01P01 enter the Harrier 1 polygon demo 1 (MC) - Connecting bridge between Shells 1 and 2
         {
-            duration = 30.0;
-        }
+            duration -= 1; // Slightly slower than PS2_IOP_CLOCKSPEED to account for particle related performance slowdown on PS2 hardware had during closeup shots.
+        }*/
         g_EffectSpeedFix.solidusDashAct_NextUpdate += std::chrono::microseconds(static_cast<int64_t>(std::chrono::microseconds::period::den / duration));
         return solidusFireDashAct_hook.fastcall<int64_t>(work);
     }
@@ -81,6 +80,9 @@ int64_t __fastcall MGS2_splashPartsSlow(DWORD* a1, __int16* a2, float duration)
 }
 */
 #endif
+safetyhook::MidHook debrisVelocityHook;
+
+float g_VelocityScale = (1.0f * FRAME_IOP_DIVIDER);
 
 void EffectSpeedFix::Initialize() const
 {
@@ -189,7 +191,9 @@ void EffectSpeedFix::Initialize() const
         flyingSmokeSlow_MidHook = safetyhook::create_mid(MGS2_flyingSmokeSlowScanResult,
             [](SafetyHookContext& ctx)
             {
-                ctx.r8 = (unsigned int)(ctx.r8 * g_GameVars.ActorWaitMultiplier() * (g_GameVars.InCutscene() ? 2 : 1)); // double the duration in cutscenes
+                //spdlog::info("flying_smoke_slow before {}", reghelpers::Getr8d(ctx));
+                reghelpers::Setr8d(ctx, static_cast<unsigned int>((g_GameVars.ActorWaitMultiplier() * (g_GameVars.InCutscene() ? 2.0 : 1.0)) * reghelpers::Getr8d(ctx)));
+                spdlog::info("flying_smoke_slow after {}", reghelpers::Getr8d(ctx));
             });
         LOG_HOOK(flyingSmokeSlow_MidHook, "MGS 2: Effect Speed Fix: effect3\\flying_smoke_slow.c", NULL, NULL)
     }
@@ -199,6 +203,48 @@ void EffectSpeedFix::Initialize() const
         spdlog::info("MGS 2: Effect Speed Fix: Outdated version of MGSFPSUnlock detected, Large explosion & Solidus's Firedash fixes are disabled.");
         return;
     }
+
+    if (uint8_t* MGS2_DEMO_CreateDebrisTex_SetupResult = Memory::PatternScan(baseModule,"F3 0F 58 43 ?? 48 83 C6","MGS2_DEMO_CreateDebrisTex_Setup velocity",nullptr,nullptr))
+    {
+        debrisVelocityHook = safetyhook::create_mid(MGS2_DEMO_CreateDebrisTex_SetupResult,
+        [](SafetyHookContext& ctx)
+            {
+                if (strcmp(g_GameVars.GetCurrentStage(), "d12t3") == 0) // T12a1D The Seizure of Metal gear Demo (liquid ocelot first encounter)
+                {
+                    switch (g_EffectSpeedFix.iDebrisIteration) //28 total, last 3 are at the end.
+                    {
+                    case 1:
+                    case 2:
+                    case 3:
+                        ctx.xmm0.f32[0] /= 4.0f;
+                        break;
+                    case 15:
+                    case 16:
+                    case 17:
+                    case 18:
+                    case 26:
+                    case 27:
+                    case 28:
+                        ctx.xmm0.f32[0] /= 2.0f;
+                        break;
+                    default:
+                        break;
+                    }
+                    
+                }
+                else if (strcmp(g_GameVars.GetCurrentStage(), "d012p01") == 0) // P012_01_P01 Fortune encounter 1 polygon demo 1 (BC connecting bridge - Fortune vs Seals encounter)
+                {
+                    ctx.xmm0.f32[0] /= 4.0f;
+                }
+                else
+                {
+                    ctx.xmm0.f32[0] /= 2.0f;
+                }
+            }
+        );
+        LOG_HOOK(debrisVelocityHook, "MGS 2: Effect Speed Fix: demo\\debris_tex.c\\CreateDebrisTexture velocity", NULL, NULL);
+    }
+
     
     if (uint8_t* MGS2_createDebrisTexOffset = Memory::PatternScan(baseModule, "45 89 46 ?? E8", "MGS 2: Effect Speed Fix : demo\\debris_tex.c\\CreateDebrisTexture()", NULL, NULL))
     {
@@ -207,10 +253,9 @@ void EffectSpeedFix::Initialize() const
             [](SafetyHookContext& ctx)
             {
                 g_EffectSpeedFix.iDebrisIteration++;
-                g_EffectSpeedFix.iExplosionDuration = 150; //default to double
-                // Adjust duration based on cutscene
-                
-                if (strcmp(g_GameVars.GetCurrentStage(), "d12t3") == 0) // T12a1D The Seizure of Metal gear Demo (liquid ocelot first encounter)
+                g_EffectSpeedFix.iExplosionDuration = 75.0 * FRAME_IOP_MULTIPLIER; //default to double
+
+                /*if (strcmp(g_GameVars.GetCurrentStage(), "d12t3") == 0) // T12a1D The Seizure of Metal gear Demo (liquid ocelot first encounter)
                 {                    
                     switch (g_EffectSpeedFix.iDebrisIteration) //28 total, last 3 are at the end.
                     {
@@ -236,7 +281,7 @@ void EffectSpeedFix::Initialize() const
                     }
 
                 }
-                else if (strcmp(g_GameVars.GetCurrentStage(), "d012p01") == 0)
+                else */if (strcmp(g_GameVars.GetCurrentStage(), "d012p01") == 0)
                 {
                     // P012_01_P01 Fortune encounter 1 polygon demo 1 (BC connecting bridge - Fortune vs Seals encounter)
                     g_EffectSpeedFix.iExplosionDuration *= (int)FRAME_IOP_MULTIPLIER * 10;
@@ -258,11 +303,12 @@ void EffectSpeedFix::Initialize() const
         solidusFireDashAct_hook = safetyhook::create_inline(reinterpret_cast<void*>(MGS2_solidusFireDashActScanResult), reinterpret_cast<void*>(MGS2_solidusFireDashAct));
         LOG_HOOK(solidusFireDashAct_hook, "MGS 2: Effect Speed Fix: effect\\solidas_dash_fire.c", NULL, NULL)
     }
-
+    
 }
 
 void EffectSpeedFix::Reset()
 {
+    spdlog::info("MGS 2: Effect Speed Fix: Resetting effect speed fix variables. Level: {}", g_GameVars.GetCurrentStage());
     iDebrisIteration = 0;
 }
 

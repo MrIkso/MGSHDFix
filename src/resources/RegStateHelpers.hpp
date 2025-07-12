@@ -126,8 +126,8 @@ inline uint8_t Get##reg##l(const safetyhook::Context& regs) { return regs.reg & 
 
         // R8 - R15 low 8 bits
 #define DEFINE_R8_15_8BIT_HELPERS(num) \
-inline void SetR##num##b(safetyhook::Context& regs, uint8_t val) { regs.r##num = (regs.r##num & ~0xFFULL) | val; } \
-inline uint8_t GetR##num##b(const safetyhook::Context& regs) { return regs.r##num & 0xFF; }
+inline void Setr##num##b(safetyhook::Context& regs, uint8_t val) { regs.r##num = (regs.r##num & ~0xFFULL) | val; } \
+inline uint8_t Getr##num##b(const safetyhook::Context& regs) { return regs.r##num & 0xFF; }
 
         DEFINE_R8_15_8BIT_HELPERS(8)
         DEFINE_R8_15_8BIT_HELPERS(9)
