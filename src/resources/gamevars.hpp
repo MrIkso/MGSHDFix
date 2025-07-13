@@ -8,7 +8,7 @@ private:
     int* padDemoFlag = nullptr;
     double* actorWaitValue = nullptr;
     const char* currentStage = nullptr;
-    void OnLevelTransition();
+    static void OnLevelTransition();
 public:
     void Initialize();
     bool InCutscene() const;

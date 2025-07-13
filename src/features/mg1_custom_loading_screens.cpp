@@ -34,7 +34,7 @@ Enabled = true
     }
 
     //lea rdx, &"$/misc/loading/****/loading.ctxr"
-    if (uint8_t* loadingScreenEnglish = Memory::PatternScan(baseModule, "48 8D 48 ?? 48 89 70", "MG1/2: Custom Loading Screens: English", nullptr, nullptr))
+    if (uint8_t* loadingScreenEnglish = Memory::PatternScan(baseModule, "48 8D 48 ?? 48 89 70", "MG1/2: Custom Loading Screens: English"))
     {
         static SafetyHookMid MG1CustomLoadingScreenEnglishMidHook {};
         MG1CustomLoadingScreenEnglishMidHook = safetyhook::create_mid(loadingScreenEnglish,
@@ -44,11 +44,11 @@ Enabled = true
                     iOutputResY >= 1440 ? reinterpret_cast<uintptr_t>(&"$/misc/loading/****/loading_wqhd.ctxr") :
                     /*iOutputResY >= 1080*/ reinterpret_cast<uintptr_t>(&"$/misc/loading/****/loading_fhd.ctxr");
             });
-        LOG_HOOK(MG1CustomLoadingScreenEnglishMidHook, "MG1/2: Custom Loading Screens: English", NULL, NULL)
+        LOG_HOOK(MG1CustomLoadingScreenEnglishMidHook, "MG1/2: Custom Loading Screens: English")
     }
 
     //lea rdx, &"$/misc/loading/****/loading_jp.ctxr"
-    if (uint8_t* loadingScreenJapanese = Memory::PatternScan(baseModule, "FF 15 ?? ?? ?? ?? 48 8B 05 ?? ?? ?? ?? 4C 8D 44 24 ?? 48 8D 54 24 ?? 48 8B 08 48 8D 44 24", "MG1 Custom Loading Screen: Japanese", nullptr, nullptr))
+    if (uint8_t* loadingScreenJapanese = Memory::PatternScan(baseModule, "FF 15 ?? ?? ?? ?? 48 8B 05 ?? ?? ?? ?? 4C 8D 44 24 ?? 48 8D 54 24 ?? 48 8B 08 48 8D 44 24", "MG1 Custom Loading Screen: Japanese"))
     {
         static SafetyHookMid MG1CustomLoadingScreenJapaneseMidHook {};
         MG1CustomLoadingScreenJapaneseMidHook = safetyhook::create_mid(loadingScreenJapanese,
@@ -58,7 +58,7 @@ Enabled = true
                     iOutputResY >= 1440 ? reinterpret_cast<uintptr_t>(&"$/misc/loading/****/loading_jp_wqhd.ctxr") :
                     /*iOutputResY >= 1080*/ reinterpret_cast<uintptr_t>(&"$/misc/loading/****/loading_jp_fhd.ctxr");
             });
-        LOG_HOOK(MG1CustomLoadingScreenJapaneseMidHook, "MG1/2: Custom Loading Screens: Japanese", NULL, NULL)
+        LOG_HOOK(MG1CustomLoadingScreenJapaneseMidHook, "MG1/2: Custom Loading Screens: Japanese")
     }
 
 }

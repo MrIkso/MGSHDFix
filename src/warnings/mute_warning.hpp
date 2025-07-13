@@ -4,12 +4,12 @@
 class MuteWarning
 {
 private:
-    uintptr_t muteWarningAddress = 0;
+    int* muteWarningAddress = nullptr;
 
 public:
     void Setup();
     void CheckStatus() const;
-    bool bEnabled;
+    bool bEnabled = false;
 };
 
 inline MuteWarning g_MuteWarning;

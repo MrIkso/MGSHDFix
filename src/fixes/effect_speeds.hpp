@@ -4,7 +4,7 @@
 class EffectSpeedFix
 {
 public:
-    bool isEnabled;
+    bool isEnabled = true;
     std::chrono::time_point<std::chrono::high_resolution_clock> solidusDashAct_NextUpdate;
     double iExplosionDuration = 0;
     int iDebrisIteration = 0;

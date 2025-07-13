@@ -83,7 +83,7 @@ void DistanceCulling::Initialize() const
         return;
     }
 
-    if (uint8_t* grassTest1_Result = Memory::PatternScan(baseModule, "8B D0 3D ?? ?? ?? ?? 7E", "mgs2 dd", NULL, NULL))
+    if (uint8_t* grassTest1_Result = Memory::PatternScan(baseModule, "8B D0 3D ?? ?? ?? ?? 7E", "mgs2 dd"))
     {
         static SafetyHookMid grassTest1MidHook {};
         grassTest1MidHook = safetyhook::create_mid(grassTest1_Result,
@@ -92,8 +92,8 @@ void DistanceCulling::Initialize() const
                 ctx.rax = 300; // Set the distance culling value
                 ctx.rflags |= 0x0000000000000002; // Set the ZF flag to 1 
             });
-        LOG_HOOK(grassTest1MidHook, "grass scan", NULL, NULL)
-    }*/
+        LOG_HOOK(grassTest1MidHook, "grass scan")
+    }  
 
     if (isEnabled || !(eGameType & MGS3))
     {
@@ -102,7 +102,7 @@ void DistanceCulling::Initialize() const
     }
 
     
-    if (uint8_t* grassTest1_Result = Memory::PatternScan(baseModule, "49 8B 54 2E ?? 0F 85", "grass scan", NULL, NULL))
+    if (uint8_t* grassTest1_Result = Memory::PatternScan(baseModule, "49 8B 54 2E ?? 0F 85", "grass scan"))
     {
         static SafetyHookMid grassTest1MidHook {};
         grassTest1MidHook = safetyhook::create_mid(grassTest1_Result,
@@ -110,14 +110,14 @@ void DistanceCulling::Initialize() const
             {
                 ctx.xmm0.f32[0] = 400.0f; // Set the distance culling value
             });
-        LOG_HOOK(grassTest1MidHook, "grass scan", NULL, NULL)
+        LOG_HOOK(grassTest1MidHook, "grass scan")
     }
 
     /*
     //ScanAndPatchSkybox();
 
 
-    if (uint8_t* lodtestResult = Memory::PatternScan(baseModule, "41 F7 C2 ?? ?? ?? ?? 75", "MGS 2: model test", NULL, NULL))
+    if (uint8_t* lodtestResult = Memory::PatternScan(baseModule, "41 F7 C2 ?? ?? ?? ?? 75", "MGS 2: model test"))
     {
 
             static SafetyHookMid lodtest_MidHook {};
@@ -127,11 +127,11 @@ void DistanceCulling::Initialize() const
                     reghelpers::set_r10d(ctx, reghelpers::get_r10d(ctx) & 0x2);
                     //spdlog::info("r10d: {}", reghelpers::get_r10d(ctx));
                 });
-            LOG_HOOK(lodtest_MidHook, "MGS 2: Effect Speed Fix: effect3\\flying_smoke_slow.c", NULL, NULL)
+            LOG_HOOK(lodtest_MidHook, "MGS 2: Effect Speed Fix: effect3\\flying_smoke_slow.c")
     }
 
     /* ALWAYS LOW POLY
-    if (uint8_t* lodtestResult = Memory::PatternScan(baseModule, "48 89 5C 24 ?? 41 F7 C2", "MGS 2: model test", NULL, NULL))
+    if (uint8_t* lodtestResult = Memory::PatternScan(baseModule, "48 89 5C 24 ?? 41 F7 C2", "MGS 2: model test"))
     {
 
         static SafetyHookMid lodtest_MidHook {};
@@ -140,7 +140,7 @@ void DistanceCulling::Initialize() const
             {
                 reghelpers::set_r12d(ctx, 1);
             });
-        LOG_HOOK(lodtest_MidHook, "MGS 2: Effect Speed Fix: effect3\\flying_smoke_slow.c", NULL, NULL)
+        LOG_HOOK(lodtest_MidHook, "MGS 2: Effect Speed Fix: effect3\\flying_smoke_slow.c")
     }
     */
 

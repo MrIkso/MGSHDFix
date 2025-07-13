@@ -4,18 +4,17 @@
 
 void MuteWarning::CheckStatus() const
 {
-
     if (!(eGameType & (MG | MGS2 | MGS3)))
     {
         return;
     }
 
-    if (*reinterpret_cast<int*>(muteWarningAddress))
+    if (*muteWarningAddress)
     {
         spdlog::warn("------ GAME AUDIO OUTPUT MUTED ------");
 
         spdlog::warn("Game audio output is currently muted via the main launcher.");
-        if (g_MuteWarning.bEnabled)
+        if (bEnabled)
         {
             spdlog::warn("Set \"Mute Warning\" to disabled in the config file to disable console warnings (this warning will still appear in the log.)");
             AllocConsole();
@@ -26,7 +25,6 @@ void MuteWarning::CheckStatus() const
         spdlog::warn("------ GAME AUDIO OUTPUT MUTED ------");
 
     }
-
 }
 
 void MuteWarning::Setup()
@@ -36,17 +34,17 @@ void MuteWarning::Setup()
         return;
     }
 
-    if (uint8_t* muteWarningResult = Memory::PatternScan(baseModule, "66 0F 7F 0D ?? ?? ?? ?? 66 0F 6F 0D ?? ?? ?? ?? 66 0F 7F 05 ?? ?? ?? ?? 66 0F 7F 0D", "MG-MG2 | MGS 2 | MGS 3: Mute Warning", nullptr, nullptr))
+    if (uint8_t* muteWarningResult = Memory::PatternScan(baseModule, "66 0F 7F 0D ?? ?? ?? ?? 66 0F 6F 0D ?? ?? ?? ?? 66 0F 7F 05 ?? ?? ?? ?? 66 0F 7F 0D", "MG-MG2 | MGS 2 | MGS 3: Mute Warning"))
     {
-        muteWarningAddress = Memory::GetAbsolute((uintptr_t)muteWarningResult + 0x4) + (eGameType & MGS2 ? 0x4 : 0xC);
-        if (muteWarningAddress == 0)
+        muteWarningAddress = reinterpret_cast<int*>(Memory::GetAbsolute(reinterpret_cast<uintptr_t>(muteWarningResult) + 0x4) + (eGameType & MGS2 ? 0x4 : 0xC));
+        if (muteWarningAddress == nullptr)
         {
             spdlog::error("MG-MG2 | MGS 2 | MGS3: Mute Warning: Settings strut not found.");
             return;
         }
         if (bVerboseLogging)
         {
-            spdlog::info("MG-MG2 | MGS 2 | MGS3: Mute Warning: Settings strut is at {:s}+{:x}", sExeName.c_str(), (uintptr_t)g_MuteWarning.muteWarningAddress - (uintptr_t)baseModule);
+            spdlog::info("MG-MG2 | MGS 2 | MGS3: Mute Warning: Settings strut is at {:s}+{:x}", sExeName.c_str(), reinterpret_cast<uintptr_t>(muteWarningAddress) - reinterpret_cast<uintptr_t>(baseModule));
         }
     }
 

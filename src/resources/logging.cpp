@@ -181,8 +181,8 @@ void Logging::LogSysInfo()
     MEMORYSTATUSEX status;
     status.dwLength = sizeof(status);
     GlobalMemoryStatusEx(&status);
-    double totalMemory = status.ullTotalPhys / 1024 / 1024;    ///Total physical RAM in MB.
-    spdlog::info("System Details - RAM: {} GB ({} MB)", ceil((totalMemory / 1024) * 100) / 100, totalMemory);
+    double totalMemory = static_cast<double>(status.ullTotalPhys) / 1024.0 / 1024.0;
+    spdlog::info("System Details - RAM: {} GB ({:.0f} MB)", ceil((totalMemory / 1024) * 100) / 100, totalMemory);
 
 
     std::string os;

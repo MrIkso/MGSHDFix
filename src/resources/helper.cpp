@@ -111,36 +111,21 @@ namespace Memory
         return nullptr;
     }
 
-    std::uint8_t* PatternScan(void* module, const char* signature, const char* prefix, const char* successMessage, const char* errorMessage)
+    std::uint8_t* PatternScan(void* module, const char* signature, const char* prefix)
     {
         std::uint8_t* foundPattern = PatternScanSilent(module, signature);
         if (foundPattern)
         {
             if (bVerboseLogging)
             {
-                if (successMessage)
-                {
-                    spdlog::info("{} Address: {:s}+{:x}", successMessage, sExeName.c_str(), (uintptr_t)foundPattern - (uintptr_t)baseModule);
 
-                }
-                else
-                {
-                
-                    spdlog::info("{}: Pattern scan found. Address: {:s}+{:x}", prefix, sExeName.c_str(), (uintptr_t)foundPattern - (uintptr_t)baseModule);
-                }
+                spdlog::info("{}: Pattern scan found. Address: {:s}+{:x}", prefix, sExeName.c_str(), (uintptr_t)foundPattern - (uintptr_t)baseModule);
             }
         }
         else
         {
-            if (errorMessage)
-            {
-                spdlog::error("{}", errorMessage);
 
-            }
-            else
-            {
-                spdlog::error("{}: Pattern scan failed.", prefix);
-            }
+            spdlog::error("{}: Pattern scan failed.", prefix);
         }
         return foundPattern;
     }

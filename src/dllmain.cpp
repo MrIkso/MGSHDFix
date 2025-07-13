@@ -90,13 +90,13 @@ int iLauncherConfigMSXWallType = 0;
 std::string sLauncherConfigMSXWallAlign = "C";
 
 // Aspect ratio + HUD stuff
-float fNativeAspect = (float)16 / 9;
+constexpr float fNativeAspect = 16.0f / 9.0f;
 float fAspectRatio;
 float fAspectMultiplier;
 float fHUDWidth;
 float fHUDHeight;
-float fDefaultHUDWidth = (float)1280;
-float fDefaultHUDHeight = (float)720;
+constexpr float fDefaultHUDWidth = 1280;
+constexpr float fDefaultHUDHeight = 720;
 float fHUDWidthOffset;
 float fHUDHeightOffset;
 float fMGS2_EffectScaleX;
@@ -173,7 +173,7 @@ HWND WINAPI CreateWindowExA_hooked(DWORD dwExStyle, LPCSTR lpClassName, LPCSTR l
     return MainHwnd;
 }
 
-void Init_CalculateScreenSize()
+static void Init_CalculateScreenSize()
 {
     // Calculate aspect ratio
     fAspectRatio = (float)iInternalResX / (float)iInternalResY;
@@ -203,7 +203,7 @@ void Init_CalculateScreenSize()
 }
 
 
-void Init_ReadConfig()
+static void Init_ReadConfig()
 {
     // Initialise config
     std::ifstream iniFile((sExePath / sFixPath / sConfigFile).string());
@@ -355,7 +355,7 @@ void Init_ReadConfig()
 
 }
 
-bool DetectGame()
+static bool DetectGame()
 {
     eGameType = UNKNOWN;
     // Special handling for launcher.exe
@@ -398,7 +398,7 @@ bool DetectGame()
     FreeLibraryAndExitThread(baseModule, 1);
 }
 
-void Init_FixDPIScaling()
+static void Init_FixDPIScaling()
 {
     if (eGameType & (MG|MGS2|MGS3)) 
     {
@@ -407,14 +407,14 @@ void Init_FixDPIScaling()
     }
 }
 
-void Init_CustomResolution()
+static void Init_CustomResolution()
 {
     if (eGameType & (MG|MGS2|MGS3) && bOutputResolution)
     {
         // MGS 2 | MGS 3: Custom Resolution
-        uint8_t* MGS2_MGS3_InternalResolutionScanResult = Memory::PatternScan(baseModule, "F2 0F ?? ?? ?? B9 05 00 00 00 E8 ?? ?? ?? ?? 85 ?? 75 ??", "MGS2_MGS3_InternalResolutionScan", NULL, NULL);
-        uint8_t* MGS2_MGS3_OutputResolution1ScanResult = Memory::PatternScan(baseModule, "40 ?? ?? 74 ?? 8B ?? ?? ?? ?? ?? 8B ?? ?? ?? ?? ?? EB ?? B9 06 00 00 00", "MGS2_MGS3_OutputResolution1Scan", NULL, NULL);
-        uint8_t* MGS2_MGS3_OutputResolution2ScanResult = Memory::PatternScan(baseModule, "80 ?? ?? 00 41 ?? ?? ?? ?? ?? 48 ?? ?? ?? BA ?? ?? ?? ?? 8B ??", "MGS2_MGS3_OutputResolution2Scan", NULL, NULL);
+        uint8_t* MGS2_MGS3_InternalResolutionScanResult = Memory::PatternScan(baseModule, "F2 0F ?? ?? ?? B9 05 00 00 00 E8 ?? ?? ?? ?? 85 ?? 75 ??", "MGS2_MGS3_InternalResolutionScan");
+        uint8_t* MGS2_MGS3_OutputResolution1ScanResult = Memory::PatternScan(baseModule, "40 ?? ?? 74 ?? 8B ?? ?? ?? ?? ?? 8B ?? ?? ?? ?? ?? EB ?? B9 06 00 00 00", "MGS2_MGS3_OutputResolution1Scan");
+        uint8_t* MGS2_MGS3_OutputResolution2ScanResult = Memory::PatternScan(baseModule, "80 ?? ?? 00 41 ?? ?? ?? ?? ?? 48 ?? ?? ?? BA ?? ?? ?? ?? 8B ??", "MGS2_MGS3_OutputResolution2Scan");
         if (MGS2_MGS3_InternalResolutionScanResult && MGS2_MGS3_OutputResolution1ScanResult && MGS2_MGS3_OutputResolution2ScanResult)
         {
             uint8_t* MGS2_MGS3_FSR_Result = Memory::PatternScanSilent(baseModule, "83 E8 ?? 74 ?? 83 E8 ?? 74 ?? 83 F8 ?? 75 ?? C7 06");
@@ -541,7 +541,7 @@ void Init_CustomResolution()
         }
 
         // MG 1/2 | MGS 2 | MGS 3: WindowedMode
-        if (uint8_t* MGS2_MGS3_WindowedModeScanResult = Memory::PatternScan(baseModule, "48 ?? ?? E8 ?? ?? ?? ?? 84 ?? 0F 84 ?? ?? ?? ?? 48 ?? ?? ?? ?? ?? ?? 41 ?? 03 00 00 00", "WindowedMode", NULL, NULL))
+        if (uint8_t* MGS2_MGS3_WindowedModeScanResult = Memory::PatternScan(baseModule, "48 ?? ?? E8 ?? ?? ?? ?? 84 ?? 0F 84 ?? ?? ?? ?? 48 ?? ?? ?? ?? ?? ?? 41 ?? 03 00 00 00", "WindowedMode"))
         {
             static SafetyHookMid WindowedModeMidHook{};
             WindowedModeMidHook = safetyhook::create_mid(MGS2_MGS3_WindowedModeScanResult,
@@ -565,7 +565,7 @@ void Init_CustomResolution()
         spdlog::info("MG/MG2 | MGS 2 | MGS 3: CreateWindowExA: Hooked function.");
 
         // MG 1/2 | MGS 2 | MGS 3: SetWindowPos
-        if (uint8_t* MGS2_MGS3_SetWindowPosScanResult = Memory::PatternScan(baseModule, "33 ?? 48 ?? ?? ?? FF ?? ?? ?? ?? ?? 8B ?? ?? BA 02 00 00 00", "SetWindowPos", NULL, NULL))
+        if (uint8_t* MGS2_MGS3_SetWindowPosScanResult = Memory::PatternScan(baseModule, "33 ?? 48 ?? ?? ?? FF ?? ?? ?? ?? ?? 8B ?? ?? BA 02 00 00 00", "SetWindowPos"))
         {
             static SafetyHookMid SetWindowPosMidHook{};
             SetWindowPosMidHook = safetyhook::create_mid(MGS2_MGS3_SetWindowPosScanResult,
@@ -612,7 +612,7 @@ void Init_CustomResolution()
 
             // Windowed framebuffer
             
-            if (uint8_t* MGS2_MGS3_WindowedFramebufferFixScanResult = Memory::PatternScan(baseModule, "?? ?? F3 0F ?? ?? 41 ?? ?? F3 0F ?? ?? F3 0F ?? ?? 66 0F ?? ?? 0F ?? ??", "Windowed Framebuffer", NULL, NULL))
+            if (uint8_t* MGS2_MGS3_WindowedFramebufferFixScanResult = Memory::PatternScan(baseModule, "?? ?? F3 0F ?? ?? 41 ?? ?? F3 0F ?? ?? F3 0F ?? ?? 66 0F ?? ?? 0F ?? ??", "Windowed Framebuffer"))
             {
                 Memory::PatchBytes((uintptr_t)MGS2_MGS3_WindowedFramebufferFixScanResult, "\xEB", 1);
                 if (eGameType & MG|MGS3)
@@ -632,7 +632,7 @@ void Init_CustomResolution()
     /*
     float WidescreenRes = (float)(iOutputResY * 16) / 9;
     
-    if (uint8_t* MGS2_MGS3_ViewportScanResult = Memory::PatternScan(baseModule, "48 83 EC ?? 48 8B 05 ?? ?? ?? ?? 4C 8B C2", "MGS 2 | MGS 3: CD3DCachedDevice::SetViewport", NULL, NULL))
+    if (uint8_t* MGS2_MGS3_ViewportScanResult = Memory::PatternScan(baseModule, "48 83 EC ?? 48 8B 05 ?? ?? ?? ?? 4C 8B C2", "MGS 2 | MGS 3: CD3DCachedDevice::SetViewport"))
     {
         static SafetyHookMid Viewport_MidHook {};
         Viewport_MidHook = safetyhook::create_mid(MGS2_MGS3_ViewportScanResult,
@@ -673,7 +673,7 @@ void Init_CustomResolution()
 }
 
 
-void Init_ScaleEffects()
+static void Init_ScaleEffects()
 {
     if ((eGameType & (MGS2|MGS3)) && bOutputResolution)
     {
@@ -759,13 +759,13 @@ void Init_ScaleEffects()
 
 
 
-void Init_AspectFOVFix()
+static void Init_AspectFOVFix()
 {
     // Fix aspect ratio
     if (eGameType & MGS3 && bAspectFix)
     {
         // MGS 3: Fix gameplay aspect ratio
-        if (uint8_t* MGS3_GameplayAspectScanResult = Memory::PatternScan(baseModule, "F3 0F ?? ?? E8 ?? ?? ?? ?? 48 8D ?? ?? ?? ?? ?? F3 0F ?? ?? ?? ?? ?? ??", "MGS 3: Aspect Ratio", NULL, NULL))
+        if (uint8_t* MGS3_GameplayAspectScanResult = Memory::PatternScan(baseModule, "F3 0F ?? ?? E8 ?? ?? ?? ?? 48 8D ?? ?? ?? ?? ?? F3 0F ?? ?? ?? ?? ?? ??", "MGS 3: Aspect Ratio"))
         {
             DWORD64 MGS3_GameplayAspectAddress = Memory::GetAbsolute((uintptr_t)MGS3_GameplayAspectScanResult + 0x5);
             spdlog::info("MGS 3: Aspect Ratio: Function address is {:s}+{:x}", sExeName.c_str(), (uintptr_t)MGS3_GameplayAspectAddress - (uintptr_t)baseModule);
@@ -776,14 +776,14 @@ void Init_AspectFOVFix()
                 {
                     ctx.xmm1.f32[0] /= fAspectMultiplier;
                 });
-            LOG_HOOK(MGS3_GameplayAspectMidHook, "MGS 3: Aspect Ratio", NULL, NULL)
+            LOG_HOOK(MGS3_GameplayAspectMidHook, "MGS 3: Aspect Ratio")
 
         }
     }
     else if (eGameType & MGS2 && bAspectFix)
     {
         // MGS 2: Fix gameplay aspect ratio
-        if (uint8_t* MGS2_GameplayAspectScanResult = Memory::PatternScan(baseModule, "48 8D ?? ?? ?? E8 ?? ?? ?? ?? E8 ?? ?? ?? ?? F3 44 ?? ?? ?? ?? ?? ?? ??", "MGS 2: Aspect Ratio", NULL, NULL))
+        if (uint8_t* MGS2_GameplayAspectScanResult = Memory::PatternScan(baseModule, "48 8D ?? ?? ?? E8 ?? ?? ?? ?? E8 ?? ?? ?? ?? F3 44 ?? ?? ?? ?? ?? ?? ??", "MGS 2: Aspect Ratio"))
         {
             DWORD64 MGS2_GameplayAspectAddress = Memory::GetAbsolute((uintptr_t)MGS2_GameplayAspectScanResult + 0xB);
             spdlog::info("MGS 2: Aspect Ratio: Function address is {:s}+{:x}", sExeName.c_str(), (uintptr_t)MGS2_GameplayAspectAddress - (uintptr_t)baseModule);
@@ -794,7 +794,7 @@ void Init_AspectFOVFix()
                 {
                     ctx.xmm0.f32[0] /= fAspectMultiplier;
                 });
-            LOG_HOOK(MGS2_GameplayAspectMidHook, "MGS 2: Aspect Ratio", NULL, NULL)
+            LOG_HOOK(MGS2_GameplayAspectMidHook, "MGS 2: Aspect Ratio")
         }
     }
 
@@ -802,7 +802,7 @@ void Init_AspectFOVFix()
     if (eGameType & MGS3 && bFOVFix)
     {
         // MGS 3: FOV
-        if (uint8_t* MGS3_FOVScanResult = Memory::PatternScan(baseModule, "F3 0F ?? ?? ?? ?? ?? ?? 44 ?? ?? ?? ?? ?? E8 ?? ?? ?? ?? F3 ?? ?? ?? ?? E8 ?? ?? ?? ??", "MGS 3: FOV", NULL, NULL))
+        if (uint8_t* MGS3_FOVScanResult = Memory::PatternScan(baseModule, "F3 0F ?? ?? ?? ?? ?? ?? 44 ?? ?? ?? ?? ?? E8 ?? ?? ?? ?? F3 ?? ?? ?? ?? E8 ?? ?? ?? ??", "MGS 3: FOV"))
         {
             static SafetyHookMid MGS3_FOVMidHook{};
             MGS3_FOVMidHook = safetyhook::create_mid(MGS3_FOVScanResult,
@@ -813,13 +813,13 @@ void Init_AspectFOVFix()
                         ctx.xmm2.f32[0] *= fAspectMultiplier;
                     }
                 });
-            LOG_HOOK(MGS3_FOVMidHook, "MG3 2: FOV", NULL, NULL)
+            LOG_HOOK(MGS3_FOVMidHook, "MG3 2: FOV")
         }
     }
     else if (eGameType & MGS2 && bFOVFix)
     {
         // MGS 2: FOV
-        if (uint8_t* MGS2_FOVScanResult = Memory::PatternScan(baseModule, "44 ?? ?? ?? ?? F3 0F ?? ?? ?? ?? ?? ?? 44 ?? ?? ?? ?? 48 ?? ?? 48 ?? ?? ?? ?? 00 00", "MGS 2: FOV", NULL, NULL))
+        if (uint8_t* MGS2_FOVScanResult = Memory::PatternScan(baseModule, "44 ?? ?? ?? ?? F3 0F ?? ?? ?? ?? ?? ?? 44 ?? ?? ?? ?? 48 ?? ?? 48 ?? ?? ?? ?? 00 00", "MGS 2: FOV"))
         {
             static SafetyHookMid MGS2_FOVMidHook{};
             MGS2_FOVMidHook = safetyhook::create_mid(MGS2_FOVScanResult,
@@ -830,14 +830,14 @@ void Init_AspectFOVFix()
                         ctx.xmm2.f32[0] *= fAspectMultiplier;
                     }
                 });
-            LOG_HOOK(MGS2_FOVMidHook, "MGS 2: FOV", NULL, NULL)
+            LOG_HOOK(MGS2_FOVMidHook, "MGS 2: FOV")
         }
         
     }
     
 }
 
-void Init_HUDFix()
+static void Init_HUDFix()
 {
     if (eGameType & MGS2 && bHUDFix)
     {
@@ -1010,7 +1010,7 @@ void Init_HUDFix()
     
 }
 
-void Init_Miscellaneous()
+static void Init_Miscellaneous()
 {
     if (eGameType & (MG|MGS2|MGS3|LAUNCHER))
     {
@@ -1018,7 +1018,7 @@ void Init_Miscellaneous()
         {
             // Launcher | MG/MG2 | MGS 2 | MGS 3: Disable mouse cursor
             // Thanks again emoose!
-            if (uint8_t* MGS2_MGS3_MouseCursorScanResult = Memory::PatternScan(eGameType & LAUNCHER ? unityPlayer : baseModule, "BA 00 7F 00 00 33 ?? FF ?? ?? ?? ?? ?? 48 ?? ??", "Launcher | MG/MG2 | MGS 2 | MGS 3: Mouse Cursor", NULL, NULL))
+            if (uint8_t* MGS2_MGS3_MouseCursorScanResult = Memory::PatternScan(eGameType & LAUNCHER ? unityPlayer : baseModule, "BA 00 7F 00 00 33 ?? FF ?? ?? ?? ?? ?? 48 ?? ??", "Launcher | MG/MG2 | MGS 2 | MGS 3: Mouse Cursor"))
             {
                 // The game enters 32512 in the RDX register for the function USER32.LoadCursorA to load IDC_ARROW (normal select arrow in windows)
                 // Set this to 0 and no cursor icon is loaded
@@ -1030,7 +1030,7 @@ void Init_Miscellaneous()
 
     if ((bDisableTextureFiltering || iAnisotropicFiltering > 0) && (eGameType & (MGS2|MGS3)))
     {
-        if (uint8_t* MGS3_SetSamplerStateInsnScanResult = Memory::PatternScan(baseModule, "48 8B ?? ?? ?? ?? ?? 44 39 ?? ?? 38 ?? ?? ?? 74 ?? 44 89 ?? ?? ?? ?? ?? ?? EB ?? 48 ?? ??", "MGS 2 | MGS 3: Texture Filtering", NULL, NULL))
+        if (uint8_t* MGS3_SetSamplerStateInsnScanResult = Memory::PatternScan(baseModule, "48 8B ?? ?? ?? ?? ?? 44 39 ?? ?? 38 ?? ?? ?? 74 ?? 44 89 ?? ?? ?? ?? ?? ?? EB ?? 48 ?? ??", "MGS 2 | MGS 3: Texture Filtering"))
         {
             static SafetyHookMid SetSamplerStateInsnXMidHook{};
             SetSamplerStateInsnXMidHook = safetyhook::create_mid(MGS3_SetSamplerStateInsnScanResult + 0x7,
@@ -1044,7 +1044,7 @@ void Init_Miscellaneous()
                     //0x1 = D3D11_FILTER_MIN_MAG_POINT_MIP_LINEAR (Linear mips is essentially perspective correction.) 0x55 = D3D11_FILTER_ANISOTROPIC
                     ctx.r9 = bDisableTextureFiltering ? 0x1 : 0x55;
                 });
-            LOG_HOOK(SetSamplerStateInsnXMidHook, "MGS 2 | MGS 3: Texture Filtering", NULL, NULL)
+            LOG_HOOK(SetSamplerStateInsnXMidHook, "MGS 2 | MGS 3: Texture Filtering")
         }
 
     }
@@ -1103,7 +1103,7 @@ void __fastcall MGS2_COsContext_InitializeSKUandLang_Hook(void* thisptr, int lan
     MGS2_COsContext_InitializeSKUandLang(thisptr, iLauncherConfigLanguage);
 }
 
-void Init_LauncherConfigOverride()
+static void Init_LauncherConfigOverride()
 {
     // If we know games steam appid, try creating steam_appid.txt file, so that game EXE can be launched directly in future runs
     if (game)
@@ -1313,7 +1313,7 @@ void Init_LauncherConfigOverride()
         }
         if (bIsPS2controltype)
         {
-            if (uint8_t* PS4ControllerScan = Memory::PatternScan(baseModule, "6F 76 72 5F 73 74 6D 2F 63 74 72 6C 74 79 70 65 5F 70 73 34 2F", "PS4 Controller Glyphs", NULL, NULL))
+            if (uint8_t* PS4ControllerScan = Memory::PatternScan(baseModule, "6F 76 72 5F 73 74 6D 2F 63 74 72 6C 74 79 70 65 5F 70 73 34 2F", "PS4 Controller Glyphs"))
             {
                 Memory::PatchBytes((uintptr_t)PS4ControllerScan, "\x6F\x76\x72\x5F\x73\x74\x6D\x2F\x63\x74\x72\x6C\x74\x79\x70\x65\x5F\x70\x73\x32\x2F", 21);
                 spdlog::info("MG/MG2 | MGS 2 | MGS 3: Launcher Config: Patched PS4 controller glyphs to PS2 glyphs.");
@@ -1356,7 +1356,7 @@ void afterD3D11CreateDevice()
 }
 
 
-void InitializeSubsystems()
+static void InitializeSubsystems()
 {
     //Initialization order (these systems initialize vars used by following ones.)
     INITIALIZE(g_Logging.LogSysInfo());            //0
@@ -1411,29 +1411,17 @@ DWORD __stdcall Main(void*)
 }
 
 
-BOOL APIENTRY DllMain(HMODULE hModule,
-    DWORD  ul_reason_for_call,
-    LPVOID lpReserved
-)
+BOOL APIENTRY DllMain(HMODULE hModule, DWORD ul_reason_for_call, LPVOID lpReserved)
 {
-    switch (ul_reason_for_call)
+    if (ul_reason_for_call == DLL_PROCESS_ATTACH)
     {
-    case DLL_PROCESS_ATTACH:
-    {
-        HANDLE mainHandle = CreateThread(NULL, 0, Main, 0, CREATE_SUSPENDED, 0);
-        if (mainHandle)
+        if (const HANDLE mainHandle = CreateThread(NULL, 0, Main, 0, CREATE_SUSPENDED, 0))
         {
             SetThreadPriority(mainHandle, THREAD_PRIORITY_TIME_CRITICAL); // set our Main thread priority higher than the games thread
             ResumeThread(mainHandle);
             CloseHandle(mainHandle);
         }
         SetThreadExecutionState(ES_CONTINUOUS | ES_SYSTEM_REQUIRED | ES_DISPLAY_REQUIRED); //fixes the monitor going to sleep during cutscenes.
-        break;
-    }
-    case DLL_THREAD_ATTACH:
-    case DLL_THREAD_DETACH:
-    case DLL_PROCESS_DETACH:
-        break;
     }
     return TRUE;
 }

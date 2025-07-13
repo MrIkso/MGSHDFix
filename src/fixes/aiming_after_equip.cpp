@@ -44,6 +44,6 @@ void AimAfterEquipFix::Initialize()
             {
                 spdlog::info("MGS2 | MGS3: Weapon putaway detected, applying aiming fix");
             });
-        LOG_HOOK(WeaponPutawayFixMidHook, "MGS2 | MGS3: Aiming After Equip", NULL, NULL)
+        LOG_HOOK(WeaponPutawayFixMidHook, "MGS2 | MGS3: Aiming After Equip")
     }*/
 }
