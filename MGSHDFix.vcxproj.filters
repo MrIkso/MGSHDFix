@@ -25,9 +25,6 @@
     <ClCompile Include="src\features\msaa.cpp">
       <Filter>WIP</Filter>
     </ClCompile>
-    <ClCompile Include="src\warnings\mute_warning.cpp">
-      <Filter>WIP</Filter>
-    </ClCompile>
     <ClCompile Include="src\fixes\color_filters.cpp">
       <Filter>WIP</Filter>
     </ClCompile>
@@ -94,6 +91,9 @@
     </ClCompile>
     <ClCompile Include="src\fixes\pause_on_focus_loss.cpp">
       <Filter>Features</Filter>
+    </ClCompile>
+    <ClCompile Include="src\warnings\mute_warning.cpp">
+      <Filter>Warnings</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

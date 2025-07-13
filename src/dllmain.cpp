@@ -40,7 +40,7 @@ HMODULE unityPlayer;
 // Version
 std::string const VERSION_STRING = "2.5.0";
 std::string sFixName = "MGSHDFix";
-int iConfigVersion = 2; //increment this when making config changes, along with the number at the bottom of the config file
+int iConfigVersion = 3; //increment this when making config changes, along with the number at the bottom of the config file
                         //that way we can sanity check to ensure people don't have broken/disabled features due to old config files.
 
 // Logger
@@ -255,6 +255,7 @@ void Init_ReadConfig()
     g_StereoAudioFix.isEnabled = Util::stringToBool(ini.sections["Force Stereo Audio"]["Enabled"]);
     g_PauseOnFocusLoss.bPauseOnFocusLoss = Util::stringToBool(ini.sections["Pause On Focus Loss"]["Enabled"]);
     g_PauseOnFocusLoss.bSpeedrunnerBugfixOverride = Util::stringToBool(ini.sections["Pause On Focus Loss"]["SpeedrunnerBugfixOverride"]);
+    g_MuteWarning.bEnabled = Util::stringToBool(ini.sections["Mute Warning"]["Enabled"]);
 
 
     /*//INITIALIZE(Init_GammaShader());
@@ -349,6 +350,7 @@ void Init_ReadConfig()
     spdlog::info("Config Parse: Cutscene Asset Loading Fix - Speedrunner Override: {}", g_PauseOnFocusLoss.bSpeedrunnerBugfixOverride);
 
     spdlog::info("Config Parse: Force Stereo Audio: {}", g_StereoAudioFix.isEnabled);
+    spdlog::info("Config Parse: Muted Audio Console Warnings: {}", g_MuteWarning.bEnabled);
     ConfigParse_Fix_LineScaling();
 
 }
@@ -1346,6 +1348,8 @@ void preD3D11CreateDevice()
 void afterD3D11CreateDevice()
 {
     MGS23_VectorLine_InjectShader();
+    g_MuteWarning.CheckStatus();
+
     //createGammaShader();
 
     //SetGamma(1.0);
@@ -1379,13 +1383,12 @@ void InitializeSubsystems()
     INITIALIZE(g_IntroSkip.Initialize());
     //INITIALIZE(g_MG1CustomLoadingScreens.Initialize());
     //INITIALIZE(g_MultiSampleAntiAliasing.Initialize());
-    INITIALIZE(g_PauseOnFocusLoss.Initialize());
     //INITIALIZE(g_Wireframe.Initialize());
 
         //Fixes
     INITIALIZE(Init_LineScaling());
     INITIALIZE(g_WaterReflectionFix.Initialize());
-    INITIALIZE(g_SkyboxFix.Initialize());
+    INITIALIZE(SkyboxFix::Initialize());
     //INITIALIZE(g_AimAfterEquipFix.Initialize());
     //INITIALIZE(g_ColorFilterFix.Initialize());
     INITIALIZE(g_EffectSpeedFix.Initialize());
@@ -1393,7 +1396,9 @@ void InitializeSubsystems()
 
         //Warnings
     INITIALIZE(DamagedSaveFix::Initialize());
-    //INITIALIZE(g_MuteWarning.Initialize());
+    INITIALIZE(g_MuteWarning.Setup());
+    INITIALIZE(g_PauseOnFocusLoss.Initialize());
+
     
 }
 

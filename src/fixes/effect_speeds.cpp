@@ -16,12 +16,12 @@ const double FRAME_IOP_MULTIPLIER = (60 / PS2_IOP_CLOCKSPEED);
 /// SolidusFireAct & CreateDebrisTexture fixes originally made as
 /// part of a modding fix bounty claimed by Cipherxof/Triggerhappy
 /// and originally included in the MGSFPSUnlock mod.
-/// They have been updated to fix numerous bugs, and upgraded (where needed) 
+/// They have been updated to fix several bugs, and upgraded (where needed) 
 /// to use RTC timesteps for 1:1 PS2 accurate frame-timing.
 /// 
 /// Overlapping integrations originating from MGSFPSUnlock are 
 /// automatically disabled when older versions of MGSFPSUnlock are
-/// detected to allow it to continue functioning till it's updated.
+/// detected to maintain backwards compatibility until it's updated.
 ///
 /////////////////////////////////////////////////////////////////
 
@@ -308,7 +308,6 @@ void EffectSpeedFix::Initialize() const
 
 void EffectSpeedFix::Reset()
 {
-    spdlog::info("MGS 2: Effect Speed Fix: Resetting effect speed fix variables. Level: {}", g_GameVars.GetCurrentStage());
     iDebrisIteration = 0;
 }
 

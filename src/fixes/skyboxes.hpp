@@ -3,7 +3,5 @@
 class SkyboxFix
 {
 public:
-    void Initialize();
+    static void Initialize();
 };
-
-inline SkyboxFix g_SkyboxFix;

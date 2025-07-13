@@ -11,18 +11,18 @@ void GameVars::Initialize()
         padDemoFlag = reinterpret_cast<int*>(Memory::GetRelativeOffset(Memory::PatternScan(baseModule, "8B 05 ?? ?? ?? ?? 45 33 F6 8B 0D", "MGS 2: GameVars: padDemoFlag", NULL, NULL) + 2));
         actorWaitValue = reinterpret_cast<double*>(Memory::GetRelativeOffset(Memory::PatternScan(baseModule, "66 0F 2F 05 ?? ?? ?? ?? 73 ?? 33 C0", "MGS 2: GameVars: actorWaitValue", NULL, NULL) + 4));
         currentStage = reinterpret_cast<char const*>(Memory::GetRelativeOffset(Memory::PatternScan(baseModule, "4C 8D 0D ?? ?? ?? ?? 48 8D 15 ?? ?? ?? ?? 4C 8D 05", "MGS 2: GameVars: currentStage", NULL, NULL) + 3));
+        if (uint8_t* LevelTransitionResult = Memory::PatternScan(baseModule, "89 73 ?? 81 25", "GameVars: Level Transition", NULL, NULL))
+        {
+            static SafetyHookMid levelTransitionMidHook {};
+            levelTransitionMidHook = safetyhook::create_mid(LevelTransitionResult,
+                [](SafetyHookContext& ctx)
+                {
+                    g_GameVars.OnLevelTransition();
+                });
+            LOG_HOOK(levelTransitionMidHook, "GameVars: Level Transition", NULL, NULL)
+        }
     }
 
-    if (uint8_t* LevelTransitionResult = Memory::PatternScan(baseModule, "89 73 ?? 81 25", "GameVars: Level Transition", NULL, NULL))
-    {
-        static SafetyHookMid levelTransitionMidHook {};
-        levelTransitionMidHook = safetyhook::create_mid(LevelTransitionResult,
-            [](SafetyHookContext& ctx)
-            {
-                g_GameVars.OnLevelTransition();
-            });
-        LOG_HOOK(levelTransitionMidHook, "GameVars: Level Transition", NULL, NULL)
-    }
 }
 
 bool GameVars::InCutscene() const

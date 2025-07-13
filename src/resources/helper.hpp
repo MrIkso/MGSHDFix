@@ -60,7 +60,7 @@ namespace Util
 {\
     if (hook)\
     {\
-        if (bVerboseLogging)\
+        if (!bVerboseLogging)\
         {\
             if (successMessage)\
             {\
