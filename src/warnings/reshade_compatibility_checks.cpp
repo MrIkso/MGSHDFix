@@ -2,13 +2,14 @@
 #include "common.hpp"
 #include "spdlog/spdlog.h"
 
-void Init_ReshadeCompatibilityChecks()
+void ReshadeCompatibility::Check()
 {
     if (!std::filesystem::exists(sExePath / "dxgi.dll") || Util::GetFileDescription((sExePath / "dxgi.dll").string()) != "ReShade")
     {
         return;
     }
 
+    spdlog::info("Checking for outdated versions of Reshade (which are known to cause crashing.)");
     // Retrieve the version information of dxgi.dll
     DWORD handle = 0;
     DWORD versionInfoSize = GetFileVersionInfoSize((sExePath / "dxgi.dll").wstring().c_str(), &handle);

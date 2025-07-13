@@ -3,9 +3,11 @@
 
 class Logging
 {
+private: 
+    static std::string GetSteamOSVersion();
 public:
-    void Initialize();
-    void LogSysInfo();
+    static void Initialize();
+    static void LogSysInfo();
     std::chrono::time_point<std::chrono::high_resolution_clock> initStartTime;
     bool bIsSteamDeck = false;
     bool bCheckedSteamDeck = false;

@@ -1,2 +1,6 @@
 #pragma once
-void Init_ReshadeCompatibilityChecks();
+class ReshadeCompatibility
+{
+public:
+    static void Check();
+};

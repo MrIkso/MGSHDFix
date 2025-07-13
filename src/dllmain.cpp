@@ -1360,12 +1360,12 @@ static void InitializeSubsystems()
 {
     //Initialization order (these systems initialize vars used by following ones.)
     INITIALIZE(g_Logging.LogSysInfo());            //0
-    INITIALIZE(Init_ASILoaderSanityChecks());      //1
+    INITIALIZE(ASILoaderCompatibility::Check());      //1
     INITIALIZE(DetectGame());                      //2
     INITIALIZE(g_GameVars.Initialize());           //3
     INITIALIZE(Init_D3D11Hooks());                 //4 Caches the D3DDevice, DXGIFactory, and D3DContext from D3DCreateDevice/DXGICreateFactory
     INITIALIZE(Init_ReadConfig());                 //5
-    INITIALIZE(Init_ReshadeCompatibilityChecks()); //6 Dependent on ReadConfig, must also be before LauncherConfigOverride
+    INITIALIZE(ReshadeCompatibility::Check());     //6 Dependent on ReadConfig, must also be before LauncherConfigOverride
     INITIALIZE(Init_CalculateScreenSize());        //7
     INITIALIZE(Init_LauncherConfigOverride());     //8
     INITIALIZE(Init_FixDPIScaling());              //9 Needs to be anywhere before the window is created in CustomResolution.

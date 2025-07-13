@@ -2,8 +2,9 @@
 #include "common.hpp"
 #include "spdlog/spdlog.h"
 
-void Init_ASILoaderSanityChecks()
+void ASILoaderCompatibility::Check()
 {
+    spdlog::info("ASI Loader Compatibility Check: Checking for duplicate instances of ASI Loader (ie d3d11.dll, dxgi.dll).");
     //Don't simplify by removing filesystem::exists() from this check. While GetFileDescription does handle non-existent files own its own, checking filesystem::exists() first saves 400+ ms of initialization time
     if (std::filesystem::exists(sExePath / "d3d11.dll") && (Util::GetFileDescription((sExePath / "d3d11.dll").string()) == Util::GetFileDescription((sExePath / "winhttp.dll").string())))
     {
@@ -35,6 +36,7 @@ void Init_ASILoaderSanityChecks()
 
     }
 
+    spdlog::info("ASI Mod Compatibility Check: Checking for common mod installation issues.");
     if (std::filesystem::exists(sExePath / "MGS2HFBladeMod.dll"))
     {
         AllocConsole();
@@ -62,6 +64,6 @@ void Init_ASILoaderSanityChecks()
     }
 
 
-
+    spdlog::info("ASI Mod Compatibility Check: Checking for duplicate MGSHDFix installations.");
     Util::CheckForASIFiles(sFixName, true, true, nullptr); //Exit thread & warn the user if multiple copies of MGSHDFix are trying to initialize.
 }

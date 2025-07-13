@@ -102,6 +102,10 @@ void Logging::Initialize()
             spdlog::info("Module Path: {0:s}", sExePath.string());
             spdlog::info("Module Address: 0x{0:x}", (uintptr_t)baseModule);
             spdlog::info("Module Version: {}", Memory::GetModuleVersion(baseModule));
+            if (std::filesystem::exists(sExePath / "steamclient64.dll") || std::filesystem::exists(sExePath / "steamclient.dll") || std::filesystem::exists(sExePath / "GameOverlayRenderer64.dll") || std::filesystem::exists(sExePath / "GameOverlayRenderer.dll") || std::filesystem::exists(sExePath / "Renderer.dll"))
+            {
+                spdlog::warn("Piracy Warning: This has been detected as a pirated copy of the game. Crashing issues are VERY likely to occur due to missing memory patterns.");
+            }
         }
         catch (const spdlog::spdlog_ex& ex)
         {
@@ -116,7 +120,7 @@ void Logging::Initialize()
     spdlog::info("---------- Logging loaded in: {} ms ----------", duration);
 }
 
-std::string GetSteamOSVersion()
+std::string Logging::GetSteamOSVersion()
 {
     std::ifstream os_release("/etc/os-release");
     std::string line;
@@ -189,8 +193,8 @@ void Logging::LogSysInfo()
 
     if (Util::IsSteamOS())
     {
-        bCheckedSteamDeck = true;
-        bIsSteamDeck = true;
+        g_Logging.bCheckedSteamDeck = true;
+        g_Logging.bIsSteamDeck = true;
         os = GetSteamOSVersion();
     }
     else
