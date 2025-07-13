@@ -192,8 +192,8 @@ void EffectSpeedFix::Initialize() const
             [](SafetyHookContext& ctx)
             {
                 //spdlog::info("flying_smoke_slow before {}", reghelpers::Getr8d(ctx));
-                reghelpers::Setr8d(ctx, static_cast<unsigned int>((g_GameVars.ActorWaitMultiplier() * (g_GameVars.InCutscene() ? 2.0 : 1.0)) * reghelpers::Getr8d(ctx)));
-                spdlog::info("flying_smoke_slow after {}", reghelpers::Getr8d(ctx));
+                reghelpers::set_r8d(ctx, static_cast<unsigned int>((g_GameVars.ActorWaitMultiplier() * (g_GameVars.InCutscene() ? 2.0 : 1.0)) * reghelpers::get_r8d(ctx)));
+                spdlog::info("flying_smoke_slow after {}", reghelpers::get_r8d(ctx));
             });
         LOG_HOOK(flyingSmokeSlow_MidHook, "MGS 2: Effect Speed Fix: effect3\\flying_smoke_slow.c", NULL, NULL)
     }
@@ -288,9 +288,9 @@ void EffectSpeedFix::Initialize() const
                 }
                 
 #ifdef _MGSDEBUGGING
-                spdlog::info("CreateDebrisTexture before {}. Config target: {}, Iteration: {}, Stage: {}", reghelpers::Getr8d(ctx), (int)g_EffectSpeedFix.iExplosionDuration, g_EffectSpeedFix.iDebrisIteration, g_GameVars.GetCurrentStage());
+                spdlog::info("CreateDebrisTexture before {}. Config target: {}, Iteration: {}, Stage: {}", reghelpers::get_r8d(ctx), (int)g_EffectSpeedFix.iExplosionDuration, g_EffectSpeedFix.iDebrisIteration, g_GameVars.GetCurrentStage());
 #endif
-                reghelpers::Setr8d(ctx, (int)g_EffectSpeedFix.iExplosionDuration);
+                reghelpers::set_r8d(ctx, (int)g_EffectSpeedFix.iExplosionDuration);
 
 
             });

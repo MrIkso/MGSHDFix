@@ -5,28 +5,28 @@
 // ContextHelpers
 //
 // Helper functions for working with SafetyHook Context:
-//    8-bit GPRs (AL/AH, BL/BH, ..., R8B-R15B)
-//    16-bit GPRs (AX, BX, ..., R8W-R15W)
-//    32-bit GPRs (EAX, EBX, ..., R8D-R15D)
-//    RFLAGS bits (ZF, CF, SF, OF, PF, AF, etc.)
+//    8-bit GPRs (al/ah, bl/bh, ..., r8b-r15b)
+//    16-bit GPRs (ax, bx, ..., r8w-r15w)
+//    32-bit GPRs (eax, ebx, ..., r8d-r15d)
+//    RFLAGS/EFLAGS bits (ZF, CF, SF, OF, PF, AF, etc.)
 //
-//    Example usage:
-/*        void MyHook(safetyhook::Context& regs)
-          {
-            // RAX family
-            reghelpers::SetAL(regs, 0x12);       // 8-bit low
-            reghelpers::SetAH(regs, 0x34);       // 8-bit high
-            reghelpers::SetAX(regs, 0x5678);     // 16-bit
-            reghelpers::SetEAX(regs, 0x12345678);// 32-bit
-            uint16_t ax = reghelpers::GetAX(regs);
+// On x64, writing to eax, ebx, ecx, edx, esi, edi, ebp, esp
+// clears the upper 32 bits of the corresponding 64-bit register.
+//
+// Example usage:
+/*
+    void MyHook(safetyhook::Context& regs)
+    {
+        reghelpers::set_al(regs, 0x12);
+        reghelpers::set_ah(regs, 0x34);
+        reghelpers::set_ax(regs, 0x5678);
+        reghelpers::set_eax(regs, 0x12345678);
+        uint16_t ax = reghelpers::get_ax(regs);
 
-            // Flags
-            reghelpers::SetZF(regs, true);
-            bool zeroFlag = reghelpers::GetZF(regs);
-            reghelpers::SetCF(regs, false);
-            bool carryFlag = reghelpers::GetCF(regs);
+        reghelpers::SetZF(regs, true);
+        bool zero = reghelpers::GetZF(regs);
+    }
 */
-//        }*/
 // ==========================================================
 
 namespace reghelpers
@@ -34,165 +34,115 @@ namespace reghelpers
 
 #if defined(_M_X64) || defined(__x86_64__)
 
-    // ==========================
-    // x64 (64-bit) helpers
-    // ==========================
-
-    // --- 8-bit GPR helpers (AL, AH, BL, BH, etc.) ---
-
-    // RAX
-    inline void SetAL(safetyhook::Context& regs, uint8_t val)
+    // --- 8-bit helpers ---
+    inline void set_al(safetyhook::Context& regs, uint8_t val)
     {
         regs.rax = (regs.rax & ~0xFFULL) | val;
     }
-    inline uint8_t GetAL(const safetyhook::Context& regs)
+    inline uint8_t get_al(const safetyhook::Context& regs)
     {
         return regs.rax & 0xFF;
     }
-    inline void SetAH(safetyhook::Context& regs, uint8_t val)
+    inline void set_ah(safetyhook::Context& regs, uint8_t val)
     {
         regs.rax = (regs.rax & ~(0xFFULL << 8)) | (uint64_t(val) << 8);
     }
-    inline uint8_t GetAH(const safetyhook::Context& regs)
+    inline uint8_t get_ah(const safetyhook::Context& regs)
     {
         return (regs.rax >> 8) & 0xFF;
     }
 
-    // RBX
-    inline void SetBL(safetyhook::Context& regs, uint8_t val)
+    inline void set_bl(safetyhook::Context& regs, uint8_t val)
     {
         regs.rbx = (regs.rbx & ~0xFFULL) | val;
     }
-    inline uint8_t GetBL(const safetyhook::Context& regs)
+    inline uint8_t get_bl(const safetyhook::Context& regs)
     {
         return regs.rbx & 0xFF;
     }
-    inline void SetBH(safetyhook::Context& regs, uint8_t val)
+    inline void set_bh(safetyhook::Context& regs, uint8_t val)
     {
         regs.rbx = (regs.rbx & ~(0xFFULL << 8)) | (uint64_t(val) << 8);
     }
-    inline uint8_t GetBH(const safetyhook::Context& regs)
+    inline uint8_t get_bh(const safetyhook::Context& regs)
     {
         return (regs.rbx >> 8) & 0xFF;
     }
 
-    // RCX
-    inline void SetCL(safetyhook::Context& regs, uint8_t val)
+    inline void set_cl(safetyhook::Context& regs, uint8_t val)
     {
         regs.rcx = (regs.rcx & ~0xFFULL) | val;
     }
-    inline uint8_t GetCL(const safetyhook::Context& regs)
+    inline uint8_t get_cl(const safetyhook::Context& regs)
     {
         return regs.rcx & 0xFF;
     }
-    inline void SetCH(safetyhook::Context& regs, uint8_t val)
+    inline void set_ch(safetyhook::Context& regs, uint8_t val)
     {
         regs.rcx = (regs.rcx & ~(0xFFULL << 8)) | (uint64_t(val) << 8);
     }
-    inline uint8_t GetCH(const safetyhook::Context& regs)
+    inline uint8_t get_ch(const safetyhook::Context& regs)
     {
         return (regs.rcx >> 8) & 0xFF;
     }
 
-    // RDX
-    inline void SetDL(safetyhook::Context& regs, uint8_t val)
+    inline void set_dl(safetyhook::Context& regs, uint8_t val)
     {
         regs.rdx = (regs.rdx & ~0xFFULL) | val;
     }
-    inline uint8_t GetDL(const safetyhook::Context& regs)
+    inline uint8_t get_dl(const safetyhook::Context& regs)
     {
         return regs.rdx & 0xFF;
     }
-    inline void SetDH(safetyhook::Context& regs, uint8_t val)
+    inline void set_dh(safetyhook::Context& regs, uint8_t val)
     {
         regs.rdx = (regs.rdx & ~(0xFFULL << 8)) | (uint64_t(val) << 8);
     }
-    inline uint8_t GetDH(const safetyhook::Context& regs)
+    inline uint8_t get_dh(const safetyhook::Context& regs)
     {
         return (regs.rdx >> 8) & 0xFF;
     }
 
-    // RSI, RDI, RBP, RSP (only low 8 bits available)
-#define DEFINE_8BIT_LOW_HELPERS(reg) \
-inline void Set##reg##l(safetyhook::Context& regs, uint8_t val) { regs.reg = (regs.reg & ~0xFFULL) | val; } \
-inline uint8_t Get##reg##l(const safetyhook::Context& regs) { return regs.reg & 0xFF; }
+#define DEFINE_8BIT_LOW(name, field) \
+inline void set_##name##l(safetyhook::Context& regs, uint8_t val) { regs.field = (regs.field & ~0xFFULL) | val; } \
+inline uint8_t get_##name##l(const safetyhook::Context& regs) { return regs.field & 0xFF; }
 
-        DEFINE_8BIT_LOW_HELPERS(rsi)
-        DEFINE_8BIT_LOW_HELPERS(rdi)
-        DEFINE_8BIT_LOW_HELPERS(rbp)
-        DEFINE_8BIT_LOW_HELPERS(rsp)
+    DEFINE_8BIT_LOW(si, rsi) DEFINE_8BIT_LOW(di, rdi) DEFINE_8BIT_LOW(bp, rbp) DEFINE_8BIT_LOW(sp, rsp)
+#undef DEFINE_8BIT_LOW
 
-#undef DEFINE_8BIT_LOW_HELPERS
+        // r8b - r15b 8-bit low registers
+#define DEFINE_R8B(num) \
+    inline void set_r##num##b(safetyhook::Context& regs, uint8_t val) { regs.r##num = (regs.r##num & ~0xFFULL) | val; } \
+    inline uint8_t get_r##num##b(const safetyhook::Context& regs) { return regs.r##num & 0xFF; }
 
-        // R8 - R15 low 8 bits
-#define DEFINE_R8_15_8BIT_HELPERS(num) \
-inline void Setr##num##b(safetyhook::Context& regs, uint8_t val) { regs.r##num = (regs.r##num & ~0xFFULL) | val; } \
-inline uint8_t Getr##num##b(const safetyhook::Context& regs) { return regs.r##num & 0xFF; }
-
-        DEFINE_R8_15_8BIT_HELPERS(8)
-        DEFINE_R8_15_8BIT_HELPERS(9)
-        DEFINE_R8_15_8BIT_HELPERS(10)
-        DEFINE_R8_15_8BIT_HELPERS(11)
-        DEFINE_R8_15_8BIT_HELPERS(12)
-        DEFINE_R8_15_8BIT_HELPERS(13)
-        DEFINE_R8_15_8BIT_HELPERS(14)
-        DEFINE_R8_15_8BIT_HELPERS(15)
-
-#undef DEFINE_R8_15_8BIT_HELPERS
+        DEFINE_R8B(8)  DEFINE_R8B(9)  DEFINE_R8B(10) DEFINE_R8B(11)
+        DEFINE_R8B(12) DEFINE_R8B(13) DEFINE_R8B(14) DEFINE_R8B(15)
+#undef DEFINE_R8B
 
         // --- 16-bit helpers ---
+#define DEFINE_16BIT(reg, name) \
+    inline void set_##name(safetyhook::Context& regs, uint16_t val) { regs.reg = (regs.reg & ~0xFFFFULL) | val; } \
+    inline uint16_t get_##name(const safetyhook::Context& regs) { return regs.reg & 0xFFFF; }
 
-#define DEFINE_16BIT_HELPERS(reg) \
-inline void Set##reg##w(safetyhook::Context& regs, uint16_t val) { regs.reg = (regs.reg & ~0xFFFFULL) | val; } \
-inline uint16_t Get##reg##w(const safetyhook::Context& regs) { return regs.reg & 0xFFFF; }
-
-        DEFINE_16BIT_HELPERS(rax)
-        DEFINE_16BIT_HELPERS(rbx)
-        DEFINE_16BIT_HELPERS(rcx)
-        DEFINE_16BIT_HELPERS(rdx)
-        DEFINE_16BIT_HELPERS(rsi)
-        DEFINE_16BIT_HELPERS(rdi)
-        DEFINE_16BIT_HELPERS(rbp)
-        DEFINE_16BIT_HELPERS(rsp)
-        DEFINE_16BIT_HELPERS(r8)
-        DEFINE_16BIT_HELPERS(r9)
-        DEFINE_16BIT_HELPERS(r10)
-        DEFINE_16BIT_HELPERS(r11)
-        DEFINE_16BIT_HELPERS(r12)
-        DEFINE_16BIT_HELPERS(r13)
-        DEFINE_16BIT_HELPERS(r14)
-        DEFINE_16BIT_HELPERS(r15)
-
-#undef DEFINE_16BIT_HELPERS
+        DEFINE_16BIT(rax, ax)   DEFINE_16BIT(rbx, bx)   DEFINE_16BIT(rcx, cx)   DEFINE_16BIT(rdx, dx)
+        DEFINE_16BIT(rsi, si)   DEFINE_16BIT(rdi, di)   DEFINE_16BIT(rbp, bp)   DEFINE_16BIT(rsp, sp)
+        DEFINE_16BIT(r8, r8w)   DEFINE_16BIT(r9, r9w)   DEFINE_16BIT(r10, r10w) DEFINE_16BIT(r11, r11w)
+        DEFINE_16BIT(r12, r12w) DEFINE_16BIT(r13, r13w) DEFINE_16BIT(r14, r14w) DEFINE_16BIT(r15, r15w)
+#undef DEFINE_16BIT
 
         // --- 32-bit helpers ---
+#define DEFINE_32BIT(reg, name) \
+    inline void set_##name(safetyhook::Context& regs, uint32_t val) { regs.reg = (regs.reg & ~0xFFFFFFFFULL) | val; } \
+    inline uint32_t get_##name(const safetyhook::Context& regs) { return regs.reg & 0xFFFFFFFF; }
 
-#define DEFINE_32BIT_HELPERS(reg) \
-inline void Set##reg##d(safetyhook::Context& regs, uint32_t val) { regs.reg = (regs.reg & ~0xFFFFFFFFULL) | val; } \
-inline uint32_t Get##reg##d(const safetyhook::Context& regs) { return regs.reg & 0xFFFFFFFF; }
+        DEFINE_32BIT(rax, eax)   DEFINE_32BIT(rbx, ebx)   DEFINE_32BIT(rcx, ecx)   DEFINE_32BIT(rdx, edx)
+        DEFINE_32BIT(rsi, esi)   DEFINE_32BIT(rdi, edi)   DEFINE_32BIT(rbp, ebp)   DEFINE_32BIT(rsp, esp)
+        DEFINE_32BIT(r8, r8d)    DEFINE_32BIT(r9, r9d)    DEFINE_32BIT(r10, r10d)  DEFINE_32BIT(r11, r11d)
+        DEFINE_32BIT(r12, r12d)  DEFINE_32BIT(r13, r13d)  DEFINE_32BIT(r14, r14d)  DEFINE_32BIT(r15, r15d)
+#undef DEFINE_32BIT
 
-        DEFINE_32BIT_HELPERS(rax)
-        DEFINE_32BIT_HELPERS(rbx)
-        DEFINE_32BIT_HELPERS(rcx)
-        DEFINE_32BIT_HELPERS(rdx)
-        DEFINE_32BIT_HELPERS(rsi)
-        DEFINE_32BIT_HELPERS(rdi)
-        DEFINE_32BIT_HELPERS(rbp)
-        DEFINE_32BIT_HELPERS(rsp)
-        DEFINE_32BIT_HELPERS(r8)
-        DEFINE_32BIT_HELPERS(r9)
-        DEFINE_32BIT_HELPERS(r10)
-        DEFINE_32BIT_HELPERS(r11)
-        DEFINE_32BIT_HELPERS(r12)
-        DEFINE_32BIT_HELPERS(r13)
-        DEFINE_32BIT_HELPERS(r14)
-        DEFINE_32BIT_HELPERS(r15)
-
-#undef DEFINE_32BIT_HELPERS
-
-        // --- RFLAGS flags ---
-
-    constexpr uint64_t FLAG_CF = 1ULL << 0;
+        // --- Flags ---
+        constexpr uint64_t FLAG_CF = 1ULL << 0;
     constexpr uint64_t FLAG_PF = 1ULL << 2;
     constexpr uint64_t FLAG_AF = 1ULL << 4;
     constexpr uint64_t FLAG_ZF = 1ULL << 6;
@@ -203,9 +153,10 @@ inline uint32_t Get##reg##d(const safetyhook::Context& regs) { return regs.reg &
     {
         return (regs.rflags & mask) != 0;
     }
-    inline void SetFlag(safetyhook::Context& regs, uint64_t mask, bool value)
+    inline void SetFlag(safetyhook::Context& regs, uint64_t mask, bool val)
     {
-        if (value) regs.rflags |= mask; else regs.rflags &= ~mask;
+        if (val) regs.rflags |= mask;
+        else regs.rflags &= ~mask;
     }
 
     inline bool GetZF(const safetyhook::Context& regs)
@@ -216,6 +167,7 @@ inline uint32_t Get##reg##d(const safetyhook::Context& regs) { return regs.reg &
     {
         SetFlag(regs, FLAG_ZF, val);
     }
+
     inline bool GetCF(const safetyhook::Context& regs)
     {
         return GetFlag(regs, FLAG_CF);
@@ -224,6 +176,7 @@ inline uint32_t Get##reg##d(const safetyhook::Context& regs) { return regs.reg &
     {
         SetFlag(regs, FLAG_CF, val);
     }
+
     inline bool GetSF(const safetyhook::Context& regs)
     {
         return GetFlag(regs, FLAG_SF);
@@ -232,6 +185,7 @@ inline uint32_t Get##reg##d(const safetyhook::Context& regs) { return regs.reg &
     {
         SetFlag(regs, FLAG_SF, val);
     }
+
     inline bool GetOF(const safetyhook::Context& regs)
     {
         return GetFlag(regs, FLAG_OF);
@@ -240,6 +194,7 @@ inline uint32_t Get##reg##d(const safetyhook::Context& regs) { return regs.reg &
     {
         SetFlag(regs, FLAG_OF, val);
     }
+
     inline bool GetPF(const safetyhook::Context& regs)
     {
         return GetFlag(regs, FLAG_PF);
@@ -248,6 +203,7 @@ inline uint32_t Get##reg##d(const safetyhook::Context& regs) { return regs.reg &
     {
         SetFlag(regs, FLAG_PF, val);
     }
+
     inline bool GetAF(const safetyhook::Context& regs)
     {
         return GetFlag(regs, FLAG_AF);
@@ -259,116 +215,85 @@ inline uint32_t Get##reg##d(const safetyhook::Context& regs) { return regs.reg &
 
 #elif defined(_M_IX86) || defined(__i386__)
 
-    // ==========================
-    // x86 (32-bit) helpers
-    // ==========================
-
-    // --- 8-bit GPR helpers (AL, AH, BL, BH, etc.) ---
-
-    inline void SetAL(safetyhook::Context& regs, uint8_t val)
+    // --- 8-bit helpers ---
+    inline void set_al(safetyhook::Context& regs, uint8_t val)
     {
         regs.eax = (regs.eax & ~0xFFU) | val;
     }
-    inline uint8_t GetAL(const safetyhook::Context& regs)
+    inline uint8_t get_al(const safetyhook::Context& regs)
     {
         return regs.eax & 0xFF;
     }
-    inline void SetAH(safetyhook::Context& regs, uint8_t val)
+    inline void set_ah(safetyhook::Context& regs, uint8_t val)
     {
         regs.eax = (regs.eax & ~(0xFFU << 8)) | (uint32_t(val) << 8);
     }
-    inline uint8_t GetAH(const safetyhook::Context& regs)
+    inline uint8_t get_ah(const safetyhook::Context& regs)
     {
         return (regs.eax >> 8) & 0xFF;
     }
 
-    inline void SetBL(safetyhook::Context& regs, uint8_t val)
+    inline void set_bl(safetyhook::Context& regs, uint8_t val)
     {
         regs.ebx = (regs.ebx & ~0xFFU) | val;
     }
-    inline uint8_t GetBL(const safetyhook::Context& regs)
+    inline uint8_t get_bl(const safetyhook::Context& regs)
     {
         return regs.ebx & 0xFF;
     }
-    inline void SetBH(safetyhook::Context& regs, uint8_t val)
+    inline void set_bh(safetyhook::Context& regs, uint8_t val)
     {
         regs.ebx = (regs.ebx & ~(0xFFU << 8)) | (uint32_t(val) << 8);
     }
-    inline uint8_t GetBH(const safetyhook::Context& regs)
+    inline uint8_t get_bh(const safetyhook::Context& regs)
     {
         return (regs.ebx >> 8) & 0xFF;
     }
 
-    inline void SetCL(safetyhook::Context& regs, uint8_t val)
+    inline void set_cl(safetyhook::Context& regs, uint8_t val)
     {
         regs.ecx = (regs.ecx & ~0xFFU) | val;
     }
-    inline uint8_t GetCL(const safetyhook::Context& regs)
+    inline uint8_t get_cl(const safetyhook::Context& regs)
     {
         return regs.ecx & 0xFF;
     }
-    inline void SetCH(safetyhook::Context& regs, uint8_t val)
+    inline void set_ch(safetyhook::Context& regs, uint8_t val)
     {
         regs.ecx = (regs.ecx & ~(0xFFU << 8)) | (uint32_t(val) << 8);
     }
-    inline uint8_t GetCH(const safetyhook::Context& regs)
+    inline uint8_t get_ch(const safetyhook::Context& regs)
     {
         return (regs.ecx >> 8) & 0xFF;
     }
 
-    inline void SetDL(safetyhook::Context& regs, uint8_t val)
+    inline void set_dl(safetyhook::Context& regs, uint8_t val)
     {
         regs.edx = (regs.edx & ~0xFFU) | val;
     }
-    inline uint8_t GetDL(const safetyhook::Context& regs)
+    inline uint8_t get_dl(const safetyhook::Context& regs)
     {
         return regs.edx & 0xFF;
     }
-    inline void SetDH(safetyhook::Context& regs, uint8_t val)
+    inline void set_dh(safetyhook::Context& regs, uint8_t val)
     {
         regs.edx = (regs.edx & ~(0xFFU << 8)) | (uint32_t(val) << 8);
     }
-    inline uint8_t GetDH(const safetyhook::Context& regs)
+    inline uint8_t get_dh(const safetyhook::Context& regs)
     {
         return (regs.edx >> 8) & 0xFF;
     }
 
     // --- 16-bit helpers ---
+#define DEFINE_16BIT(reg, name) \
+    inline void set_##name(safetyhook::Context& regs, uint16_t val) { regs.reg = (regs.reg & ~0xFFFFU) | val; } \
+    inline uint16_t get_##name(const safetyhook::Context& regs) { return regs.reg & 0xFFFF; }
 
-#define DEFINE_16BIT_HELPERS(reg) \
-inline void Set##reg##W(safetyhook::Context& regs, uint16_t val) { regs.reg = (regs.reg & ~0xFFFFU) | val; } \
-inline uint16_t Get##reg##W(const safetyhook::Context& regs) { return regs.reg & 0xFFFF; }
+    DEFINE_16BIT(eax, ax) DEFINE_16BIT(ebx, bx) DEFINE_16BIT(ecx, cx) DEFINE_16BIT(edx, dx)
+        DEFINE_16BIT(esi, si) DEFINE_16BIT(edi, di) DEFINE_16BIT(ebp, bp) DEFINE_16BIT(esp, sp)
+#undef DEFINE_16BIT
 
-    DEFINE_16BIT_HELPERS(eax)
-        DEFINE_16BIT_HELPERS(ebx)
-        DEFINE_16BIT_HELPERS(ecx)
-        DEFINE_16BIT_HELPERS(edx)
-        DEFINE_16BIT_HELPERS(esi)
-        DEFINE_16BIT_HELPERS(edi)
-        DEFINE_16BIT_HELPERS(ebp)
-        DEFINE_16BIT_HELPERS(esp)
-
-#undef DEFINE_16BIT_HELPERS
-
-        // --- 32-bit helpers ---
-
-#define DEFINE_32BIT_HELPERS(reg) \
-inline void Set##reg##D(safetyhook::Context& regs, uint32_t val) { regs.reg = val; } \
-inline uint32_t Get##reg##D(const safetyhook::Context& regs) { return regs.reg; }
-
-        DEFINE_32BIT_HELPERS(eax)
-        DEFINE_32BIT_HELPERS(ebx)
-        DEFINE_32BIT_HELPERS(ecx)
-        DEFINE_32BIT_HELPERS(edx)
-        DEFINE_32BIT_HELPERS(esi)
-        DEFINE_32BIT_HELPERS(edi)
-        DEFINE_32BIT_HELPERS(ebp)
-        DEFINE_32BIT_HELPERS(esp)
-
-#undef DEFINE_32BIT_HELPERS
-
-        // --- EFLAGS flags ---
-
+        // --- Flags ---
         constexpr uint32_t FLAG_CF = 1U << 0;
     constexpr uint32_t FLAG_PF = 1U << 2;
     constexpr uint32_t FLAG_AF = 1U << 4;
@@ -380,9 +305,10 @@ inline uint32_t Get##reg##D(const safetyhook::Context& regs) { return regs.reg; 
     {
         return (regs.eflags & mask) != 0;
     }
-    inline void SetFlag(safetyhook::Context& regs, uint32_t mask, bool value)
+    inline void SetFlag(safetyhook::Context& regs, uint32_t mask, bool val)
     {
-        if (value) regs.eflags |= mask; else regs.eflags &= ~mask;
+        if (val) regs.eflags |= mask;
+        else regs.eflags &= ~mask;
     }
 
     inline bool GetZF(const safetyhook::Context& regs)
@@ -393,6 +319,7 @@ inline uint32_t Get##reg##D(const safetyhook::Context& regs) { return regs.reg; 
     {
         SetFlag(regs, FLAG_ZF, val);
     }
+
     inline bool GetCF(const safetyhook::Context& regs)
     {
         return GetFlag(regs, FLAG_CF);
@@ -401,6 +328,7 @@ inline uint32_t Get##reg##D(const safetyhook::Context& regs) { return regs.reg; 
     {
         SetFlag(regs, FLAG_CF, val);
     }
+
     inline bool GetSF(const safetyhook::Context& regs)
     {
         return GetFlag(regs, FLAG_SF);
@@ -409,6 +337,7 @@ inline uint32_t Get##reg##D(const safetyhook::Context& regs) { return regs.reg; 
     {
         SetFlag(regs, FLAG_SF, val);
     }
+
     inline bool GetOF(const safetyhook::Context& regs)
     {
         return GetFlag(regs, FLAG_OF);
@@ -417,6 +346,7 @@ inline uint32_t Get##reg##D(const safetyhook::Context& regs) { return regs.reg; 
     {
         SetFlag(regs, FLAG_OF, val);
     }
+
     inline bool GetPF(const safetyhook::Context& regs)
     {
         return GetFlag(regs, FLAG_PF);
@@ -425,6 +355,7 @@ inline uint32_t Get##reg##D(const safetyhook::Context& regs) { return regs.reg; 
     {
         SetFlag(regs, FLAG_PF, val);
     }
+
     inline bool GetAF(const safetyhook::Context& regs)
     {
         return GetFlag(regs, FLAG_AF);
