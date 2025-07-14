@@ -1368,6 +1368,7 @@ void afterD3D11CreateDevice()
 
     //SetGamma(1.0);
 }
+#include "version_checking.hpp"
 
 
 static void InitializeSubsystems()
@@ -1413,6 +1414,16 @@ static void InitializeSubsystems()
     INITIALIZE(g_MuteWarning.Setup());
     INITIALIZE(g_PauseOnFocusLoss.Initialize());
     INITIALIZE(g_SteamAPI.Setup());
+
+    
+    LatestVersionChecker checker(VERSION_STRING, "Lyall", "MGSHDFix");
+
+    if (!checker.isLatestVersion())
+    {
+        // Notify user to update your DLL
+        spdlog::warn("Your DLL is out of date. Please update to the latest version.");
+        MessageBoxA(nullptr, "Your DLL is out of date. Please update.", "Update Required", MB_OK);
+    }
 }
 
 DWORD __stdcall Main(void*)
