@@ -69,7 +69,7 @@ void createGammaShader()
 {
 
     // Create pixel shader
-    d3dDevice->CreatePixelShader(
+    g_D3D11Hooks.d3dDevice->CreatePixelShader(
         psBlob->GetBufferPointer(),
         psBlob->GetBufferSize(),
         nullptr,
@@ -82,16 +82,16 @@ void createGammaShader()
     cbd.Usage = D3D11_USAGE_DEFAULT;
     cbd.ByteWidth = sizeof(float) * 4; // 16-byte aligned
     cbd.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
-    d3dDevice->CreateBuffer(&cbd, nullptr, &g_GammaConstantBuffer);
+    g_D3D11Hooks.d3dDevice->CreateBuffer(&cbd, nullptr, &g_GammaConstantBuffer);
 }
 
 void SetGamma(float gamma)
 {
     g_GammaValue = gamma;
     float gammaData[4] = { g_GammaValue, 0, 0, 0 };
-    d3dDeviceContext->UpdateSubresource(
+    g_D3D11Hooks.d3dDeviceContext->UpdateSubresource(
         g_GammaConstantBuffer, 0, nullptr, gammaData, 0, 0
     );
-    d3dDeviceContext->PSSetConstantBuffers(0, 1, &g_GammaConstantBuffer);
-    d3dDeviceContext->PSSetShader(g_GammaPixelShader, nullptr, 0);
+    g_D3D11Hooks.d3dDeviceContext->PSSetConstantBuffers(0, 1, &g_GammaConstantBuffer);
+    g_D3D11Hooks.d3dDeviceContext->PSSetShader(g_GammaPixelShader, nullptr, 0);
 }

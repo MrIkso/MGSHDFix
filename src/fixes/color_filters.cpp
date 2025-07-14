@@ -15,7 +15,7 @@ void colorFilterFix()
 }
 */
 
-void ColorFilterFix::Initialize() const
+void ColorFilterFix::Initialize()
 {
     if (!(eGameType & MGS2))
     {

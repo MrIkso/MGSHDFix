@@ -1,5 +1,6 @@
 #pragma once
-class ASILoaderCompatibility
+
+class ASILoaderCompatibility final
 {
 public:
     static void Check();

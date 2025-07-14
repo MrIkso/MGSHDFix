@@ -1,6 +1,6 @@
 #pragma once
 
-class AimAfterEquipFix
+class AimAfterEquipFix final
 {
 public:
     bool isEnabled;

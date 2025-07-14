@@ -1,6 +1,6 @@
 #pragma once
 
-class DamagedSaveFix
+class DamagedSaveFix final
 {
 public:
     static void Initialize();

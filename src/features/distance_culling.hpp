@@ -1,12 +1,11 @@
 #pragma once
 
-class DistanceCulling
+class DistanceCulling final
 {
 public:
-    bool isEnabled;
     void Initialize() const;
+
+    bool isEnabled;
 };
 
 inline DistanceCulling g_DistanceCulling;
-
-

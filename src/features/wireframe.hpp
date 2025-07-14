@@ -1,10 +1,11 @@
 #pragma once
 
-class Wireframe
+class Wireframe final
 {
 public:
-    bool isEnabled;
     void Initialize() const;
+
+    bool isEnabled;
 };
 
 inline Wireframe g_Wireframe;

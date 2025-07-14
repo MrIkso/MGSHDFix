@@ -84,7 +84,7 @@ safetyhook::MidHook debrisVelocityHook;
 
 float g_VelocityScale = (1.0f * FRAME_IOP_DIVIDER);
 
-void EffectSpeedFix::Initialize() const
+void EffectSpeedFix::Initialize()
 {
     if (!(eGameType & MGS2))
     {
@@ -306,7 +306,8 @@ void EffectSpeedFix::Initialize() const
     
 }
 
-void EffectSpeedFix::Reset()
+///Called on GameVars::OnLevelTransition() to reset counters between cutscenes/levels.
+void EffectSpeedFix::Reset() 
 {
     iDebrisIteration = 0;
 }

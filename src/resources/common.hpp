@@ -41,5 +41,4 @@ extern int iInternalResY;
 extern float fAspectRatio;
 extern bool bOutdatedReshade;
 extern bool bLauncherConfigSkipLauncher;
-extern int iTextureBufferSizeMB;
 

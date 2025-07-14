@@ -1,5 +1,6 @@
 #pragma once
-class ReshadeCompatibility
+
+class ReshadeCompatibility final
 {
 public:
     static void Check();

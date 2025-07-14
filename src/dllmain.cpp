@@ -40,7 +40,7 @@ HMODULE unityPlayer;
 // Version
 std::string const VERSION_STRING = "2.5.0";
 std::string sFixName = "MGSHDFix";
-int iConfigVersion = 3; //increment this when making config changes, along with the number at the bottom of the config file
+constexpr int iConfigVersion = 3; //increment this when making config changes, along with the number at the bottom of the config file
                         //that way we can sanity check to ensure people don't have broken/disabled features due to old config files.
 
 // Logger
@@ -70,11 +70,10 @@ bool bFramebufferFix;
 bool bLauncherJumpStart;
 int iAnisotropicFiltering;
 bool bDisableTextureFiltering;
-int iTextureBufferSizeMB;
-bool bMouseSensitivity;
-float fMouseSensitivityXMulti;
-float fMouseSensitivityYMulti;
-bool bDisableCursor;
+static bool bMouseSensitivity;
+static float fMouseSensitivityXMulti;
+static float fMouseSensitivityYMulti;
+static bool bDisableCursor;
 bool bOutdatedReshade;
 
 // Add this global variable
@@ -154,7 +153,7 @@ HWND WINAPI CreateWindowExA_hooked(DWORD dwExStyle, LPCSTR lpClassName, LPCSTR l
             SetWindowPos(hWnd, HWND_TOP, 0, 0, DesktopDimensions.first, DesktopDimensions.second, NULL);
             spdlog::info("CreateWindowExA: Borderless: ClassName = {}, WindowName = {}, dwStyle = {:x}, X = {}, Y = {}, nWidth = {}, nHeight = {}", lpClassName, lpWindowName, WS_POPUP, X, Y, nWidth, nHeight);
             spdlog::info("CreateWindowExA: Borderless: SetWindowPos to X = {}, Y = {}, cx = {}, cy = {}", 0, 0, (int)DesktopDimensions.first, (int)DesktopDimensions.second);
-            MainHwnd = hWnd;
+            g_D3D11Hooks.MainHwnd = hWnd;
             return hWnd;
         }
 
@@ -164,13 +163,13 @@ HWND WINAPI CreateWindowExA_hooked(DWORD dwExStyle, LPCSTR lpClassName, LPCSTR l
             SetWindowPos(hWnd, HWND_TOP, 0, 0, iOutputResX, iOutputResY, NULL);
             spdlog::info("CreateWindowExA: Windowed: ClassName = {}, WindowName = {}, dwStyle = {:x}, X = {}, Y = {}, nWidth = {}, nHeight = {}", lpClassName, lpWindowName, dwStyle, X, Y, nWidth, nHeight);
             spdlog::info("CreateWindowExA: Windowed: SetWindowPos to X = {}, Y = {}, cx = {}, cy = {}", 0, 0, iOutputResX, iOutputResY);
-            MainHwnd = hWnd;
+            g_D3D11Hooks.MainHwnd = hWnd;
             return hWnd;
         }
     }
 
-    MainHwnd = CreateWindowExA_hook.stdcall<HWND>(dwExStyle, lpClassName, lpWindowName, dwStyle, X, Y, nWidth, nHeight, hWndParent, hMenu, hInstance, lpParam);
-    return MainHwnd;
+    g_D3D11Hooks.MainHwnd = CreateWindowExA_hook.stdcall<HWND>(dwExStyle, lpClassName, lpWindowName, dwStyle, X, Y, nWidth, nHeight, hWndParent, hMenu, hInstance, lpParam);
+    return g_D3D11Hooks.MainHwnd;
 }
 
 static void Init_CalculateScreenSize()
@@ -271,7 +270,7 @@ static void Init_ReadConfig()
     inipp::get_value(ini.sections["Mouse Sensitivity"], "X Multiplier", fMouseSensitivityXMulti);
     inipp::get_value(ini.sections["Mouse Sensitivity"], "Y Multiplier", fMouseSensitivityYMulti);
     bDisableCursor = Util::stringToBool(ini.sections["Disable Mouse Cursor"]["Enabled"]);
-    inipp::get_value(ini.sections["Texture Buffer"], "SizeMB", iTextureBufferSizeMB);
+    inipp::get_value(ini.sections["Texture Buffer"], "SizeMB", g_TextureBufferSize.iTextureBufferSizeMB);
     bAspectFix = Util::stringToBool(ini.sections["Fix Aspect Ratio"]["Enabled"]);
     bHUDFix = Util::stringToBool(ini.sections["Fix HUD"]["Enabled"]);
     bFOVFix = Util::stringToBool(ini.sections["Fix FOV"]["Enabled"]);
@@ -316,7 +315,7 @@ static void Init_ReadConfig()
     spdlog::info("Config Parse: Fix Ultrawide Aspect Ratio: {}", bAspectFix);
     spdlog::info("Config Parse: Fix Ultrawide HUD: {}", bHUDFix);
     spdlog::info("Config Parse: Fix Ultrawide FOV: {}", bFOVFix);
-    spdlog::info("Config Parse: Texture Buffer Size (PER TEXTURE): {}MB", iTextureBufferSizeMB); //g_TextureBufferSize
+    spdlog::info("Config Parse: Texture Buffer Size (PER TEXTURE): {}MB", g_TextureBufferSize.iTextureBufferSizeMB); //g_TextureBufferSize
     spdlog::info("Config Parse: Anisotropic Filtering Level: {}", iAnisotropicFiltering);
     if (iAnisotropicFiltering < 0 || iAnisotropicFiltering > 16)
     {
@@ -351,7 +350,16 @@ static void Init_ReadConfig()
 
     spdlog::info("Config Parse: Force Stereo Audio: {}", g_StereoAudioFix.isEnabled);
     spdlog::info("Config Parse: Muted Audio Console Warnings: {}", g_MuteWarning.bEnabled);
-    ConfigParse_Fix_LineScaling();
+    if (eGameType & (MGS2 | MGS3))
+    {
+        g_VectorScalingFix.bEnableVectorLineFix = Util::stringToBool(ini.sections["Vector Line Fix"]["Enabled"]);
+        spdlog::info("Config Parse: Fix Vector Effect (Rain) Scaling: {}", g_VectorScalingFix.bEnableVectorLineFix);
+        if (g_VectorScalingFix.bEnableVectorLineFix)
+        {
+            inipp::get_value(ini.sections["Vector Line Fix"], "Line Scale", g_VectorScalingFix.iVectorLineScale);
+            spdlog::info("Config Parse: Vector Effect Width: {} / {} pixels wide.", g_VectorScalingFix.iVectorLineScale, iInternalResY / g_VectorScalingFix.iVectorLineScale);
+        }
+    }
 
 }
 
@@ -1347,7 +1355,7 @@ void preD3D11CreateDevice()
 
 void afterD3D11CreateDevice()
 {
-    MGS23_VectorLine_InjectShader();
+    g_VectorScalingFix.LoadCompiledShader();
     g_MuteWarning.CheckStatus();
 
     //createGammaShader();
@@ -1363,7 +1371,7 @@ static void InitializeSubsystems()
     INITIALIZE(ASILoaderCompatibility::Check());      //1
     INITIALIZE(DetectGame());                      //2
     INITIALIZE(g_GameVars.Initialize());           //3
-    INITIALIZE(Init_D3D11Hooks());                 //4 Caches the D3DDevice, DXGIFactory, and D3DContext from D3DCreateDevice/DXGICreateFactory
+    INITIALIZE(g_D3D11Hooks.Initialize());                 //4 Caches the D3DDevice, DXGIFactory, and D3DContext from D3DCreateDevice/DXGICreateFactory
     INITIALIZE(Init_ReadConfig());                 //5
     INITIALIZE(ReshadeCompatibility::Check());     //6 Dependent on ReadConfig, must also be before LauncherConfigOverride
     INITIALIZE(Init_CalculateScreenSize());        //7
@@ -1386,7 +1394,7 @@ static void InitializeSubsystems()
     //INITIALIZE(g_Wireframe.Initialize());
 
         //Fixes
-    INITIALIZE(Init_LineScaling());
+    INITIALIZE(g_VectorScalingFix.Initialize());
     INITIALIZE(g_WaterReflectionFix.Initialize());
     INITIALIZE(SkyboxFix::Initialize());
     //INITIALIZE(g_AimAfterEquipFix.Initialize());

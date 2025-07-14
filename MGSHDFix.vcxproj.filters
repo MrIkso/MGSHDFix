@@ -97,12 +97,6 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="src\resources\d3d11_api.hpp">
-      <Filter>APIs</Filter>
-    </ClInclude>
-    <ClInclude Include="src\resources\gamevars.hpp">
-      <Filter>APIs</Filter>
-    </ClInclude>
     <ClInclude Include="src\fixes\line_scaling.hpp">
       <Filter>Fixes\Headers</Filter>
     </ClInclude>
@@ -178,6 +172,12 @@
     <ClInclude Include="src\resources\RegStateHelpers.hpp">
       <Filter>Utility</Filter>
     </ClInclude>
+    <ClInclude Include="src\resources\gamevars.hpp">
+      <Filter>APIs\Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="src\resources\d3d11_api.hpp">
+      <Filter>APIs\Headers</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Image Include="src\mgshdfix.ico">
@@ -228,6 +228,9 @@
     </Filter>
     <Filter Include="Utility\Safetyhook">
       <UniqueIdentifier>{c4a23fae-fd9c-41b0-9772-dda7af79f97c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="APIs\Headers">
+      <UniqueIdentifier>{a3100db6-b5f8-4b1a-96dc-23576666050c}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
 </Project>

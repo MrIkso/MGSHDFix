@@ -1,7 +1,7 @@
 #pragma once
 #include <spdlog/spdlog.h>
 
-class Logging
+class Logging final
 {
 private: 
     static std::string GetSteamOSVersion();

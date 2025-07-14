@@ -12,7 +12,7 @@ void CreateWireframeRasterizerState()
     rasterDesc.FrontCounterClockwise = FALSE;  // Clockwise is front-facing
     rasterDesc.DepthClipEnable = TRUE;         // Enable depth clipping
     // Create the rasterizer state
-    HRESULT hr = d3dDevice->CreateRasterizerState(&rasterDesc, &wireframeRasterizerState);
+    HRESULT hr = g_D3D11Hooks.d3dDevice->CreateRasterizerState(&rasterDesc, &g_D3D11Hooks.wireframeRasterizerState);
     if (FAILED(hr))
     {
         spdlog::error("Failed to create wireframe rasterizer state. HRESULT: 0x{:08X}", hr);
@@ -23,10 +23,10 @@ void CreateWireframeRasterizerState()
 
 void ApplyWireframeRasterizerState()
 {
-    if (d3dDeviceContext && wireframeRasterizerState)
+    if (g_D3D11Hooks.d3dDeviceContext && g_D3D11Hooks.wireframeRasterizerState)
     {
         // Set the wireframe rasterizer state
-        d3dDeviceContext->RSSetState(wireframeRasterizerState);
+        g_D3D11Hooks.d3dDeviceContext->RSSetState(g_D3D11Hooks.wireframeRasterizerState);
         spdlog::info("Wireframe rasterizer state applied.");
     }
     else
@@ -37,7 +37,7 @@ void ApplyWireframeRasterizerState()
 
 void Cleanup()
 {
-    if (wireframeRasterizerState) wireframeRasterizerState->Release();
-    if (d3dDeviceContext) d3dDeviceContext->Release();
-    if (d3dDevice) d3dDevice->Release();
+    if (g_D3D11Hooks.wireframeRasterizerState) g_D3D11Hooks.wireframeRasterizerState->Release();
+    if (g_D3D11Hooks.d3dDeviceContext) g_D3D11Hooks.d3dDeviceContext->Release();
+    if (g_D3D11Hooks.d3dDevice) g_D3D11Hooks.d3dDevice->Release();
 }

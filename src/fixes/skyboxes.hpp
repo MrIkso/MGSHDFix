@@ -1,6 +1,6 @@
 #pragma once
 
-class SkyboxFix
+class SkyboxFix final
 {
 public:
     static void Initialize();

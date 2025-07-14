@@ -1,7 +1,7 @@
 #pragma once
 #include <cstdint>
 
-class MuteWarning
+class MuteWarning final
 {
 private:
     int* muteWarningAddress = nullptr;

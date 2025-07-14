@@ -1,14 +1,13 @@
 #pragma once
 
-class PauseOnFocusLoss
+class PauseOnFocusLoss final
 {
-private:
 public:
+    static void Initialize();
+    static bool ShouldFixPauseState();
+
     bool bPauseOnFocusLoss;
     bool bSpeedrunnerBugfixOverride;
-    void Initialize();
-    bool ShouldFixPauseState();
-    
 };
 
 inline PauseOnFocusLoss g_PauseOnFocusLoss;

@@ -1,6 +1,6 @@
 #pragma once
 
-class MG1CustomLoadingScreens
+class MG1CustomLoadingScreens final
 {
 public:
     bool isEnabled;
