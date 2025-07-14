@@ -95,6 +95,9 @@
     <ClCompile Include="src\warnings\mute_warning.cpp">
       <Filter>Warnings</Filter>
     </ClCompile>
+    <ClCompile Include="src\resources\steamworks_api.cpp">
+      <Filter>APIs</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\fixes\line_scaling.hpp">
@@ -176,6 +179,9 @@
       <Filter>APIs\Headers</Filter>
     </ClInclude>
     <ClInclude Include="src\resources\d3d11_api.hpp">
+      <Filter>APIs\Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="src\resources\steamworks_api.hpp">
       <Filter>APIs\Headers</Filter>
     </ClInclude>
   </ItemGroup>

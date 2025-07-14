@@ -4,10 +4,12 @@
 ///Resources
 #include "d3d11_api.hpp"
 #include "gamevars.hpp"
+#include "steamworks_api.hpp"
 
 ///Features
 #include "effect_speeds.hpp"
 #include "intro_skip.hpp"
+#include "pause_on_focus_loss.hpp"
 
 ///Fixes
 #include "line_scaling.hpp"
@@ -19,17 +21,16 @@
 //Warnings
 #include "asi_loader_checks.hpp"
 #include "reshade_compatibility_checks.hpp"
+#include "corrupt_save_message.hpp"
+#include "mute_warning.hpp"
 
 ///WIP
 #include "aiming_after_equip.hpp"
 #include "color_filters.hpp"
-#include "corrupt_save_message.hpp"
 #include "distance_culling.hpp"
 #include "gamma_correction.hpp"
 #include "mg1_custom_loading_screens.hpp"
 #include "msaa.hpp"
-#include "mute_warning.hpp"
-#include "pause_on_focus_loss.hpp"
 #include "wireframe.hpp"
 
 
@@ -1336,11 +1337,16 @@ static void Init_LauncherConfigOverride()
 }
 
 
+void afterSteamInit()
+{
+    
+}
+
 
 void preCreateDXGIFactory()
 {
 
-    
+
 }
 
 void afterCreateDXGIFactory()
@@ -1368,10 +1374,10 @@ static void InitializeSubsystems()
 {
     //Initialization order (these systems initialize vars used by following ones.)
     INITIALIZE(g_Logging.LogSysInfo());            //0
-    INITIALIZE(ASILoaderCompatibility::Check());      //1
+    INITIALIZE(ASILoaderCompatibility::Check());   //1
     INITIALIZE(DetectGame());                      //2
     INITIALIZE(g_GameVars.Initialize());           //3
-    INITIALIZE(g_D3D11Hooks.Initialize());                 //4 Caches the D3DDevice, DXGIFactory, and D3DContext from D3DCreateDevice/DXGICreateFactory
+    INITIALIZE(g_D3D11Hooks.Initialize());         //4 Caches the D3DDevice, DXGIFactory, and D3DContext from D3DCreateDevice/DXGICreateFactory
     INITIALIZE(Init_ReadConfig());                 //5
     INITIALIZE(ReshadeCompatibility::Check());     //6 Dependent on ReadConfig, must also be before LauncherConfigOverride
     INITIALIZE(Init_CalculateScreenSize());        //7
@@ -1406,8 +1412,7 @@ static void InitializeSubsystems()
     INITIALIZE(DamagedSaveFix::Initialize());
     INITIALIZE(g_MuteWarning.Setup());
     INITIALIZE(g_PauseOnFocusLoss.Initialize());
-
-    
+    INITIALIZE(g_SteamAPI.Setup());
 }
 
 DWORD __stdcall Main(void*)

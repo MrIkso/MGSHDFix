@@ -59,6 +59,7 @@
     <ClCompile Include="src\resources\helper.cpp" />
     <ClCompile Include="src\fixes\water_reflections.cpp" />
     <ClCompile Include="src\features\texture_buffer_size.cpp" />
+    <ClCompile Include="src\resources\steamworks_api.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="external\safetyhook\include\safetyhook.hpp" />
@@ -88,6 +89,7 @@
     <ClInclude Include="src\resources\stdafx.h" />
     <ClInclude Include="src\fixes\water_reflections.hpp" />
     <ClInclude Include="src\features\texture_buffer_size.hpp" />
+    <ClInclude Include="src\resources\steamworks_api.hpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="MGSHDFix.ini" />

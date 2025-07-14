@@ -22,7 +22,6 @@ void GameVars::Initialize()
             LOG_HOOK(levelTransitionMidHook, "GameVars: Level Transition")
         }
     }
-
 }
 
 bool GameVars::InCutscene() const
@@ -49,3 +48,4 @@ void GameVars::OnLevelTransition()
 {
     g_EffectSpeedFix.Reset();
 }
+
