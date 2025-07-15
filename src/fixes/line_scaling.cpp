@@ -4,6 +4,7 @@
 #include <d3dcompiler.h>
 #include <spdlog/spdlog.h>
 
+#include "logging.hpp"
 
 
 static SafetyHookInline MGS3_DrawIndexedPrimitive_Hook {};
@@ -62,9 +63,7 @@ bool VectorScalingFix::CompileGeometryShader()
     }
     if(iVectorLineScale < DEFAULT_LINE_SCALE*0.5)
     {
-        AllocConsole();
-        FILE* dummy;
-        freopen_s(&dummy, "CONOUT$", "w", stdout);
+        Logging::ShowConsole();
         std::cout << "MGSHDFix Config Warning:\n"
                      "Line scale is currently set to more that double the default size of Screen Height/360 (" << iInternalResY / 360 << " pixels wide),\n"
                      "with individual raindrops currently set to " << iVectorLineScale << " (" << iInternalResY / iVectorLineScale << " pixels wide.)\n"

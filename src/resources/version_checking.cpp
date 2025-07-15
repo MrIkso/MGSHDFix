@@ -1,3 +1,4 @@
+#include "common.hpp"
 #include "version_checking.hpp"
 
 #include <windows.h>
@@ -7,9 +8,12 @@
 #include <fstream>
 #include <regex>
 #include <iomanip>
-#include <spdlog/spdlog.h>
+
+#include "logging.hpp"
 
 #pragma comment(lib, "winhttp.lib")
+
+extern bool bConsoleNotifications;
 
 LatestVersionChecker::LatestVersionChecker(const std::string& dllVersion,
     const std::string& repoOwner,
@@ -63,12 +67,13 @@ bool LatestVersionChecker::checkForUpdates()
 
         if (warnedVersion != cachedLatest)
         {
-            AllocConsole();
-            FILE* dummy;
-            freopen_s(&dummy, "CONOUT$", "w", stdout);
-            std::cout << "MGSHDFix Update: A new version of MGSHDFix is available for download.\nCurrent Version: "
+            if (bConsoleNotifications)
+            {
+                Logging::ShowConsole();
+                std::cout << sFixName << " Update Notice: A new version of " << sFixName << " is available for download.\nCurrent Version: "
                 << m_dllVersion << ", Latest Version: " << cachedLatest << std::endl;
 
+            }
             saveCache(cachedLatest, cachedLatest);
             return true;
         }

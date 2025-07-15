@@ -1,6 +1,6 @@
 #include "skyboxes.hpp"
 #include "common.hpp"
-#include "spdlog/spdlog.h"
+#include "logging.hpp"
 
 // cipherxof's Skybox Rendering Fix
 void SkyboxFix::Initialize()

@@ -62,6 +62,18 @@ private:
     }
 };
 
+void Logging::ShowConsole()
+{
+    if (g_Logging.bConsoleShown)
+    {
+        return;
+    }
+    g_Logging.bConsoleShown = true;
+    AllocConsole();
+    FILE* dummy;
+    freopen_s(&dummy, "CONOUT$", "w", stdout);
+}
+
 
 void Logging::Initialize()
 {
@@ -112,9 +124,7 @@ void Logging::Initialize()
         }
         catch (const spdlog::spdlog_ex& ex)
         {
-            AllocConsole();
-            FILE* dummy;
-            freopen_s(&dummy, "CONOUT$", "w", stdout);
+            ShowConsole();
             std::cout << "Log initialisation failed: " << ex.what() << std::endl;
             return FreeLibraryAndExitThread(baseModule, 1);
         }

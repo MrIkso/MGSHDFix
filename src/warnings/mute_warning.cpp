@@ -1,6 +1,6 @@
 #include "mute_warning.hpp"
 #include "common.hpp"
-#include "spdlog/spdlog.h"
+#include "logging.hpp"
 
 void MuteWarning::CheckStatus() const
 {
@@ -17,9 +17,7 @@ void MuteWarning::CheckStatus() const
         if (bEnabled)
         {
             spdlog::warn("Set \"Mute Warning\" to disabled in the config file to disable console warnings (this warning will still appear in the log.)");
-            AllocConsole();
-            FILE* dummy;
-            freopen_s(&dummy, "CONOUT$", "w", stdout);
+            Logging::ShowConsole();
             std::cout << "MGSHDFix - Muted Audio Output Warning\nGame audio output is currently muted via the main launcher.\nIf this is intentional, set \"Mute Warning\" to \"false\" in the MGSHDFix config file to disable console warnings.\n(This warning will still appear in the log file while disabled.)" << std::endl;
         }
         spdlog::warn("------ GAME AUDIO OUTPUT MUTED ------");

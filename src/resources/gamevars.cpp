@@ -1,7 +1,7 @@
 #include "common.hpp"
 #include "gamevars.hpp"
 #include "effect_speeds.hpp"
-#include "spdlog/spdlog.h"
+#include "logging.hpp"
 
 void GameVars::Initialize()
 {

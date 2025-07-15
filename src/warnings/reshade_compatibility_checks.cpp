@@ -1,6 +1,6 @@
 #include "reshade_compatibility_checks.hpp"
 #include "common.hpp"
-#include "spdlog/spdlog.h"
+#include "logging.hpp"
 
 void ReshadeCompatibility::Check()
 {
@@ -58,9 +58,7 @@ void ReshadeCompatibility::Check()
     spdlog::warn("Please update to the latest version.");
     spdlog::warn("------ RESHADE COMPATIBILITY WARNING ------");
 
-    AllocConsole();
-    FILE* dummy;
-    freopen_s(&dummy, "CONOUT$", "w", stdout);
+    Logging::ShowConsole();
     std::cout << "RESHADE COMPATIBILITY WARNING\n"
         "An outdated version of ReShade (dxgi.dll) is currently installed - (version v" << major << "." << minor << "." << build << "." << revision << " found.)\n"
         "Versions prior to v6.5.0 (released 30MAY2025) are known to cause intermittent crashing with MGS Master Collection games.\n"

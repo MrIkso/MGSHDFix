@@ -270,9 +270,7 @@ namespace Util
                 }
                 if (bFoundOnce)
                 {
-                    AllocConsole();
-                    FILE* dummy;
-                    freopen_s(&dummy, "CONOUT$", "w", stdout);
+                    Logging::ShowConsole();
                     std::string errorMessage = "DUPLICATE FILE ERROR: Duplicate " + fileName + ".asi installations found! Please make sure to delete any old versions!\n";
                     errorMessage.append("DUPLICATE FILE ERROR - Installation 1: ").append((sExePath / foundPath / (fileName + ".asi")).string().append("\n"));
                     errorMessage.append("DUPLICATE FILE ERROR - Installation 2: ").append(filePath.string());

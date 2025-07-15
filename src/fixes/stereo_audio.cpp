@@ -1,7 +1,7 @@
 #include "stereo_audio.hpp"
 
 #include "common.hpp"
-#include "spdlog/spdlog.h"
+#include "logging.hpp"
 
 
 void StereoAudioFix::Initialize() const

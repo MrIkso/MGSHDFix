@@ -2,11 +2,12 @@
 
 #include "common.hpp"
 #include <filesystem>
-#include <spdlog/spdlog.h>
 #include <chrono>
 #include <iomanip>
 #include <sstream>
 #include <algorithm>
+
+#include "logging.hpp"
 
 void DamagedSaveFix::Initialize()
 {
@@ -52,9 +53,7 @@ void DamagedSaveFix::Initialize()
                 continue;
             }
 
-            AllocConsole();
-            FILE* dummy;
-            freopen_s(&dummy, "CONOUT$", "w", stdout);
+            Logging::ShowConsole();
             if (!bWarnedOnce)
             {
                 spdlog::error("Damaged save file detected.");

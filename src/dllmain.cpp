@@ -80,6 +80,9 @@ static float fMouseSensitivityYMulti;
 static bool bDisableCursor;
 bool bOutdatedReshade;
 
+bool bShouldCheckForUpdates;
+bool bConsoleNotifications;
+
 // Add this global variable
 bool bIsPS2controltype = false;
 
@@ -212,9 +215,7 @@ static void Init_ReadConfig()
     std::ifstream iniFile((sExePath / sFixPath / sConfigFile).string());
     if (!iniFile) 
     {
-        AllocConsole();
-        FILE* dummy;
-        freopen_s(&dummy, "CONOUT$", "w", stdout);
+        Logging::ShowConsole();
         std::cout << "" << sFixName << " v" << sFixVersion << " loaded." << std::endl;
         std::cout << "ERROR: Could not locate config file." << std::endl;
         std::cout << "ERROR: Make sure " << sConfigFile << " is located in " << sExePath / sFixPath << std::endl;
@@ -229,9 +230,7 @@ static void Init_ReadConfig()
     inipp::get_value(ini.sections["Config Version"], "Version", loadedConfigVersion);
     if (loadedConfigVersion != iConfigVersion) 
     {
-        AllocConsole();
-        FILE* dummy;
-        freopen_s(&dummy, "CONOUT$", "w", stdout);
+        Logging::ShowConsole();
         std::cout << "" << sFixName << " v" << sFixVersion << " loaded." << std::endl;
         std::cout << "MGSHDFix CONFIG ERROR: Outdated config file!" << std::endl;
         std::cout << "MGSHDFix CONFIG ERROR: Please install -all- the files from the latest release!" << std::endl;
@@ -259,6 +258,9 @@ static void Init_ReadConfig()
     g_PauseOnFocusLoss.bPauseOnFocusLoss = Util::stringToBool(ini.sections["Pause On Focus Loss"]["Enabled"]);
     g_PauseOnFocusLoss.bSpeedrunnerBugfixOverride = Util::stringToBool(ini.sections["Pause On Focus Loss"]["SpeedrunnerBugfixOverride"]);
     g_MuteWarning.bEnabled = Util::stringToBool(ini.sections["Mute Warning"]["Enabled"]);
+
+    bShouldCheckForUpdates = Util::stringToBool(ini.sections["Update Notifications"]["CheckForUpdates"]);
+    bConsoleNotifications = Util::stringToBool(ini.sections["Update Notifications"]["ConsoleNotifications"]);
 
 
     /*//INITIALIZE(Init_GammaShader());
@@ -365,6 +367,12 @@ static void Init_ReadConfig()
         }
     }
 
+    spdlog::info("Cofig Parse: Check for mod updates: {}", bShouldCheckForUpdates);
+    if (bShouldCheckForUpdates)
+    {
+        spdlog::info("Cofig Parse: Mod update console notifications: {}", bConsoleNotifications);
+    }
+    
 }
 
 static bool DetectGame()
@@ -1376,6 +1384,11 @@ void afterD3D11CreateDevice()
 
 static void CheckForUpdates()
 {
+    if (!bShouldCheckForUpdates)
+    {
+        spdlog::info("Mod update checking disabled via config.");
+        return;
+    }
     std::filesystem::path cacheFilePath = sGameSavePath / (sFixName + "_version_check.txt");
     LatestVersionChecker checker(sFixVersion, "Lyall", sFixName, cacheFilePath);
     checker.checkForUpdates();
@@ -1427,9 +1440,8 @@ static void InitializeSubsystems()
 
     if (!(eGameType & LAUNCHER))
     {
-        INITIALIZE(CheckForUpdates());
+        INITIALIZE(CheckForUpdates()); //ALWAYS END WITH THIS AS IT RELIES ON NETWORK RESPONSE.
     }
-
 }
 
 DWORD __stdcall Main(void*)

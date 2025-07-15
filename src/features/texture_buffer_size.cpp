@@ -1,6 +1,6 @@
 #include "texture_buffer_size.hpp"
 #include "common.hpp"
-#include "spdlog/spdlog.h"
+#include "logging.hpp"
 
 void TextureBufferSize::Initialize() const
 {

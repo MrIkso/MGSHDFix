@@ -2,7 +2,7 @@
 
 #include "d3d11_api.hpp"
 #include <d3dcompiler.h>
-#include "spdlog/spdlog.h"
+#include "logging.hpp"
 
 ID3D11PixelShader* g_GammaPixelShader = nullptr;
 ID3D11Buffer* g_GammaConstantBuffer = nullptr;
