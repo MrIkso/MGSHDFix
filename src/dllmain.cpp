@@ -1402,12 +1402,13 @@ static void InitializeSubsystems()
     INITIALIZE(DetectGame());                      //2
     INITIALIZE(g_GameVars.Initialize());           //3
     INITIALIZE(g_D3D11Hooks.Initialize());         //4 Caches the D3DDevice, DXGIFactory, and D3DContext from D3DCreateDevice/DXGICreateFactory
-    INITIALIZE(Init_ReadConfig());                 //5
-    INITIALIZE(ReshadeCompatibility::Check());     //6 Dependent on ReadConfig, must also be before LauncherConfigOverride
-    INITIALIZE(Init_CalculateScreenSize());        //7
-    INITIALIZE(Init_LauncherConfigOverride());     //8
-    INITIALIZE(Init_FixDPIScaling());              //9 Needs to be anywhere before the window is created in CustomResolution.
-    INITIALIZE(Init_CustomResolution());           //10
+    INITIALIZE(g_SteamAPI.Setup());                //5 Hook early so we don't miss any Steam API calls.
+    INITIALIZE(Init_ReadConfig());                 //6
+    INITIALIZE(ReshadeCompatibility::Check());     //7 Dependent on ReadConfig, must also be before LauncherConfigOverride to warn the user before a crash.
+    INITIALIZE(Init_CalculateScreenSize());        //8
+    INITIALIZE(Init_LauncherConfigOverride());     //9
+    INITIALIZE(Init_FixDPIScaling());              //10 Needs to be anywhere before the window is created in CustomResolution.
+    INITIALIZE(Init_CustomResolution());           //11
     INITIALIZE(Init_ScaleEffects());               
     INITIALIZE(Init_AspectFOVFix());
     INITIALIZE(Init_HUDFix());
@@ -1434,9 +1435,8 @@ static void InitializeSubsystems()
 
         //Warnings
     INITIALIZE(DamagedSaveFix::Initialize());
-    INITIALIZE(g_MuteWarning.Setup());
     INITIALIZE(g_PauseOnFocusLoss.Initialize());
-    INITIALIZE(g_SteamAPI.Setup());
+    INITIALIZE(g_MuteWarning.Setup()); 
 
     if (!(eGameType & LAUNCHER))
     {

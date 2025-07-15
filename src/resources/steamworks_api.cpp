@@ -1,7 +1,7 @@
 #include "common.hpp"
 #include "steamworks_api.hpp"
 
-#include <spdlog/spdlog.h>
+#include <logging.hpp>
 
 /* Example usage of the SteamAPI class to set an achievement.
  if (g_SteamAPI.SetAchievement("ACH_WIN_ONE_GAME"))
@@ -22,7 +22,6 @@ void SteamAPI::Setup()
         spdlog::warn("Steam achievement/stat tracking fixes are disabled due to non-legitimate copy.");
         return;
     }
-
     hSteamAPI = GetModuleHandleA("steam_api64.dll");
     if (!hSteamAPI)
     {
@@ -49,7 +48,6 @@ void SteamAPI::Setup()
     {
         spdlog::error("Failed to load one or more Steam API functions.");
         return;
-    }
 
     if (uint8_t* AfterSteamSetupResult = Memory::PatternScan(baseModule, "48 8B 05 ?? ?? ?? ?? 8B CB", "Steam API Initialization"))
     {
@@ -73,7 +71,9 @@ void SteamAPI::FetchAndCacheSteamID()
     }
 
     steamID = GetSteamIDFn(pSteamUser);
-    spdlog::info("SteamID: {}", *steamID);
+    spdlog::info("----------");
+    spdlog::info("SteamAPI: SteamID: {}", *steamID);
+    spdlog::info("----------");
 
     pSteamUserStats = SteamUserStatsFn();
     if (!pSteamUserStats)
@@ -86,6 +86,7 @@ void SteamAPI::FetchAndCacheSteamID()
     {
         spdlog::warn("Failed to request current Steam user stats.");
     }
+
 }
 
 std::optional<uint64_t> SteamAPI::GetSteamID64() const noexcept
