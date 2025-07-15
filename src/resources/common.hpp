@@ -2,7 +2,7 @@
 #include "helper.hpp"
 #include <inipp/inipp.h>
 
-extern std::string const VERSION_STRING;
+extern std::string const sFixVersion;
 
 extern std::string sExeName;
 

@@ -1,13 +1,13 @@
 #include "version_checking.hpp"
+
 #include <windows.h>
 #include <winhttp.h>
 
+#include <iostream>
 #include <fstream>
 #include <regex>
-#include <sstream>
-#include <chrono>
-#include <ctime>
 #include <iomanip>
+#include <spdlog/spdlog.h>
 
 #pragma comment(lib, "winhttp.lib")
 
@@ -24,26 +24,72 @@ LatestVersionChecker::LatestVersionChecker(const std::string& dllVersion,
 {
 }
 
-bool LatestVersionChecker::isLatestVersion()
+bool LatestVersionChecker::checkForUpdates()
 {
-    std::string cachedVersion;
-    if (loadCache(cachedVersion))
+    std::string cachedLatest, warnedVersion;
+
+    if (loadCache(cachedLatest, warnedVersion))
     {
-        return cachedVersion == m_dllVersion;
+        int cmp = compareSemVer(m_dllVersion, cachedLatest);
+
+        if (cmp < 0)
+        {
+            spdlog::warn("Version Check: A new version of MGSHDFix is available. Current Version: {}, Latest Version: {}", m_dllVersion, cachedLatest);
+            if (warnedVersion != cachedLatest)
+            {
+                AllocConsole();
+                FILE* dummy;
+                freopen_s(&dummy, "CONOUT$", "w", stdout);
+                std::cout << "MGSHDFix Update: A new version of MGSHDFix is available for download.\nCurrent Version: " << m_dllVersion << ", Latest Version: " << cachedLatest << std::endl;
+
+                saveCache(cachedLatest, cachedLatest);
+                return true;
+            }
+            return false;
+        }
+        else if (cmp > 0)
+        {
+            spdlog::info("Version Check: Welcome back, Commander! You're running a development build of MGSHDFix! Current Version: {}, Latest Release: {}", m_dllVersion, cachedLatest);
+            return false;
+        }
+
+        spdlog::info("Version Check: MGSHDFix is up to date. Current Version: {}", m_dllVersion);
+        return false;
     }
 
-    std::string latestVersion;
-    if (!queryGitHubLatestVersion(latestVersion))
+    // No fresh cache -> query GitHub
+    std::string githubLatest;
+    if (!queryGitHubLatestVersion(githubLatest))
     {
-        // On failure, assume latest
+        // If GitHub fails, assume OK
+        return false;
+    }
+
+    saveCache(githubLatest, "");
+
+    int cmp = compareSemVer(m_dllVersion, githubLatest);
+
+    if (cmp < 0)
+    {
+        saveCache(githubLatest, githubLatest);
+        AllocConsole();
+        FILE* dummy;
+        freopen_s(&dummy, "CONOUT$", "w", stdout);
+        std::cout << "MGSHDFix Update: A new version of MGSHDFix is available for download.\nCurrent Version: " << m_dllVersion << ", Latest Version: " << githubLatest << std::endl;
         return true;
     }
+    else if (cmp > 0)
+    {
+        spdlog::info("Welcome back, Commander! You're running a development build of MGSHDFix! Current Version: {}, Latest Release: {}", m_dllVersion, githubLatest);
+        return false;
+    }
 
-    saveCache(latestVersion);
-    return latestVersion == m_dllVersion;
+    spdlog::info("MGSHDFix is up to date. Current Version: {}", m_dllVersion);
+    return false;
 }
 
-bool LatestVersionChecker::loadCache(std::string& cachedVersion)
+
+bool LatestVersionChecker::loadCache(std::string& cachedLatest, std::string& warnedVersion)
 {
     std::ifstream file(m_cacheFile);
     if (!file) return false;
@@ -52,23 +98,27 @@ bool LatestVersionChecker::loadCache(std::string& cachedVersion)
     if (!std::getline(file, versionLine) || !std::getline(file, timeLine))
         return false;
 
+    cachedLatest = versionLine;
+
+    std::getline(file, warnedVersion);  // may or may not exist
+
     auto cachedTime = parseISO8601(timeLine);
     auto now = std::chrono::system_clock::now();
     auto age = std::chrono::duration_cast<std::chrono::hours>(now - cachedTime);
     if (age.count() > m_cacheTTLHours)
         return false;  // Cache stale
 
-    cachedVersion = versionLine;
     return true;
 }
 
-void LatestVersionChecker::saveCache(const std::string& latestVersion)
+void LatestVersionChecker::saveCache(const std::string& latestVersion, const std::string& warnedVersion)
 {
     std::ofstream file(m_cacheFile);
     if (!file) return;
 
     file << latestVersion << "\n";
     file << currentTimeISO8601() << "\n";
+    file << warnedVersion << "\n";
 }
 
 bool LatestVersionChecker::queryGitHubLatestVersion(std::string& latestVersion)
@@ -92,7 +142,6 @@ bool LatestVersionChecker::queryGitHubLatestVersion(std::string& latestVersion)
         return false;
     }
 
-    // Build path "/repos/{owner}/{repo}/releases/latest"
     std::wstring path = L"/repos/" + std::wstring(m_repoOwner.begin(), m_repoOwner.end()) + L"/" +
         std::wstring(m_repoName.begin(), m_repoName.end()) + L"/releases/latest";
 
@@ -148,6 +197,23 @@ bool LatestVersionChecker::queryGitHubLatestVersion(std::string& latestVersion)
     }
 
     return false;
+}
+
+int LatestVersionChecker::compareSemVer(const std::string& a, const std::string& b)
+{
+    std::istringstream sa(a), sb(b);
+    int va[3] = { 0 }, vb[3] = { 0 };
+
+    char dot;
+    sa >> va[0] >> dot >> va[1] >> dot >> va[2];
+    sb >> vb[0] >> dot >> vb[1] >> dot >> vb[2];
+
+    for (int i = 0; i < 3; ++i)
+    {
+        if (va[i] < vb[i]) return -1;
+        if (va[i] > vb[i]) return 1;
+    }
+    return 0;
 }
 
 std::string LatestVersionChecker::currentTimeISO8601()

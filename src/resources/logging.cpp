@@ -91,7 +91,7 @@ void Logging::Initialize()
             {
                 spdlog::info("New log subdirectory created.");
             }
-            spdlog::info("{} v{} loaded.", sFixName, VERSION_STRING);
+            spdlog::info("{} v{} loaded.", sFixName, sFixVersion);
             spdlog::info("ASI plugin location: {}", (sExePath / sFixPath / (sFixName + ".asi")).string());
             spdlog::info("----------");
             spdlog::info("Log file: {}", (sExePath / "logs" / sLogFile).string());

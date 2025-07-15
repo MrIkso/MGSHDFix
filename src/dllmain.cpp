@@ -1,4 +1,5 @@
 #include "common.hpp"
+#include "version.h"
 #include "logging.hpp"
 
 ///Resources
@@ -39,8 +40,8 @@ HMODULE engineModule;
 HMODULE unityPlayer;
 
 // Version
-std::string const VERSION_STRING = "2.5.0";
-std::string sFixName = "MGSHDFix";
+std::string const sFixVersion = VERSION_STRING;
+std::string sFixName = FIX_NAME;
 constexpr int iConfigVersion = 3; //increment this when making config changes, along with the number at the bottom of the config file
                         //that way we can sanity check to ensure people don't have broken/disabled features due to old config files.
 
@@ -212,7 +213,7 @@ static void Init_ReadConfig()
         AllocConsole();
         FILE* dummy;
         freopen_s(&dummy, "CONOUT$", "w", stdout);
-        std::cout << "" << sFixName << " v" << VERSION_STRING << " loaded." << std::endl;
+        std::cout << "" << sFixName << " v" << sFixVersion << " loaded." << std::endl;
         std::cout << "ERROR: Could not locate config file." << std::endl;
         std::cout << "ERROR: Make sure " << sConfigFile << " is located in " << sExePath / sFixPath << std::endl;
         return FreeLibraryAndExitThread(baseModule, 1);
@@ -229,7 +230,7 @@ static void Init_ReadConfig()
         AllocConsole();
         FILE* dummy;
         freopen_s(&dummy, "CONOUT$", "w", stdout);
-        std::cout << "" << sFixName << " v" << VERSION_STRING << " loaded." << std::endl;
+        std::cout << "" << sFixName << " v" << sFixVersion << " loaded." << std::endl;
         std::cout << "MGSHDFix CONFIG ERROR: Outdated config file!" << std::endl;
         std::cout << "MGSHDFix CONFIG ERROR: Please install -all- the files from the latest release!" << std::endl;
         return FreeLibraryAndExitThread(baseModule, 1);
@@ -1415,15 +1416,12 @@ static void InitializeSubsystems()
     INITIALIZE(g_PauseOnFocusLoss.Initialize());
     INITIALIZE(g_SteamAPI.Setup());
 
-    
-    LatestVersionChecker checker(VERSION_STRING, "Lyall", "MGSHDFix");
-
-    if (!checker.isLatestVersion())
+    if (!(eGameType & LAUNCHER))
     {
-        // Notify user to update your DLL
-        spdlog::warn("Your DLL is out of date. Please update to the latest version.");
-        MessageBoxA(nullptr, "Your DLL is out of date. Please update.", "Update Required", MB_OK);
+        LatestVersionChecker checker(sFixVersion, "Lyall", sFixName);
+        checker.checkForUpdates();
     }
+
 }
 
 DWORD __stdcall Main(void*)
