@@ -2,8 +2,6 @@
 #include "line_scaling.hpp"
 #include "d3d11_api.hpp"
 #include <d3dcompiler.h>
-#include <spdlog/spdlog.h>
-
 #include "logging.hpp"
 
 

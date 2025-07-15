@@ -1,5 +1,5 @@
-#include "skyboxes.hpp"
 #include "common.hpp"
+#include "skyboxes.hpp"
 #include "logging.hpp"
 
 // cipherxof's Skybox Rendering Fix

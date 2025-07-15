@@ -1,6 +1,6 @@
-#include "mg1_custom_loading_screens.hpp"
 #include "common.hpp"
-#include <spdlog/spdlog.h>
+#include "mg1_custom_loading_screens.hpp"
+#include "logging.hpp"
 
 void MG1CustomLoadingScreens::Initialize() const
 {

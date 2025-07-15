@@ -1,8 +1,8 @@
+#include "common.hpp"
 #include "aiming_after_equip.hpp"
 
-#include <spdlog/spdlog.h>
+#include "logging.hpp"
 
-#include "common.hpp"
 
 /*
 if ((eGameType == MgsGame::MGS2) || (eGameType == MgsGame::MGS3))

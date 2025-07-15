@@ -1,6 +1,6 @@
-#include "distance_culling.hpp"
-#include <spdlog/spdlog.h>
 #include "common.hpp"
+#include "distance_culling.hpp"
+#include "logging.hpp"
 
 
 struct SkyboxPattern

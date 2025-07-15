@@ -1,6 +1,4 @@
 #include "helper.hpp"
-#include <spdlog/spdlog.h>
-
 #include "logging.hpp"
 
 #pragma comment(lib,"Version.lib")

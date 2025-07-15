@@ -101,6 +101,9 @@
     <ClCompile Include="src\resources\version_checking.cpp">
       <Filter>Utility</Filter>
     </ClCompile>
+    <ClCompile Include="src\resources\submodule_initiailization.hpp">
+      <Filter>Utility</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\fixes\line_scaling.hpp">
@@ -175,9 +178,6 @@
     <ClInclude Include="src\warnings\corrupt_save_message.hpp">
       <Filter>Fixes\Headers</Filter>
     </ClInclude>
-    <ClInclude Include="src\resources\RegStateHelpers.hpp">
-      <Filter>Utility</Filter>
-    </ClInclude>
     <ClInclude Include="src\resources\gamevars.hpp">
       <Filter>APIs\Headers</Filter>
     </ClInclude>
@@ -192,6 +192,9 @@
     </ClInclude>
     <ClInclude Include="src\resources\version.h">
       <Filter>Resources</Filter>
+    </ClInclude>
+    <ClInclude Include="src\resources\RegStateHelpers.hpp">
+      <Filter>Utility</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

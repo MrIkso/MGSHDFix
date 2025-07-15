@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 // Core name & version
 #define FIX_NAME          "MGSHDFix"
@@ -16,6 +16,6 @@
 #define ORIGINAL_FILENAME FIX_NAME ".asi"
 #define PRODUCT_VERSION   VERSION_STRING
 #define FILE_VERSION      VERSION_STRING
-#define LEGAL_COPYRIGHT   "� 2025 Lyall & Contributors. Licensed under the MIT License."
+#define LEGAL_COPYRIGHT   "© 2025 Lyall & Contributors. Licensed under the MIT License."
 #define LEGAL_TRADEMARKS  ""
 #define COMMENTS          ""

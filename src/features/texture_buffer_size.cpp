@@ -1,5 +1,5 @@
-#include "texture_buffer_size.hpp"
 #include "common.hpp"
+#include "texture_buffer_size.hpp"
 #include "logging.hpp"
 
 void TextureBufferSize::Initialize() const

@@ -1,6 +1,6 @@
+#include "common.hpp"
 #include "corrupt_save_message.hpp"
 
-#include "common.hpp"
 #include <filesystem>
 #include <chrono>
 #include <iomanip>

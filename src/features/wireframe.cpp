@@ -1,6 +1,6 @@
 #include "wireframe.hpp"
 #include "d3d11_api.hpp"
-#include <spdlog/spdlog.h>
+#include "logging.hpp"
 
 
 void CreateWireframeRasterizerState()

@@ -1,5 +1,5 @@
 #include <d3d11_api.hpp>
-#include <spdlog/spdlog.h>
+#include "logging.hpp"
 #include <RegStateHelpers.hpp>
 #pragma comment(lib,"d3d11.lib")
 #pragma comment(lib, "dxgi.lib")

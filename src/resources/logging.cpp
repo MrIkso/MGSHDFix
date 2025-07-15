@@ -1,9 +1,7 @@
+#include "common.hpp"
 #include "logging.hpp"
 
-#include "common.hpp"
 #include <spdlog/sinks/base_sink.h>
-#include <spdlog/spdlog.h>
-
 #include "steamworks_api.hpp"
 
 extern std::filesystem::path sFixPath;

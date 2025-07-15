@@ -1,5 +1,6 @@
-#include "mute_warning.hpp"
 #include "common.hpp"
+#include "mute_warning.hpp"
+
 #include "logging.hpp"
 
 void MuteWarning::CheckStatus() const

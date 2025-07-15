@@ -1,9 +1,9 @@
+#include "common.hpp"
 #include "pause_on_focus_loss.hpp"
 
-#include "common.hpp"
 #include "gamevars.hpp"
 #include "helper.hpp"
-#include <spdlog/spdlog.h>
+#include "logging.hpp"
 
 
 bool PauseOnFocusLoss::ShouldFixPauseState()

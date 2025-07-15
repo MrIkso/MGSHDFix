@@ -1,8 +1,8 @@
+#include "common.hpp"
 #include "color_filters.hpp"
 
-#include <spdlog/spdlog.h>
+#include <logging.hpp>
 
-#include "common.hpp"
 
 #define NORMAL_FILTER "\x38"
 #define LIGHT_GREEN_FILTER 570

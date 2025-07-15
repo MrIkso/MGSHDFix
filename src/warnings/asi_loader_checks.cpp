@@ -1,5 +1,5 @@
-#include "asi_loader_checks.hpp"
 #include "common.hpp"
+#include "asi_loader_checks.hpp"
 #include "logging.hpp"
 
 void ASILoaderCompatibility::Check()

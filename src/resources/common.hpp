@@ -1,6 +1,7 @@
 #pragma once
 #include "helper.hpp"
-#include <inipp/inipp.h>
+
+#include <map>
 
 extern std::string const sFixVersion;
 extern std::string sExeName;
@@ -29,7 +30,6 @@ enum MgsGame : std::uint8_t
 extern const std::map<MgsGame, GameInfo> kGames;
 extern MgsGame eGameType;
 
-extern inipp::Ini<char> ini;
 extern HMODULE baseModule;
 extern std::string sGameVersion;
 extern std::filesystem::path sExePath;

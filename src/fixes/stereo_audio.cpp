@@ -1,6 +1,6 @@
+#include "common.hpp"
 #include "stereo_audio.hpp"
 
-#include "common.hpp"
 #include "logging.hpp"
 
 

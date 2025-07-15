@@ -1,6 +1,8 @@
 #include "common.hpp"
 #include "version.h"
 #include "logging.hpp"
+#include "submodule_initiailization.hpp"
+#include <inipp/inipp.h>
 
 ///Resources
 #include "d3d11_api.hpp"
@@ -27,6 +29,7 @@
 #include "mute_warning.hpp"
 
 ///WIP
+
 #include "aiming_after_equip.hpp"
 #include "color_filters.hpp"
 #include "distance_culling.hpp"
