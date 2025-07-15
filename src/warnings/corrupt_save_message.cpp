@@ -16,7 +16,7 @@ void DamagedSaveFix::Initialize()
     }
 
     bool bWarnedOnce = false;
-    std::filesystem::path gamePath = sExePath / (eGameType & MG ? "mg12_savedata_win" : eGameType & MGS2 ? "mgs2_savedata_win" : "mgs3_savedata_win");
+    std::filesystem::path gamePath = sGameSavePath;
     spdlog::info("Checking for damaged save files in: {}", gamePath.string());
     for (const auto& firstLevelEntry : std::filesystem::directory_iterator(gamePath))
     {

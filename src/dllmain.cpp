@@ -48,6 +48,7 @@ constexpr int iConfigVersion = 3; //increment this when making config changes, a
 // Logger
 std::filesystem::path sFixPath;
 std::filesystem::path sExePath;
+std::filesystem::path sGameSavePath;
 std::string sExeName;
 std::string sGameVersion;
 
@@ -396,6 +397,8 @@ static bool DetectGame()
             eGameType = type;
             game = &info;
 
+            sGameSavePath = sExePath / (eGameType & MG ? "mg12_savedata_win" : eGameType & MGS2 ? "mgs2_savedata_win" : "mgs3_savedata_win");
+            spdlog::info("Game Save Path: {}", sGameSavePath.string());
             if (engineModule = GetModuleHandleA("Engine.dll"); !engineModule)
             {
                 spdlog::error("Failed to get Engine.dll module handle");
@@ -1418,7 +1421,8 @@ static void InitializeSubsystems()
 
     if (!(eGameType & LAUNCHER))
     {
-        LatestVersionChecker checker(sFixVersion, "Lyall", sFixName);
+        std::filesystem::path cacheFilePath = sGameSavePath / (sFixName + "_version_check.txt");
+        LatestVersionChecker checker(sFixVersion, "Lyall", sFixName, cacheFilePath);
         checker.checkForUpdates();
     }
 

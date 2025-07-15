@@ -3,10 +3,11 @@
 #include <inipp/inipp.h>
 
 extern std::string const sFixVersion;
-
 extern std::string sExeName;
+extern std::filesystem::path sGameSavePath;
 
 extern HMODULE engineModule;
+
 
 struct GameInfo
 {

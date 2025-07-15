@@ -2,6 +2,7 @@
 
 #include <string>
 #include <chrono>
+#include <filesystem>
 
 class LatestVersionChecker
 {
@@ -9,7 +10,7 @@ public:
     explicit LatestVersionChecker(const std::string& dllVersion,
         const std::string& repoOwner,
         const std::string& repoName,
-        const std::string& cacheFile = "version_cache.txt",
+        const std::filesystem::path& cacheFile = "version_cache.txt",
         int cacheTTLHours = 24);
 
     /// Returns true if the user should see the outdated warning popup.
@@ -19,7 +20,7 @@ private:
     std::string m_dllVersion;
     std::string m_repoOwner;
     std::string m_repoName;
-    std::string m_cacheFile;
+    std::filesystem::path m_cacheFile;
     int m_cacheTTLHours;
 
     bool loadCache(std::string& cachedLatest, std::string& warnedVersion);

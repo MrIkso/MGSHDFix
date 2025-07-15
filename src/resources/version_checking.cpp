@@ -14,7 +14,7 @@
 LatestVersionChecker::LatestVersionChecker(const std::string& dllVersion,
     const std::string& repoOwner,
     const std::string& repoName,
-    const std::string& cacheFile,
+    const std::filesystem::path& cacheFile,
     int cacheTTLHours)
     : m_dllVersion(dllVersion),
     m_repoOwner(repoOwner),
