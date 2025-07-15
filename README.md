@@ -48,7 +48,7 @@ This is a fix that adds custom resolutions, ultrawide support and much more to t
 - Delete old MGSHDFix files (e.g., `MGSHDFix.ini` and `MGSHDFix.asi`) before installing the update.
 
 ### Steps:
-1. Download the file marked **MGSHDFix_v2.5.0.zip** from the "Assets" section below.
+1. Grab the latest release of MGSHDFix from [here.](https://github.com/Lyall/MGSHDFix/releases)
 2. Extract the contents of the release zip into your game folder.
    - (e.g., `steamapps\common\MGS2` or `steamapps\common\MGS3` for Steam.)
 
