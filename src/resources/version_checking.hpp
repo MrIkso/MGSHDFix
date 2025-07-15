@@ -23,7 +23,7 @@ private:
     std::filesystem::path m_cacheFile;
     int m_cacheTTLHours;
 
-    bool loadCache(std::string& cachedLatest, std::string& warnedVersion);
+    bool loadCache(std::string& cachedLatest, std::string& warnedVersion, bool& cacheIsFresh);
     void saveCache(const std::string& latestVersion, const std::string& warnedVersion);
     bool queryGitHubLatestVersion(std::string& latestVersion);
 

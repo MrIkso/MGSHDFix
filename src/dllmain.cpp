@@ -6,6 +6,7 @@
 #include "d3d11_api.hpp"
 #include "gamevars.hpp"
 #include "steamworks_api.hpp"
+#include "version_checking.hpp"
 
 ///Features
 #include "effect_speeds.hpp"
@@ -1372,8 +1373,13 @@ void afterD3D11CreateDevice()
 
     //SetGamma(1.0);
 }
-#include "version_checking.hpp"
 
+static void CheckForUpdates()
+{
+    std::filesystem::path cacheFilePath = sGameSavePath / (sFixName + "_version_check.txt");
+    LatestVersionChecker checker(sFixVersion, "Lyall", sFixName, cacheFilePath);
+    checker.checkForUpdates();
+}
 
 static void InitializeSubsystems()
 {
@@ -1421,9 +1427,7 @@ static void InitializeSubsystems()
 
     if (!(eGameType & LAUNCHER))
     {
-        std::filesystem::path cacheFilePath = sGameSavePath / (sFixName + "_version_check.txt");
-        LatestVersionChecker checker(sFixVersion, "Lyall", sFixName, cacheFilePath);
-        checker.checkForUpdates();
+        INITIALIZE(CheckForUpdates());
     }
 
 }

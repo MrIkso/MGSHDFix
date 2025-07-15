@@ -4,6 +4,8 @@
 #include <spdlog/sinks/base_sink.h>
 #include <spdlog/spdlog.h>
 
+#include "steamworks_api.hpp"
+
 extern std::filesystem::path sFixPath;
 
 
@@ -104,6 +106,7 @@ void Logging::Initialize()
             spdlog::info("Module Version: {}", Memory::GetModuleVersion(baseModule));
             if (std::filesystem::exists(sExePath / "steamclient64.dll") || std::filesystem::exists(sExePath / "steamclient.dll") || std::filesystem::exists(sExePath / "GameOverlayRenderer64.dll") || std::filesystem::exists(sExePath / "GameOverlayRenderer.dll") || std::filesystem::exists(sExePath / "Renderer.dll"))
             {
+                g_SteamAPI.bIsLegitCopy = false;
                 spdlog::warn("Piracy Warning: This has been detected as a pirated copy of the game. Crashing issues are VERY likely to occur due to missing memory patterns.");
             }
         }

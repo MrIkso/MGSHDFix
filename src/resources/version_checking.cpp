@@ -27,69 +27,70 @@ LatestVersionChecker::LatestVersionChecker(const std::string& dllVersion,
 bool LatestVersionChecker::checkForUpdates()
 {
     std::string cachedLatest, warnedVersion;
+    bool cacheIsFresh = false;
 
-    if (loadCache(cachedLatest, warnedVersion))
+    if (!loadCache(cachedLatest, warnedVersion, cacheIsFresh))
     {
-        int cmp = compareSemVer(m_dllVersion, cachedLatest);
-
-        if (cmp < 0)
+        // No cache at all -> query GitHub
+        if (!queryGitHubLatestVersion(cachedLatest))
         {
-            spdlog::warn("Version Check: A new version of MGSHDFix is available. Current Version: {}, Latest Version: {}", m_dllVersion, cachedLatest);
-            if (warnedVersion != cachedLatest)
-            {
-                AllocConsole();
-                FILE* dummy;
-                freopen_s(&dummy, "CONOUT$", "w", stdout);
-                std::cout << "MGSHDFix Update: A new version of MGSHDFix is available for download.\nCurrent Version: " << m_dllVersion << ", Latest Version: " << cachedLatest << std::endl;
-
-                saveCache(cachedLatest, cachedLatest);
-                return true;
-            }
-            return false;
-        }
-        else if (cmp > 0)
-        {
-            spdlog::info("Version Check: Welcome back, Commander! You're running a development build of MGSHDFix! Current Version: {}, Latest Release: {}", m_dllVersion, cachedLatest);
+            // GitHub failed -> assume OK
+            spdlog::info("Version Check: Unable to contact GitHub. Skipping version check.");
             return false;
         }
 
-        spdlog::info("Version Check: MGSHDFix is up to date. Current Version: {}", m_dllVersion);
-        return false;
+        // Save initial cache with empty warnedVersion
+        saveCache(cachedLatest, "");
     }
-
-    // No fresh cache -> query GitHub
-    std::string githubLatest;
-    if (!queryGitHubLatestVersion(githubLatest))
+    else if (!cacheIsFresh)
     {
-        // If GitHub fails, assume OK
-        return false;
+        // Cache exists but stale -> refresh latestVersion
+        std::string githubLatest;
+        if (queryGitHubLatestVersion(githubLatest))
+        {
+            cachedLatest = githubLatest;
+            saveCache(cachedLatest, warnedVersion); // preserve warnedVersion
+        }
     }
 
-    saveCache(githubLatest, "");
-
-    int cmp = compareSemVer(m_dllVersion, githubLatest);
+    int cmp = compareSemVer(m_dllVersion, cachedLatest);
 
     if (cmp < 0)
     {
-        saveCache(githubLatest, githubLatest);
-        AllocConsole();
-        FILE* dummy;
-        freopen_s(&dummy, "CONOUT$", "w", stdout);
-        std::cout << "MGSHDFix Update: A new version of MGSHDFix is available for download.\nCurrent Version: " << m_dllVersion << ", Latest Version: " << githubLatest << std::endl;
-        return true;
+        // Always log to spdlog when outdated
+        spdlog::warn("Version Check: A new version of MGSHDFix is available.");
+        spdlog::warn("Current Version : {}, Latest Release : {}", m_dllVersion, cachedLatest);
+
+        if (warnedVersion != cachedLatest)
+        {
+            AllocConsole();
+            FILE* dummy;
+            freopen_s(&dummy, "CONOUT$", "w", stdout);
+            std::cout << "MGSHDFix Update: A new version of MGSHDFix is available for download.\nCurrent Version: "
+                << m_dllVersion << ", Latest Version: " << cachedLatest << std::endl;
+
+            saveCache(cachedLatest, cachedLatest);
+            return true;
+        }
+
+        // Already warned in console, but still log every time
+        return false;
     }
     else if (cmp > 0)
     {
-        spdlog::info("Welcome back, Commander! You're running a development build of MGSHDFix! Current Version: {}, Latest Release: {}", m_dllVersion, githubLatest);
+        spdlog::info("Version Check: Welcome back, Commander! You're running a development build of MGSHDFix!");
+        spdlog::info("Current Version : {}, Latest Release : {}", m_dllVersion, cachedLatest);
         return false;
     }
 
-    spdlog::info("MGSHDFix is up to date. Current Version: {}", m_dllVersion);
+    spdlog::info("Version Check: MGSHDFix is up to date.");
+    spdlog::info("Version Check - Current Version: {}", m_dllVersion); 
     return false;
 }
 
 
-bool LatestVersionChecker::loadCache(std::string& cachedLatest, std::string& warnedVersion)
+
+bool LatestVersionChecker::loadCache(std::string& cachedLatest, std::string& warnedVersion, bool& cacheIsFresh)
 {
     std::ifstream file(m_cacheFile);
     if (!file) return false;
@@ -100,13 +101,12 @@ bool LatestVersionChecker::loadCache(std::string& cachedLatest, std::string& war
 
     cachedLatest = versionLine;
 
-    std::getline(file, warnedVersion);  // may or may not exist
+    std::getline(file, warnedVersion);  // may be empty
 
     auto cachedTime = parseISO8601(timeLine);
     auto now = std::chrono::system_clock::now();
     auto age = std::chrono::duration_cast<std::chrono::hours>(now - cachedTime);
-    if (age.count() > m_cacheTTLHours)
-        return false;  // Cache stale
+    cacheIsFresh = (age.count() <= m_cacheTTLHours);
 
     return true;
 }

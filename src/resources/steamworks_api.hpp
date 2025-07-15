@@ -18,6 +18,8 @@ public:
     [[nodiscard]] bool StoreStats() const;
     [[nodiscard]] bool GetAchievement(const char* achievementID, bool& achieved) const;
 
+    bool bIsLegitCopy = true;
+
 private:
     // SteamUser and SteamUserStats API function typedefs
     using SteamAPI_SteamUser_v021_t = void* (__cdecl*)();

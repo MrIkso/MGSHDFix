@@ -17,6 +17,12 @@ else
 
 void SteamAPI::Setup()
 {
+    if (!bIsLegitCopy)
+    {
+        spdlog::warn("Steam achievement/stat tracking fixes are disabled due to non-legitimate copy.");
+        return;
+    }
+
     hSteamAPI = GetModuleHandleA("steam_api64.dll");
     if (!hSteamAPI)
     {
