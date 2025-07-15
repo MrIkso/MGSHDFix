@@ -19,7 +19,12 @@ void SteamAPI::Setup()
         return;
     }
 
-    if (uint8_t* AfterSteamSetupResult = Memory::PatternScan(baseModule, "48 8B 05 ?? ?? ?? ?? 8B CB", "Steam API Initialization"))
+    if (!(eGameType & (MG|MGS2|MGS3)))
+    {
+        return;
+    }
+
+    if (uint8_t* AfterSteamSetupResult = Memory::PatternScan(baseModule, eGameType & MGS2 ? "48 8B 05 ?? ?? ?? ?? 8B CB" : (eGameType & MGS3 ? "48 8B 05 ?? ?? ?? ?? 8B CF 83 78" : "48 8B 05 ?? ?? ?? ?? 8B CF"), "Steam API Initialization"))
     {
         static SafetyHookMid SteamMidhook {};
         SteamMidhook = safetyhook::create_mid(AfterSteamSetupResult,
@@ -27,7 +32,7 @@ void SteamAPI::Setup()
             {
                 g_SteamAPI.FetchAndCacheSteamID();
             });
-        spdlog::info("SteamAPI: Hook placed at Steam initialization.");
+        LOG_HOOK(SteamMidhook, "SteamAPI Initialization")
     }
 }
 

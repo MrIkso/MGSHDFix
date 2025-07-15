@@ -84,8 +84,6 @@ int64_t __fastcall MGS2_splashPartsSlow(DWORD* a1, __int16* a2, float duration)
 #endif
 safetyhook::MidHook debrisVelocityHook;
 
-float g_VelocityScale = (1.0f * FRAME_IOP_DIVIDER);
-
 void EffectSpeedFix::Initialize()
 {
     if (!(eGameType & MGS2))
@@ -195,7 +193,9 @@ void EffectSpeedFix::Initialize()
             {
                 //spdlog::info("flying_smoke_slow before {}", reghelpers::Getr8d(ctx));
                 reghelpers::set_r8d(ctx, static_cast<unsigned int>((g_GameVars.ActorWaitMultiplier() * (g_GameVars.InCutscene() ? 2.0 : 1.0)) * reghelpers::get_r8d(ctx)));
+#ifdef _MGSDEBUGGING
                 spdlog::info("flying_smoke_slow after {}", reghelpers::get_r8d(ctx));
+#endif
             });
         LOG_HOOK(flyingSmokeSlow_MidHook, "MGS 2: Effect Speed Fix: effect3\\flying_smoke_slow.c")
     }
@@ -236,7 +236,7 @@ void EffectSpeedFix::Initialize()
                 }
                 else if (strcmp(g_GameVars.GetCurrentStage(), "d012p01") == 0) // P012_01_P01 Fortune encounter 1 polygon demo 1 (BC connecting bridge - Fortune vs Seals encounter)
                 {
-                    ctx.xmm0.f32[0] /= 4.0f;
+                    ctx.xmm0.f32[0] /= 18.0f;
                 }
                 else
                 {

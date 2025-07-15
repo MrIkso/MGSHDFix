@@ -10,6 +10,7 @@
 #include <iomanip>
 
 #include "logging.hpp"
+#include "version.h"
 
 #pragma comment(lib, "winhttp.lib")
 
@@ -56,6 +57,10 @@ bool LatestVersionChecker::checkForUpdates()
             saveCache(cachedLatest, warnedVersion); // preserve warnedVersion
         }
     }
+    else
+    {
+        spdlog::info("Version Check: Under 24 hours since last version check. Skipping Github API call.");
+    }
 
     int cmp = compareSemVer(m_dllVersion, cachedLatest);
 
@@ -63,7 +68,7 @@ bool LatestVersionChecker::checkForUpdates()
     {
         // Always log to spdlog when outdated
         spdlog::warn("Version Check: A new version of MGSHDFix is available.");
-        spdlog::warn("Current Version : {}, Latest Release : {}", m_dllVersion, cachedLatest);
+        spdlog::warn("Vection Check - Current Version : {}, Latest Release : {}", m_dllVersion, cachedLatest);
 
         if (warnedVersion != cachedLatest)
         {
@@ -84,7 +89,7 @@ bool LatestVersionChecker::checkForUpdates()
     else if (cmp > 0)
     {
         spdlog::info("Version Check: Welcome back, Commander! You're running a development build of MGSHDFix!");
-        spdlog::info("Current Version : {}, Latest Release : {}", m_dllVersion, cachedLatest);
+        spdlog::info("Version Check - Current Version : {}, Latest Release : {}", m_dllVersion, cachedLatest);
         return false;
     }
 
@@ -126,15 +131,28 @@ void LatestVersionChecker::saveCache(const std::string& latestVersion, const std
     file << warnedVersion << "\n";
 }
 
+std::wstring LatestVersionChecker::buildUserAgent() const
+{
+    std::string ua = "MGSHDFix/";
+    ua += VERSION_STRING;
+    return std::wstring(ua.begin(), ua.end());
+}
+
 bool LatestVersionChecker::queryGitHubLatestVersion(std::string& latestVersion)
 {
+    spdlog::info("Version Check: Contacting GitHub API for latest version...");
     HINTERNET hSession = WinHttpOpen(
-        L"MGSHDFix/1.0",
+        buildUserAgent().c_str(),
         WINHTTP_ACCESS_TYPE_DEFAULT_PROXY,
         nullptr,
         nullptr,
         0);
-    if (!hSession) return false;
+
+    if (!hSession)
+    {
+        spdlog::error("WinHttpOpen failed.");
+        return false;
+    }
 
     HINTERNET hConnect = WinHttpConnect(
         hSession,
@@ -165,11 +183,12 @@ bool LatestVersionChecker::queryGitHubLatestVersion(std::string& latestVersion)
         return false;
     }
 
+    std::wstring userAgentHeader = L"User-Agent: " + buildUserAgent();
     WinHttpAddRequestHeaders(
         hRequest,
-        L"User-Agent: MGSHDFix",
+        userAgentHeader.c_str(),
         -1,
-        WINHTTP_ADDREQ_FLAG_ADD);
+        WINHTTP_ADDREQ_FLAG_REPLACE);
 
     std::string response;
 

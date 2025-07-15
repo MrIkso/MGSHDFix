@@ -196,11 +196,13 @@
     <ClInclude Include="src\resources\RegStateHelpers.hpp">
       <Filter>Utility</Filter>
     </ClInclude>
+    <ClInclude Include="src\resources\resource.h" />
   </ItemGroup>
   <ItemGroup>
-    <Image Include="src\mgshdfix.ico">
+    <Image Include="src\resources\mgshdfix.ico">
       <Filter>Resources</Filter>
     </Image>
+    <Image Include="mgshdfix.ico" />
   </ItemGroup>
   <ItemGroup>
     <None Include="README.md">

@@ -498,12 +498,7 @@ static void Init_CustomResolution()
                     spdlog::warn("MGS 2 | MGS 3: Custom Resolution: Splashscreens: Incompatible game version. Skipping.");
                 else 
                 {
-                    uint8_t* MGS2_MGS3_SplashscreenResult = Memory::PatternScanSilent(baseModule, "FF 15 ?? ?? ?? ?? 48 8B 05 ?? ?? ?? ?? 4C 8D 44 24 ?? 48 8D 54 24 ?? 48 8B 08 48 8B 01 FF 50 ?? 48 8B 58");
-                    if (!MGS2_MGS3_SplashscreenResult)
-                    {
-                        spdlog::error("MGS 2 | MGS 3: Custom Resolution: Splashscreens: Pattern scan failed.");
-                    }
-                    else
+                    if (uint8_t* MGS2_MGS3_SplashscreenResult = Memory::PatternScan(baseModule, "FF 15 ?? ?? ?? ?? 48 8B 05 ?? ?? ?? ?? 4C 8D 44 24 ?? 48 8D 54 24 ?? 48 8B 08 48 8B 01 FF 50 ?? 48 8B 58", "MGS 2 | MGS 3: Custom Resolution: Splashscreens"))
                     {
                         static SafetyHookMid MGS2_MGS3_SplashScreenMidHook{};
                         MGS2_MGS3_SplashScreenMidHook = safetyhook::create_mid(MGS2_MGS3_SplashscreenResult,
@@ -518,15 +513,10 @@ static void Init_CustomResolution()
                                     ctx.rdx = reinterpret_cast<uintptr_t>(fileName.c_str());
                                 }
                             });
-                        spdlog::info("MGS 2 | MGS 3: Custom Resolution: Splashscreens patched at {:s}+{:x}", sExeName.c_str(), (uintptr_t)MGS2_MGS3_SplashscreenResult - (uintptr_t)baseModule);
+                        LOG_HOOK(MGS2_MGS3_SplashScreenMidHook, "MGS 2 | MGS 3: Custom Resolution")
                     }
 
-                    uint8_t* MGS2_MGS3_LoadingScreenEngScanResult = Memory::PatternScanSilent(baseModule, "48 8D 8C 24 ?? ?? ?? ?? FF 15 ?? ?? ?? ?? 48 8D 15 ?? ?? ?? ?? 48 8D 8C 24 ?? ?? ?? ?? FF 15 ?? ?? ?? ?? 48 8D 15 ?? ?? ?? ?? 48 8D 8C 24 ?? ?? ?? ?? FF 15 ?? ?? ?? ?? 48 8D 15 ?? ?? ?? ?? 48 8D 8C 24"); //    /loading.ctxr 
-                    if (!MGS2_MGS3_LoadingScreenEngScanResult)
-                    {
-                        spdlog::error("MGS 2 | MGS 3: Custom Resolution: Loading Screen (ENG) {}: Pattern scan failed.");
-                    }
-                    else
+                    if (uint8_t* MGS2_MGS3_LoadingScreenEngScanResult = Memory::PatternScan(baseModule, "48 8D 8C 24 ?? ?? ?? ?? FF 15 ?? ?? ?? ?? 48 8D 15 ?? ?? ?? ?? 48 8D 8C 24 ?? ?? ?? ?? FF 15 ?? ?? ?? ?? 48 8D 15 ?? ?? ?? ?? 48 8D 8C 24 ?? ?? ?? ?? FF 15 ?? ?? ?? ?? 48 8D 15 ?? ?? ?? ?? 48 8D 8C 24", "MGS 2 | MGS 3: Custom Resolution: Loading Screen (ENG)"))
                     {
                         static SafetyHookMid MGS2_MGS3_LoadingScreenEngMidHook{};
                         MGS2_MGS3_LoadingScreenEngMidHook = safetyhook::create_mid(MGS2_MGS3_LoadingScreenEngScanResult,
@@ -536,15 +526,10 @@ static void Init_CustomResolution()
                                           iOutputResY >= 1440 ? reinterpret_cast<uintptr_t>(&"$/misc/loading/****/loading_wqhd.ctxr") :
                                         /*iOutputResY >= 1080*/ reinterpret_cast<uintptr_t>(&"$/misc/loading/****/loading_fhd.ctxr");
                             });
-                        spdlog::info("MGS 2 | MGS 3: Custom Resolution: Loading Screen (ENG) patched at {:s}+{:x}", sExeName.c_str(), (uintptr_t)MGS2_MGS3_LoadingScreenEngScanResult - (uintptr_t)baseModule);
+                        LOG_HOOK(MGS2_MGS3_LoadingScreenEngMidHook, "MGS 2 | MGS 3: Custom Resolution: Loading Screen (ENG)")
                     }
 
-                    uint8_t* MGS2_MGS3_LoadingScreenJPScanResult = Memory::PatternScanSilent(baseModule, "48 8D 4C 24 ?? FF 15 ?? ?? ?? ?? 48 8D 15 ?? ?? ?? ?? 48 8D 4C 24"); //    /loading_jp.ctxr 
-                    if (!MGS2_MGS3_LoadingScreenJPScanResult)
-                    {
-                        spdlog::error("MGS 2 | MGS 3: Custom Resolution: Loading Screen (JPN) {}: Pattern scan failed.");
-                    }
-                    else
+                    if (uint8_t* MGS2_MGS3_LoadingScreenJPScanResult = Memory::PatternScan(baseModule, "48 8D 4C 24 ?? FF 15 ?? ?? ?? ?? 48 8D 15 ?? ?? ?? ?? 48 8D 4C 24", "MGS 2 | MGS 3: Custom Resolution: Loading Screen (JP)")) //    /loading_jp.ctxr 
                     {
                         static SafetyHookMid MGS2_MGS3_LoadingScreenJPMidHook{};
                         MGS2_MGS3_LoadingScreenJPMidHook = safetyhook::create_mid(MGS2_MGS3_LoadingScreenJPScanResult,
@@ -554,7 +539,7 @@ static void Init_CustomResolution()
                                           iOutputResY >= 1440 ? reinterpret_cast<uintptr_t>(&"$/misc/loading/****/loading_jp_wqhd.ctxr") :
                                         /*iOutputResY >= 1080*/ reinterpret_cast<uintptr_t>(&"$/misc/loading/****/loading_jp_fhd.ctxr");
                             });
-                        spdlog::info("MGS 2 | MGS 3: Custom Resolution: Loading Screen (JP) patched at {:s}+{:x}", sExeName.c_str(), (uintptr_t)MGS2_MGS3_LoadingScreenJPScanResult - (uintptr_t)baseModule);
+                        LOG_HOOK(MGS2_MGS3_LoadingScreenJPMidHook, "MGS 2 | MGS 3: Custom Resolution: Loading Screen (JP)")
                     }
                 }
 
@@ -587,7 +572,7 @@ static void Init_CustomResolution()
 
         // MG 1/2 | MGS 2 | MGS 3: CreateWindowExA
         CreateWindowExA_hook = safetyhook::create_inline(CreateWindowExA, reinterpret_cast<void*>(CreateWindowExA_hooked));
-        spdlog::info("MG/MG2 | MGS 2 | MGS 3: CreateWindowExA: Hooked function.");
+        LOG_HOOK(CreateWindowExA_hook, "MG/MG2 | MGS 2 | MGS 3: CreateWindowExA")
 
         // MG 1/2 | MGS 2 | MGS 3: SetWindowPos
         if (uint8_t* MGS2_MGS3_SetWindowPosScanResult = Memory::PatternScan(baseModule, "33 ?? 48 ?? ?? ?? FF ?? ?? ?? ?? ?? 8B ?? ?? BA 02 00 00 00", "SetWindowPos"))
@@ -703,11 +688,8 @@ static void Init_ScaleEffects()
     if ((eGameType & (MGS2|MGS3)) && bOutputResolution)
     {
         // MGS 2 | MGS 3: Fix scaling for added volume menu in v1.4.0 patch
-        uint8_t* MGS2_MGS3_VolumeMenuScanResult = Memory::PatternScanSilent(baseModule, "F3 0F ?? ?? 48 ?? ?? ?? 89 ?? ?? ?? 00 00 F3 0F ?? ?? 89 ?? ?? ?? 00 00");
-        if (MGS2_MGS3_VolumeMenuScanResult)
+        if (uint8_t* MGS2_MGS3_VolumeMenuScanResult = Memory::PatternScan(baseModule, "F3 0F ?? ?? 48 ?? ?? ?? 89 ?? ?? ?? 00 00 F3 0F ?? ?? 89 ?? ?? ?? 00 00", "MGS 2 | MGS 3: Volume Menu"))
         {
-            spdlog::info("MGS 2 | MGS 3: Volume Menu: Address is {:s}+{:x}", sExeName.c_str(), (uintptr_t)MGS2_MGS3_VolumeMenuScanResult - (uintptr_t)baseModule);
-
             static SafetyHookMid MGS2_MGS3_VolumeMenuMidHook{};
             MGS2_MGS3_VolumeMenuMidHook = safetyhook::create_mid(MGS2_MGS3_VolumeMenuScanResult,
                 [](SafetyHookContext& ctx)
@@ -715,21 +697,15 @@ static void Init_ScaleEffects()
                     ctx.xmm2.f32[0] = (float)1280;
                     ctx.xmm3.f32[0] = (float)720;
                 });
-        }
-        else if (!MGS2_MGS3_VolumeMenuScanResult)
-        {
-            spdlog::error("MGS 2 | MGS 3: Volume Menu: Pattern scan failed.");
+            LOG_HOOK(MGS2_MGS3_VolumeMenuMidHook, "MGS 2 | MGS 3: Volume Menu")
         }
     }
 
     if (eGameType & MGS2 && bOutputResolution)
     {
         // MGS 2: Scale Effects
-        uint8_t* MGS2_ScaleEffectsScanResult = Memory::PatternScanSilent(baseModule, "48 8B ?? ?? 66 ?? ?? ?? 0F ?? ?? F3 0F ?? ?? F3 0F ?? ?? F3 0F ?? ?? ?? ?? ?? ??");
-        if (MGS2_ScaleEffectsScanResult)
+        if (uint8_t* MGS2_ScaleEffectsScanResult = Memory::PatternScan(baseModule, "48 8B ?? ?? 66 ?? ?? ?? 0F ?? ?? F3 0F ?? ?? F3 0F ?? ?? F3 0F ?? ?? ?? ?? ?? ??", "MGS 2: Scale Effects"))
         {
-            spdlog::info("MGS 2: Scale Effects: Address is {:s}+{:x}", sExeName.c_str(), (uintptr_t)MGS2_ScaleEffectsScanResult - (uintptr_t)baseModule);
-
             float fMGS2_DefaultEffectScaleX = *reinterpret_cast<float*>(Memory::GetAbsolute((uintptr_t)MGS2_ScaleEffectsScanResult - 0x4));
             float fMGS2_DefaultEffectScaleY = *reinterpret_cast<float*>(Memory::GetAbsolute((uintptr_t)MGS2_ScaleEffectsScanResult + 0x28));
             spdlog::info("MGS 2: Scale Effects: Default X is {}, Y is {}", fMGS2_DefaultEffectScaleX, fMGS2_DefaultEffectScaleY);
@@ -772,10 +748,6 @@ static void Init_ScaleEffects()
                 {
                     ctx.xmm1.f32[0] = fMGS2_EffectScaleY;
                 });
-        }
-        else if (!MGS2_ScaleEffectsScanResult)
-        {
-            spdlog::error("MGS 2: Scale Effects: Pattern scan failed.");
         }
     }
     
@@ -1403,10 +1375,10 @@ static void InitializeSubsystems()
     INITIALIZE(g_Logging.LogSysInfo());            //0
     INITIALIZE(ASILoaderCompatibility::Check());   //1
     INITIALIZE(DetectGame());                      //2
-    INITIALIZE(g_GameVars.Initialize());           //3
-    INITIALIZE(g_D3D11Hooks.Initialize());         //4 Caches the D3DDevice, DXGIFactory, and D3DContext from D3DCreateDevice/DXGICreateFactory
-    INITIALIZE(g_SteamAPI.Setup());                //5 Hook early so we don't miss any Steam API calls.
-    INITIALIZE(Init_ReadConfig());                 //6
+    INITIALIZE(Init_ReadConfig());                 //3
+    INITIALIZE(g_GameVars.Initialize());           //4
+    INITIALIZE(g_D3D11Hooks.Initialize());         //5 Caches the D3DDevice, DXGIFactory, and D3DContext from D3DCreateDevice/DXGICreateFactory
+    INITIALIZE(g_SteamAPI.Setup());                //6 Hook early so we don't miss any Steam API calls.
     INITIALIZE(ReshadeCompatibility::Check());     //7 Dependent on ReadConfig, must also be before LauncherConfigOverride to warn the user before a crash.
     INITIALIZE(Init_CalculateScreenSize());        //8
     INITIALIZE(Init_LauncherConfigOverride());     //9

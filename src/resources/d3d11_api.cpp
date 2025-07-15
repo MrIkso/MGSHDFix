@@ -1,6 +1,7 @@
-#include <d3d11_api.hpp>
+#include "common.hpp"
+#include "d3d11_api.hpp"
 #include "logging.hpp"
-#include <RegStateHelpers.hpp>
+
 #pragma comment(lib,"d3d11.lib")
 #pragma comment(lib, "dxgi.lib")
 
@@ -81,9 +82,9 @@ HRESULT WINAPI CreateDXGIFactory_hooked(REFIID riid, _COM_Outptr_ void** ppFacto
 void D3D11Hooks::Initialize()
 {
     D3D11CreateDevice_hook = safetyhook::create_inline(D3D11CreateDevice, reinterpret_cast<void*>(D3D11CreateDevice_hooked));
-    spdlog::info("MG/MG2 | MGS 2 | MGS 3: D3D11CreateDevice: Hooked function.");
+    LOG_HOOK(D3D11CreateDevice_hook, "MG/MG2 | MGS 2 | MGS 3: D3D11CreateDevice: Hooked function.")
     CreateDXGIFactory_hook = safetyhook::create_inline(CreateDXGIFactory, reinterpret_cast<void*>(CreateDXGIFactory_hooked));
-    spdlog::info("MG/MG2 | MGS 2 | MGS 3: CreateDXGIFactory: Hooked function.");
+    LOG_HOOK(CreateDXGIFactory_hook, "MG/MG2 | MGS 2 | MGS 3: CreateDXGIFactory: Hooked function.")
 }
 
 

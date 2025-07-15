@@ -70,6 +70,7 @@
     <ClInclude Include="src\fixes\aiming_after_equip.hpp" />
     <ClInclude Include="src\fixes\color_filters.hpp" />
     <ClInclude Include="src\resources\RegStateHelpers.hpp" />
+    <ClInclude Include="src\resources\resource.h" />
     <ClInclude Include="src\resources\version_checking.hpp" />
     <ClInclude Include="src\resources\version.h" />
     <ClInclude Include="src\warnings\corrupt_save_message.hpp" />
@@ -100,7 +101,8 @@
     <None Include="README.md" />
   </ItemGroup>
   <ItemGroup>
-    <Image Include="src\mgshdfix.ico" />
+    <Image Include="mgshdfix.ico" />
+    <Image Include="src\resources\mgshdfix.ico" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="external\zydis\msvc\zydis\Zydis.vcxproj">
