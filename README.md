@@ -42,15 +42,27 @@ This is a fix that adds custom resolutions, ultrawide support and much more to t
 - Fixed broken skybox initialization procs (MGS2). [PR#142](https://github.com/Lyall/MGSHDFix/pull/142)
 
 ## Installation
-- Grab the latest release of MGSHDFix from [here.](https://github.com/Lyall/MGSHDFix/releases)
-- Extract the contents of the release zip into the game folder.<br />(e.g. "**steamapps\common\MGS2**" or "**steamapps\common\MGS3**" for Steam).
+
+🚩 **If updating from a previous version of MGSHDFix:**
+- Delete `d3d11.dll` from your game folder.
+- Delete old MGSHDFix files (e.g., `MGSHDFix.ini` and `MGSHDFix.asi`) before installing the update.
+
+### Steps:
+1. Download the file marked **MGSHDFix_v2.5.0.zip** from the "Assets" section below.
+2. Extract the contents of the release zip into your game folder.
+   - (e.g., `steamapps\common\MGS2` or `steamapps\common\MGS3` for Steam.)
 
 ### Steam Deck/Linux Additional Instructions
-🚩**You do not need to do this if you are using Windows!**
-- Open up the game properties of either MGS2/MGS3 in Steam and add `WINEDLLOVERRIDES="wininet,winhttp=n,b" %command%` to the launch options.
 
-## Configuration
-- See **MGSHDFix.ini** to adjust settings for the fix.
+**🚩 These steps are only needed if you’re on Steam Deck/Linux. Skip if you’re using Windows.**
+
+- Open up the game properties of either MGS2/MGS3 in Steam and add the following line to the launch options:
+
+       `WINEDLLOVERRIDES="wininet,winhttp=n,b" %command%` 
+
+### Configuration
+
+- See **MGSHDFix.ini** in the `/plugins` folder to adjust settings for the fix.
 
 ## Known Issues
 Please report any issues you see.
