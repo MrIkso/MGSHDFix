@@ -51,6 +51,7 @@ This is a fix that adds custom resolutions, ultrawide support and much more to t
 1. Grab the latest release of MGSHDFix from [here.](https://github.com/Lyall/MGSHDFix/releases)
 2. Extract the contents of the release zip into your game folder.
    - (e.g., `steamapps\common\MGS2` or `steamapps\common\MGS3` for Steam.)
+3. Set both "Internal Resolution" & "Internal Upscaling" to Default / Original in the game's launcher. (Resolution is entirely handled by MGSHDFix.)
 
 ### Steam Deck/Linux Additional Instructions
 
