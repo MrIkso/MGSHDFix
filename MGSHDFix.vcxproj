@@ -40,6 +40,8 @@
     <ClCompile Include="src\features\mg1_custom_loading_screens.cpp" />
     <ClCompile Include="src\features\distance_culling.cpp" />
     <ClCompile Include="src\fixes\aiming_after_equip.cpp" />
+    <ClCompile Include="src\resources\submodule_initiailization.hpp" />
+    <ClCompile Include="src\resources\version_checking.cpp" />
     <ClCompile Include="src\warnings\corrupt_save_message.cpp" />
     <ClCompile Include="src\warnings\asi_loader_checks.cpp" />
     <ClCompile Include="src\warnings\reshade_compatibility_checks.cpp" />
@@ -59,6 +61,7 @@
     <ClCompile Include="src\resources\helper.cpp" />
     <ClCompile Include="src\fixes\water_reflections.cpp" />
     <ClCompile Include="src\features\texture_buffer_size.cpp" />
+    <ClCompile Include="src\resources\steamworks_api.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="external\safetyhook\include\safetyhook.hpp" />
@@ -66,6 +69,10 @@
     <ClInclude Include="src\fixes\skyboxes.hpp" />
     <ClInclude Include="src\fixes\aiming_after_equip.hpp" />
     <ClInclude Include="src\fixes\color_filters.hpp" />
+    <ClInclude Include="src\resources\RegStateHelpers.hpp" />
+    <ClInclude Include="src\resources\resource.h" />
+    <ClInclude Include="src\resources\version_checking.hpp" />
+    <ClInclude Include="src\resources\version.h" />
     <ClInclude Include="src\warnings\corrupt_save_message.hpp" />
     <ClInclude Include="src\features\msaa.hpp" />
     <ClInclude Include="src\warnings\mute_warning.hpp" />
@@ -87,18 +94,23 @@
     <ClInclude Include="src\resources\stdafx.h" />
     <ClInclude Include="src\fixes\water_reflections.hpp" />
     <ClInclude Include="src\features\texture_buffer_size.hpp" />
+    <ClInclude Include="src\resources\steamworks_api.hpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="MGSHDFix.ini" />
     <None Include="README.md" />
   </ItemGroup>
   <ItemGroup>
-    <Image Include="src\mgshdfix.ico" />
+    <Image Include="mgshdfix.ico" />
+    <Image Include="src\resources\mgshdfix.ico" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="external\zydis\msvc\zydis\Zydis.vcxproj">
       <Project>{88a23124-5640-35a0-b890-311d7a67a7d2}</Project>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="src\resources\MGSHDFix.rc" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>
@@ -177,11 +189,11 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <TargetExt>.asi</TargetExt>
     <IntDir>$(Platform)\$(Configuration)\</IntDir>
-    <ExternalIncludePath>external\inipp;external\spdlog\include;$(VC_IncludePath);$(WindowsSDK_IncludePath);external\zydis\include;external\zydis\dependencies\zycore\include;external\safetyhook\include</ExternalIncludePath>
+    <ExternalIncludePath>external\SteamworksSDK\public\steam;external\inipp;external\spdlog\include;$(VC_IncludePath);$(WindowsSDK_IncludePath);external\zydis\include;external\zydis\dependencies\zycore\include;external\safetyhook\include</ExternalIncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <TargetExt>.asi</TargetExt>
-    <ExternalIncludePath>external\inipp;external\spdlog\include;$(VC_IncludePath);$(WindowsSDK_IncludePath);external\zydis\include;external\zydis\dependencies\zycore\include;external\safetyhook\include</ExternalIncludePath>
+    <ExternalIncludePath>external\SteamworksSDK\public\steam;external\inipp;external\spdlog\include;$(VC_IncludePath);$(WindowsSDK_IncludePath);external\zydis\include;external\zydis\dependencies\zycore\include;external\safetyhook\include</ExternalIncludePath>
     <IntDir>$(Platform)\$(Configuration)\</IntDir>
     <CustomBuildAfterTargets />
   </PropertyGroup>
@@ -189,25 +201,25 @@
     <TargetExt>.asi</TargetExt>
     <OutDir>C:\Users\cmkoo\OneDrive\Vortex\metalgearsolid2mc\mods\MGSHDFix-49-2-2-0-1717710976\plugins\</OutDir>
     <IntDir>$(Platform)\$(Configuration)\</IntDir>
-    <ExternalIncludePath>external\inipp;external\spdlog\include;$(VC_IncludePath);$(WindowsSDK_IncludePath);external\zydis\include;external\zydis\dependencies\zycore\include;external\safetyhook\include</ExternalIncludePath>
+    <ExternalIncludePath>external\SteamworksSDK\public\steam;external\inipp;external\spdlog\include;$(VC_IncludePath);$(WindowsSDK_IncludePath);external\zydis\include;external\zydis\dependencies\zycore\include;external\safetyhook\include</ExternalIncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Testing|x64'">
     <TargetExt>.asi</TargetExt>
     <OutDir>C:\Users\cmkoo\OneDrive\Vortex\metalgearsolid2mc\mods\MGSHDFix-49-2-2-0-1717710976\plugins\</OutDir>
     <IntDir>$(Platform)\$(Configuration)\</IntDir>
-    <ExternalIncludePath>external\inipp;external\spdlog\include;$(VC_IncludePath);$(WindowsSDK_IncludePath);external\zydis\include;external\zydis\dependencies\zycore\include;external\safetyhook\include</ExternalIncludePath>
+    <ExternalIncludePath>external\SteamworksSDK\public\steam;external\inipp;external\spdlog\include;$(VC_IncludePath);$(WindowsSDK_IncludePath);external\zydis\include;external\zydis\dependencies\zycore\include;external\safetyhook\include</ExternalIncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <OutDir>C:\Users\cmkoo\OneDrive\Vortex\metalgearsolid2mc\mods\MGSHDFix-49-2-2-0-1717710976\plugins\</OutDir>
     <IntDir>$(Platform)\$(Configuration)\</IntDir>
     <TargetExt>.asi</TargetExt>
-    <ExternalIncludePath>external\inipp;external\spdlog\include;$(VC_IncludePath);$(WindowsSDK_IncludePath);external\zydis\include;external\zydis\dependencies\zycore\include;external\safetyhook\include</ExternalIncludePath>
+    <ExternalIncludePath>external\SteamworksSDK\public\steam;external\inipp;external\spdlog\include;$(VC_IncludePath);$(WindowsSDK_IncludePath);external\zydis\include;external\zydis\dependencies\zycore\include;external\safetyhook\include</ExternalIncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Testing|Win32'">
     <OutDir>C:\Users\cmkoo\OneDrive\Vortex\metalgearsolid2mc\mods\MGSHDFix-49-2-2-0-1717710976\plugins\</OutDir>
     <IntDir>$(Platform)\$(Configuration)\</IntDir>
     <TargetExt>.asi</TargetExt>
-    <ExternalIncludePath>external\inipp;external\spdlog\include;$(VC_IncludePath);$(WindowsSDK_IncludePath);external\zydis\include;external\zydis\dependencies\zycore\include;external\safetyhook\include</ExternalIncludePath>
+    <ExternalIncludePath>external\SteamworksSDK\public\steam;external\inipp;external\spdlog\include;$(VC_IncludePath);$(WindowsSDK_IncludePath);external\zydis\include;external\zydis\dependencies\zycore\include;external\safetyhook\include</ExternalIncludePath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -309,7 +321,7 @@
       <EnableUAC>false</EnableUAC>
       <AdditionalDependencies>$(CoreLibraryDependencies);%(AdditionalDependencies);Zydis.lib</AdditionalDependencies>
       <ProgramDatabaseFile>$(OutDir)\pdb\$(TargetName).pdb</ProgramDatabaseFile>
-      <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories);$(SolutionDir)external\zydis\msvc\bin\ReleaseX64</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>external\SteamworksSDK\redistributable_bin\win64;%(AdditionalLibraryDirectories);$(SolutionDir)external\zydis\msvc\bin\ReleaseX64</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Testing|x64'">
@@ -335,7 +347,7 @@
       <EnableUAC>false</EnableUAC>
       <AdditionalDependencies>$(CoreLibraryDependencies);%(AdditionalDependencies);Zydis.lib</AdditionalDependencies>
       <ProgramDatabaseFile>$(OutDir)\pdb\$(TargetName).pdb</ProgramDatabaseFile>
-      <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories);$(SolutionDir)external\zydis\msvc\bin\ReleaseX64</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>external\SteamworksSDK\redistributable_bin\win64;%(AdditionalLibraryDirectories);$(SolutionDir)external\zydis\msvc\bin\ReleaseX64</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -360,7 +372,7 @@
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableUAC>false</EnableUAC>
-      <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories);$(SolutionDir)external\zydis\msvc\bin\ReleaseX64</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>external\SteamworksSDK\redistributable_bin\win64;%(AdditionalLibraryDirectories);$(SolutionDir)external\zydis\msvc\bin\ReleaseX64</AdditionalLibraryDirectories>
       <AdditionalDependencies>$(CoreLibraryDependencies);%(AdditionalDependencies);Zydis.lib</AdditionalDependencies>
       <ProgramDatabaseFile>$(OutDir)\pdb\$(TargetName).pdb</ProgramDatabaseFile>
     </Link>

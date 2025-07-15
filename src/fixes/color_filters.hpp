@@ -1,11 +1,7 @@
 #pragma once
 
-class ColorFilterFix
+class ColorFilterFix final
 {
 public:
-    void Initialize() const;
+    static void Initialize();
 };
-
-inline ColorFilterFix g_ColorFilterFix;
-
-

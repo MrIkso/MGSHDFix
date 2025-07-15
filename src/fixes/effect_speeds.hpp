@@ -1,13 +1,16 @@
 ﻿#pragma once
 #include <chrono>
 
-class EffectSpeedFix
+class EffectSpeedFix final
 {
 public:
-    bool isEnabled;
-    std::chrono::time_point<std::chrono::high_resolution_clock> solidusDashAct_NextUpdate;
+    static void Initialize();
+    void Reset();
+    bool isEnabled = true;
 
-    void Initialize() const;
+    double iExplosionDuration = 0;
+    int iDebrisIteration = 0;
+    std::chrono::time_point<std::chrono::high_resolution_clock> solidusDashAct_NextUpdate;
 };
 
 inline EffectSpeedFix g_EffectSpeedFix;

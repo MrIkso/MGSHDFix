@@ -1,9 +1,7 @@
 #pragma once
 
-class SkyboxFix
+class SkyboxFix final
 {
 public:
-    void Initialize();
+    static void Initialize();
 };
-
-inline SkyboxFix g_SkyboxFix;

@@ -1,7 +1,20 @@
 ﻿#pragma once
+#include <d3d11.h>
 
-void MGS23_VectorLine_InjectShader();
+class VectorScalingFix final
+{
+private:
+    bool CompileGeometryShader();
 
-void Init_LineScaling();
+    static constexpr int DEFAULT_LINE_SCALE = 360;
+    ID3DBlob* compiledShaderBytecode = nullptr;
 
-void ConfigParse_Fix_LineScaling();
+public:
+    void Initialize();
+    void LoadCompiledShader();
+
+    bool bEnableVectorLineFix = false;
+    double iVectorLineScale = 360;
+};
+
+inline VectorScalingFix g_VectorScalingFix;

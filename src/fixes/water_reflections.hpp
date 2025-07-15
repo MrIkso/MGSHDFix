@@ -1,6 +1,6 @@
 #pragma once
 
-class WaterReflectionFix
+class WaterReflectionFix final
 {
 public:
     void Initialize() const;

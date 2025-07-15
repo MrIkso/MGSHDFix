@@ -1,6 +1,6 @@
 #pragma once
 
-class StereoAudioFix
+class StereoAudioFix final
 {
 public:
     bool isEnabled;

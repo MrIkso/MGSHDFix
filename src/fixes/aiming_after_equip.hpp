@@ -1,10 +1,10 @@
 #pragma once
 
-class AimAfterEquipFix
+class AimAfterEquipFix final
 {
 public:
     bool isEnabled;
-    void Initialize() const;
+    static void Initialize();
 };
 
 inline AimAfterEquipFix g_AimAfterEquipFix;

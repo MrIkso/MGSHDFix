@@ -1,14 +1,15 @@
-#include "reshade_compatibility_checks.hpp"
 #include "common.hpp"
-#include "spdlog/spdlog.h"
+#include "reshade_compatibility_checks.hpp"
+#include "logging.hpp"
 
-void Init_ReshadeCompatibilityChecks()
+void ReshadeCompatibility::Check()
 {
     if (!std::filesystem::exists(sExePath / "dxgi.dll") || Util::GetFileDescription((sExePath / "dxgi.dll").string()) != "ReShade")
     {
         return;
     }
 
+    spdlog::info("Checking for outdated versions of Reshade (which are known to cause crashing.)");
     // Retrieve the version information of dxgi.dll
     DWORD handle = 0;
     DWORD versionInfoSize = GetFileVersionInfoSize((sExePath / "dxgi.dll").wstring().c_str(), &handle);
@@ -57,9 +58,7 @@ void Init_ReshadeCompatibilityChecks()
     spdlog::warn("Please update to the latest version.");
     spdlog::warn("------ RESHADE COMPATIBILITY WARNING ------");
 
-    AllocConsole();
-    FILE* dummy;
-    freopen_s(&dummy, "CONOUT$", "w", stdout);
+    Logging::ShowConsole();
     std::cout << "RESHADE COMPATIBILITY WARNING\n"
         "An outdated version of ReShade (dxgi.dll) is currently installed - (version v" << major << "." << minor << "." << build << "." << revision << " found.)\n"
         "Versions prior to v6.5.0 (released 30MAY2025) are known to cause intermittent crashing with MGS Master Collection games.\n"

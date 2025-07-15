@@ -1,14 +1,9 @@
-#include "line_scaling.hpp"
 #include "common.hpp"
+#include "line_scaling.hpp"
 #include "d3d11_api.hpp"
 #include <d3dcompiler.h>
-#include <spdlog/spdlog.h>
+#include "logging.hpp"
 
-bool bEnableVectorLineFix;
-double iVectorLineScale;
-constexpr auto DEFAULT_LINE_SCALE = 360;
-
-ID3DBlob* compiledShaderBytecode;
 
 static SafetyHookInline MGS3_DrawIndexedPrimitive_Hook {};
 uint64_t MGS3_DrawIndexedPrimitive_Hooked(void* CD3DCachedDevice, int topologyType, int BaseVertexIndex, int MinVertexIndex, int NumVertices, int startIndex, int primCount)
@@ -17,46 +12,46 @@ uint64_t MGS3_DrawIndexedPrimitive_Hooked(void* CD3DCachedDevice, int topologyTy
     {
         return MGS3_DrawIndexedPrimitive_Hook.call<uint64_t>(CD3DCachedDevice, topologyType, BaseVertexIndex, MinVertexIndex, NumVertices, startIndex, primCount);
     }
-    d3dDeviceContext->GSSetShader(geometryShader, nullptr, 0);
+    g_D3D11Hooks.d3dDeviceContext->GSSetShader(g_D3D11Hooks.geometryShader, nullptr, 0);
     auto ret = MGS3_DrawIndexedPrimitive_Hook.call<uint64_t>(CD3DCachedDevice, topologyType, BaseVertexIndex, MinVertexIndex, NumVertices, startIndex, primCount);
-    d3dDeviceContext->GSSetShader(nullptr, nullptr, 0);
+    g_D3D11Hooks.d3dDeviceContext->GSSetShader(nullptr, nullptr, 0);
     return ret;
 }
 
-void MGS23_VectorLine_InjectShader()
+void VectorScalingFix::LoadCompiledShader()
 {
-    if (!geometryShader && compiledShaderBytecode && d3dDevice)
+    if (!g_D3D11Hooks.geometryShader && compiledShaderBytecode && g_D3D11Hooks.d3dDevice)
     {
-        HRESULT result = d3dDevice->CreateGeometryShader(
+        HRESULT result = g_D3D11Hooks.d3dDevice->CreateGeometryShader(
             compiledShaderBytecode->GetBufferPointer(),
             compiledShaderBytecode->GetBufferSize(),
             nullptr,
-            &geometryShader
+            &g_D3D11Hooks.geometryShader
         );
 
         if (FAILED(result))
-            spdlog::error("MGS 2 | MGS 3: Vector Line Fix - Inject Shader: Failed to create geometry shader on device");
+            spdlog::error("MGS 2 | MGS 3: Vector Line Fix - Load Shader: Failed to create geometry shader on device");
         else
-            spdlog::info("MGS 2 | MGS 3: Vector Line Fix - Inject Shader: Successfully injected geometry shader.");
-    } 
+            spdlog::info("MGS 2 | MGS 3: Vector Line Fix - Load Shader: Successfully loaded geometry shader.");
+    }
 }
 
 
-void CompileGeometryShader()
+bool VectorScalingFix::CompileGeometryShader()
 {
     HMODULE d3dcompiler = LoadLibraryA("d3dcompiler_43.dll");
     if (!d3dcompiler)
     {
-        spdlog::error("CompileGeometryShader: Failed to load d3dcompiler_43.dll");
-        return;
+        spdlog::error("MGS 2 | MGS 3: Vector Line Fix - CompileGeometryShader: Failed to load d3dcompiler_43.dll");
+        return false;
     }
 
 
     pD3DCompile D3DCompileFunc = reinterpret_cast<pD3DCompile>(GetProcAddress(d3dcompiler, "D3DCompile"));
     if (!D3DCompileFunc)
     {
-        spdlog::error("CompileGeometryShader: Failed to get address for D3DCompile");
-        return;
+        spdlog::error("MGS 2 | MGS 3: Vector Line Fix - CompileGeometryShader: Failed to get address for D3DCompile");
+        return false;
     }
 
     if (iVectorLineScale < 1)
@@ -66,9 +61,7 @@ void CompileGeometryShader()
     }
     if(iVectorLineScale < DEFAULT_LINE_SCALE*0.5)
     {
-        AllocConsole();
-        FILE* dummy;
-        freopen_s(&dummy, "CONOUT$", "w", stdout);
+        Logging::ShowConsole();
         std::cout << "MGSHDFix Config Warning:\n"
                      "Line scale is currently set to more that double the default size of Screen Height/360 (" << iInternalResY / 360 << " pixels wide),\n"
                      "with individual raindrops currently set to " << iVectorLineScale << " (" << iInternalResY / iVectorLineScale << " pixels wide.)\n"
@@ -79,13 +72,13 @@ void CompileGeometryShader()
     }
     else
     {
-        spdlog::info("CompileGeometryShader: Line Scale before: {}", iVectorLineScale);
+        spdlog::info("MGS 2 | MGS 3: Vector Line Fix - CompileGeometryShader: Line Scale before: {}", iVectorLineScale);
     }
     iVectorLineScale = round(iInternalResY / iVectorLineScale);
-    spdlog::info("CompileGeometryShader: Target Pixel Width = : {}", iVectorLineScale);
+    spdlog::info("MGS 2 | MGS 3: Vector Line Fix - CompileGeometryShader: Target Pixel Width = : {}", iVectorLineScale);
     iVectorLineScale = (iInternalResY / iVectorLineScale);
-    spdlog::info("CompileGeometryShader: Line Scale after rounding: {}", iVectorLineScale);
-    std::string shaderString = R"(
+    spdlog::info("MGS 2 | MGS 3: Vector Line Fix - CompileGeometryShader: Line Scale after rounding: {}", iVectorLineScale);
+    const std::string shaderString = R"(
         struct VS_OUTPUT {
             float4 Position : SV_Position; 
             float4 param1 : TEXCOORD0;     
@@ -160,32 +153,14 @@ void CompileGeometryShader()
         {
             spdlog::error("MGS 2 | MGS 3: Vector Line Fix - CompileGeometryShader: Shader compile failed with HRESULT: 0x{:08X}", hr);
         }
-        return;
+        return false;
     }
     compiledShaderBytecode = compiledShader;
     spdlog::info("MGS 2 | MGS 3: Vector Line Fix - CompileGeometryShader: Shader compiled successfully!");
+    return true;
 }
 
-void ConfigParse_Fix_LineScaling()
-{
-    if (!(eGameType == MgsGame::MGS3 || eGameType == MgsGame::MGS2))
-    {
-        bEnableVectorLineFix = false;
-        return;
-    }
-    bEnableVectorLineFix = Util::stringToBool(ini.sections["Vector Line Fix"]["Enabled"]);
-    spdlog::info("Config Parse: Fix Vector Effect (Rain) Scaling: {}", bEnableVectorLineFix);
-
-    if (!bEnableVectorLineFix)
-    {
-        return;
-    }
-
-    inipp::get_value(ini.sections["Vector Line Fix"], "Line Scale", iVectorLineScale);
-    spdlog::info("Config Parse: Vector Effect Width: {} / {} pixels wide.", iVectorLineScale, iInternalResY / iVectorLineScale);
-}
-
-void Init_LineScaling()
+void VectorScalingFix::Initialize()
 {
     if (!(eGameType & (MGS2 | MGS3)))
     {
@@ -198,11 +173,15 @@ void Init_LineScaling()
         return;
     }
 
-    CompileGeometryShader();
+    if (!CompileGeometryShader())
+    {
+        return;
+    }
 
-    if (uint8_t* MGS3_DrawIndexedPrimitive_ScanResult = Memory::PatternScan(baseModule, "48 89 5C 24 ?? 57 48 83 EC 20 FF 41 ?? 41 8B ??", "MGS 2 | MGS 3: Vector Line Fix - DrawIndexedPrimitive", NULL, NULL))
+    if (uint8_t* MGS3_DrawIndexedPrimitive_ScanResult = Memory::PatternScan(baseModule, "48 89 5C 24 ?? 57 48 83 EC 20 FF 41 ?? 41 8B ??", "MGS 2 | MGS 3: Vector Line Fix - DrawIndexedPrimitive"))
     {   //Technically only needed for MGS3. MGS2 does have the function as well, but it's not used. Let's patch it anyway for futureproofing.
         MGS3_DrawIndexedPrimitive_Hook = safetyhook::create_inline(reinterpret_cast<void*>(MGS3_DrawIndexedPrimitive_ScanResult), reinterpret_cast<void*>(MGS3_DrawIndexedPrimitive_Hooked));
-        LOG_HOOK(MGS3_DrawIndexedPrimitive_Hook, "MGS 2 | MGS 3: Vector Line Fix - DrawIndexedPrimitive", NULL, NULL)
+        LOG_HOOK(MGS3_DrawIndexedPrimitive_Hook, "MGS 2 | MGS 3: Vector Line Fix - DrawIndexedPrimitive")
     }
+    
 }

@@ -7,7 +7,10 @@
 	url = https://github.com/gabime/spdlog
 [submodule "external/safetyhook"]
 	path = external/safetyhook
-	url = ../../cursey/safetyhook
+	url = https://github.com/cursey/safetyhook
 [submodule "external/zydis"]
 	path = external/zydis
-	url = ../../zyantific/zydis
+	url = https://github.com/zyantific/zydis
+[submodule "external/SteamworksSDK"]
+	path = external/SteamworksSDK
+	url = https://github.com/rlabrecque/SteamworksSDK

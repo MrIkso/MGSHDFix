@@ -1,2 +1,7 @@
 #pragma once
-void Init_ASILoaderSanityChecks();
+
+class ASILoaderCompatibility final
+{
+public:
+    static void Check();
+};

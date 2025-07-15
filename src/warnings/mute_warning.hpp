@@ -1,9 +1,15 @@
 #pragma once
+#include <cstdint>
 
-class MuteWarning
+class MuteWarning final
 {
+private:
+    int* muteWarningAddress = nullptr;
+
 public:
-    void Initialize() const;
+    void Setup();
+    void CheckStatus() const;
+    bool bEnabled = false;
 };
 
 inline MuteWarning g_MuteWarning;

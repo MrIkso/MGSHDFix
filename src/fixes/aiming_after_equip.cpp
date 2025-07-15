@@ -1,8 +1,8 @@
+#include "common.hpp"
 #include "aiming_after_equip.hpp"
 
-#include <spdlog/spdlog.h>
+#include "logging.hpp"
 
-#include "common.hpp"
 
 /*
 if ((eGameType == MgsGame::MGS2) || (eGameType == MgsGame::MGS3))
@@ -29,7 +29,7 @@ if ((eGameType == MgsGame::MGS2) || (eGameType == MgsGame::MGS3))
     }
     */
 
-void AimAfterEquipFix::Initialize() const
+void AimAfterEquipFix::Initialize()
 {
     if (!(eGameType & (MGS2 | MGS3)))
     {
@@ -44,6 +44,6 @@ void AimAfterEquipFix::Initialize() const
             {
                 spdlog::info("MGS2 | MGS3: Weapon putaway detected, applying aiming fix");
             });
-        LOG_HOOK(WeaponPutawayFixMidHook, "MGS2 | MGS3: Aiming After Equip", NULL, NULL)
+        LOG_HOOK(WeaponPutawayFixMidHook, "MGS2 | MGS3: Aiming After Equip")
     }*/
 }

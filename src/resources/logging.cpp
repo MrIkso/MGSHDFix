@@ -1,8 +1,8 @@
+#include "common.hpp"
 #include "logging.hpp"
 
-#include "common.hpp"
 #include <spdlog/sinks/base_sink.h>
-#include <spdlog/spdlog.h>
+#include "steamworks_api.hpp"
 
 extern std::filesystem::path sFixPath;
 
@@ -60,6 +60,18 @@ private:
     }
 };
 
+void Logging::ShowConsole()
+{
+    if (g_Logging.bConsoleShown)
+    {
+        return;
+    }
+    g_Logging.bConsoleShown = true;
+    AllocConsole();
+    FILE* dummy;
+    freopen_s(&dummy, "CONOUT$", "w", stdout);
+}
+
 
 void Logging::Initialize()
 {
@@ -91,7 +103,7 @@ void Logging::Initialize()
             {
                 spdlog::info("New log subdirectory created.");
             }
-            spdlog::info("{} v{} loaded.", sFixName, VERSION_STRING);
+            spdlog::info("{} v{} loaded.", sFixName, sFixVersion);
             spdlog::info("ASI plugin location: {}", (sExePath / sFixPath / (sFixName + ".asi")).string());
             spdlog::info("----------");
             spdlog::info("Log file: {}", (sExePath / "logs" / sLogFile).string());
@@ -102,21 +114,24 @@ void Logging::Initialize()
             spdlog::info("Module Path: {0:s}", sExePath.string());
             spdlog::info("Module Address: 0x{0:x}", (uintptr_t)baseModule);
             spdlog::info("Module Version: {}", Memory::GetModuleVersion(baseModule));
+            if (std::filesystem::exists(sExePath / "steamclient64.dll") || std::filesystem::exists(sExePath / "steamclient.dll") || std::filesystem::exists(sExePath / "GameOverlayRenderer64.dll") || std::filesystem::exists(sExePath / "GameOverlayRenderer.dll"))
+            {
+                g_SteamAPI.bIsLegitCopy = false;
+                spdlog::warn("Piracy Warning: This has been detected as a pirated copy of the game. Crashing issues are VERY likely to occur due to missing memory patterns.");
+            }
         }
         catch (const spdlog::spdlog_ex& ex)
         {
-            AllocConsole();
-            FILE* dummy;
-            freopen_s(&dummy, "CONOUT$", "w", stdout);
+            ShowConsole();
             std::cout << "Log initialisation failed: " << ex.what() << std::endl;
             return FreeLibraryAndExitThread(baseModule, 1);
         }
     }
-    auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - g_Logging.initStartTime).count(); \
-        spdlog::info("---------- Logging loaded in: {} ms ----------", duration);
+    auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - g_Logging.initStartTime).count();
+    spdlog::info("---------- Logging loaded in: {} ms ----------", duration);
 }
 
-std::string GetSteamOSVersion()
+std::string Logging::GetSteamOSVersion()
 {
     std::ifstream os_release("/etc/os-release");
     std::string line;
@@ -134,18 +149,12 @@ std::string GetSteamOSVersion()
             return line.substr(13); // fallback
         }
     }
-    return "";
+    return "SteamOS (Unknown Version)";
 }
 
 ///Prints CPU, GPU, and RAM info to the log to expedite common troubleshooting.
 void Logging::LogSysInfo()
 {
-#ifndef _WIN32
-    spdlog::info("System Details - Steam Deck/Linux");
-    return;
-#endif
-
-
     std::array<int, 4> integerBuffer = {};
     constexpr size_t sizeofIntegerBuffer = sizeof(int) * integerBuffer.size();
     std::array<char, 64> charBuffer = {};
@@ -187,16 +196,16 @@ void Logging::LogSysInfo()
     MEMORYSTATUSEX status;
     status.dwLength = sizeof(status);
     GlobalMemoryStatusEx(&status);
-    double totalMemory = status.ullTotalPhys / 1024 / 1024;    ///Total physical RAM in MB.
-    spdlog::info("System Details - RAM: {} GB ({} MB)", ceil((totalMemory / 1024) * 100) / 100, totalMemory);
+    double totalMemory = static_cast<double>(status.ullTotalPhys) / 1024.0 / 1024.0;
+    spdlog::info("System Details - RAM: {} GB ({:.0f} MB)", ceil((totalMemory / 1024) * 100) / 100, totalMemory);
 
 
     std::string os;
 
     if (Util::IsSteamOS())
     {
-        bCheckedSteamDeck = true;
-        bIsSteamDeck = true;
+        g_Logging.bCheckedSteamDeck = true;
+        g_Logging.bIsSteamDeck = true;
         os = GetSteamOSVersion();
     }
     else

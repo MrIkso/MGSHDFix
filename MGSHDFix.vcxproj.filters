@@ -25,16 +25,10 @@
     <ClCompile Include="src\features\msaa.cpp">
       <Filter>WIP</Filter>
     </ClCompile>
-    <ClCompile Include="src\warnings\mute_warning.cpp">
-      <Filter>WIP</Filter>
-    </ClCompile>
     <ClCompile Include="src\fixes\color_filters.cpp">
       <Filter>WIP</Filter>
     </ClCompile>
     <ClCompile Include="src\features\gamma_correction.cpp">
-      <Filter>WIP</Filter>
-    </ClCompile>
-    <ClCompile Include="src\fixes\pause_on_focus_loss.cpp">
       <Filter>WIP</Filter>
     </ClCompile>
     <ClCompile Include="src\fixes\aiming_after_equip.cpp">
@@ -95,14 +89,23 @@
     <ClCompile Include="src\warnings\corrupt_save_message.cpp">
       <Filter>Fixes</Filter>
     </ClCompile>
+    <ClCompile Include="src\fixes\pause_on_focus_loss.cpp">
+      <Filter>Features</Filter>
+    </ClCompile>
+    <ClCompile Include="src\warnings\mute_warning.cpp">
+      <Filter>Warnings</Filter>
+    </ClCompile>
+    <ClCompile Include="src\resources\steamworks_api.cpp">
+      <Filter>APIs</Filter>
+    </ClCompile>
+    <ClCompile Include="src\resources\version_checking.cpp">
+      <Filter>Utility</Filter>
+    </ClCompile>
+    <ClCompile Include="src\resources\submodule_initiailization.hpp">
+      <Filter>Utility</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="src\resources\d3d11_api.hpp">
-      <Filter>APIs</Filter>
-    </ClInclude>
-    <ClInclude Include="src\resources\gamevars.hpp">
-      <Filter>APIs</Filter>
-    </ClInclude>
     <ClInclude Include="src\fixes\line_scaling.hpp">
       <Filter>Fixes\Headers</Filter>
     </ClInclude>
@@ -175,11 +178,31 @@
     <ClInclude Include="src\warnings\corrupt_save_message.hpp">
       <Filter>Fixes\Headers</Filter>
     </ClInclude>
+    <ClInclude Include="src\resources\gamevars.hpp">
+      <Filter>APIs\Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="src\resources\d3d11_api.hpp">
+      <Filter>APIs\Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="src\resources\steamworks_api.hpp">
+      <Filter>APIs\Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="src\resources\version_checking.hpp">
+      <Filter>Utility\Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="src\resources\version.h">
+      <Filter>Resources</Filter>
+    </ClInclude>
+    <ClInclude Include="src\resources\RegStateHelpers.hpp">
+      <Filter>Utility</Filter>
+    </ClInclude>
+    <ClInclude Include="src\resources\resource.h" />
   </ItemGroup>
   <ItemGroup>
-    <Image Include="src\mgshdfix.ico">
+    <Image Include="src\resources\mgshdfix.ico">
       <Filter>Resources</Filter>
     </Image>
+    <Image Include="mgshdfix.ico" />
   </ItemGroup>
   <ItemGroup>
     <None Include="README.md">
@@ -226,5 +249,13 @@
     <Filter Include="Utility\Safetyhook">
       <UniqueIdentifier>{c4a23fae-fd9c-41b0-9772-dda7af79f97c}</UniqueIdentifier>
     </Filter>
+    <Filter Include="APIs\Headers">
+      <UniqueIdentifier>{a3100db6-b5f8-4b1a-96dc-23576666050c}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="src\resources\MGSHDFix.rc">
+      <Filter>Resources</Filter>
+    </ResourceCompile>
   </ItemGroup>
 </Project>

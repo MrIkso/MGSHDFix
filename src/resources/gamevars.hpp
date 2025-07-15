@@ -1,9 +1,10 @@
 #pragma once
-#include "common.hpp"
 
-class GameVars
+class GameVars final
 {
 private:
+    static void OnLevelTransition();
+
     int* cutsceneFlag = nullptr;
     int* padDemoFlag = nullptr;
     double* actorWaitValue = nullptr;

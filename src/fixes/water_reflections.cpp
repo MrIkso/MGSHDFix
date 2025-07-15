@@ -1,6 +1,7 @@
-#include "water_reflections.hpp"
 #include "common.hpp"
-#include "spdlog/spdlog.h"
+#include "water_reflections.hpp"
+#include "logging.hpp"
+
 
 // cipherxof's Water Surface Rendering Fix
 bool MGS3_UseAdjustedOffsetY = true;

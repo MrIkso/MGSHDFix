@@ -1,12 +1,14 @@
 #pragma once
 #include "helper.hpp"
-#include <inipp/inipp.h>
 
-extern std::string const VERSION_STRING;
+#include <map>
 
+extern std::string const sFixVersion;
 extern std::string sExeName;
+extern std::filesystem::path sGameSavePath;
 
 extern HMODULE engineModule;
+
 
 struct GameInfo
 {
@@ -28,7 +30,6 @@ enum MgsGame : std::uint8_t
 extern const std::map<MgsGame, GameInfo> kGames;
 extern MgsGame eGameType;
 
-extern inipp::Ini<char> ini;
 extern HMODULE baseModule;
 extern std::string sGameVersion;
 extern std::filesystem::path sExePath;
@@ -41,5 +42,4 @@ extern int iInternalResY;
 extern float fAspectRatio;
 extern bool bOutdatedReshade;
 extern bool bLauncherConfigSkipLauncher;
-extern int iTextureBufferSizeMB;
 

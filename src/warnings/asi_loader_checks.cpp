@@ -1,15 +1,14 @@
-#include "asi_loader_checks.hpp"
 #include "common.hpp"
-#include "spdlog/spdlog.h"
+#include "asi_loader_checks.hpp"
+#include "logging.hpp"
 
-void Init_ASILoaderSanityChecks()
+void ASILoaderCompatibility::Check()
 {
+    spdlog::info("ASI Loader Compatibility Check: Checking for duplicate instances of ASI Loader (ie d3d11.dll, dxgi.dll).");
     //Don't simplify by removing filesystem::exists() from this check. While GetFileDescription does handle non-existent files own its own, checking filesystem::exists() first saves 400+ ms of initialization time
     if (std::filesystem::exists(sExePath / "d3d11.dll") && (Util::GetFileDescription((sExePath / "d3d11.dll").string()) == Util::GetFileDescription((sExePath / "winhttp.dll").string())))
     {
-        AllocConsole();
-        FILE* dummy;
-        freopen_s(&dummy, "CONOUT$", "w", stdout);
+        Logging::ShowConsole();
         std::cout << "DUPLICATE MOD LOADER ERROR: Multiple ASI Loader .dll's detected! This can cause inconsistent bugs and crashes." << std::endl;
         std::cout << "DUPLICATE MOD LOADER ERROR: Please delete d3d11.dll, it has been replaced by winhttp.dll & wininit.dll." << std::endl;
         spdlog::error("DUPLICATE MOD LOADER ERROR: Multiple ASI Loader .dll installations detected! This can cause inconsistent bugs and crashes.");
@@ -25,9 +24,7 @@ void Init_ASILoaderSanityChecks()
 
     if (std::filesystem::exists(sExePath / "dxgi.dll") && Util::GetFileDescription((sExePath / "dxgi.dll").string()) == "File description not found.")
     {
-        AllocConsole();
-        FILE* dummy;
-        freopen_s(&dummy, "CONOUT$", "w", stdout);
+        Logging::ShowConsole();
         std::cout << "DUPLICATE MOD LOADER ERROR: Multiple ASI Loader .dll's detected! This can cause inconsistent bugs and crashes." << std::endl;
         std::cout << "DUPLICATE MOD LOADER ERROR: Please delete dxgi.dll, it has been replaced by winhttp.dll & wininit.dll." << std::endl;
         spdlog::error("DUPLICATE MOD LOADER ERROR: Multiple ASI Loader .dll installations detected! This can cause inconsistent bugs and crashes.");
@@ -35,11 +32,10 @@ void Init_ASILoaderSanityChecks()
 
     }
 
+    spdlog::info("ASI Mod Compatibility Check: Checking for common mod installation issues.");
     if (std::filesystem::exists(sExePath / "MGS2HFBladeMod.dll"))
     {
-        AllocConsole();
-        FILE* dummy;
-        freopen_s(&dummy, "CONOUT$", "w", stdout);
+        Logging::ShowConsole();
         std::cout << "MOD COMPATIBILITY WARNING: MGS2HFBladeMod.dll has an incorrect extension!" << std::endl;
 
         spdlog::error("MOD COMPATIBILITY WARNING: MGS2HFBladeMod.dll has an incorrect extension!");
@@ -62,6 +58,6 @@ void Init_ASILoaderSanityChecks()
     }
 
 
-
+    spdlog::info("ASI Mod Compatibility Check: Checking for duplicate MGSHDFix installations.");
     Util::CheckForASIFiles(sFixName, true, true, nullptr); //Exit thread & warn the user if multiple copies of MGSHDFix are trying to initialize.
 }

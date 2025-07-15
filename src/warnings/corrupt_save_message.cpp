@@ -1,12 +1,13 @@
+#include "common.hpp"
 #include "corrupt_save_message.hpp"
 
-#include "common.hpp"
 #include <filesystem>
-#include <spdlog/spdlog.h>
 #include <chrono>
 #include <iomanip>
 #include <sstream>
 #include <algorithm>
+
+#include "logging.hpp"
 
 void DamagedSaveFix::Initialize()
 {
@@ -16,7 +17,7 @@ void DamagedSaveFix::Initialize()
     }
 
     bool bWarnedOnce = false;
-    std::filesystem::path gamePath = sExePath / (eGameType & MG ? "mg12_savedata_win" : eGameType & MGS2 ? "mgs2_savedata_win" : "mgs3_savedata_win");
+    std::filesystem::path gamePath = sGameSavePath;
     spdlog::info("Checking for damaged save files in: {}", gamePath.string());
     for (const auto& firstLevelEntry : std::filesystem::directory_iterator(gamePath))
     {
@@ -52,9 +53,7 @@ void DamagedSaveFix::Initialize()
                 continue;
             }
 
-            AllocConsole();
-            FILE* dummy;
-            freopen_s(&dummy, "CONOUT$", "w", stdout);
+            Logging::ShowConsole();
             if (!bWarnedOnce)
             {
                 spdlog::error("Damaged save file detected.");

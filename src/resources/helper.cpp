@@ -1,6 +1,4 @@
 #include "helper.hpp"
-#include <spdlog/spdlog.h>
-
 #include "logging.hpp"
 
 #pragma comment(lib,"Version.lib")
@@ -111,36 +109,21 @@ namespace Memory
         return nullptr;
     }
 
-    std::uint8_t* PatternScan(void* module, const char* signature, const char* prefix, const char* successMessage, const char* errorMessage)
+    std::uint8_t* PatternScan(void* module, const char* signature, const char* prefix)
     {
         std::uint8_t* foundPattern = PatternScanSilent(module, signature);
         if (foundPattern)
         {
             if (bVerboseLogging)
             {
-                if (successMessage)
-                {
-                    spdlog::info("{} Address: {:s}+{:x}", successMessage, sExeName.c_str(), (uintptr_t)foundPattern - (uintptr_t)baseModule);
 
-                }
-                else
-                {
-                
-                    spdlog::info("{}: Pattern scan found. Address: {:s}+{:x}", prefix, sExeName.c_str(), (uintptr_t)foundPattern - (uintptr_t)baseModule);
-                }
+                spdlog::info("{}: Pattern scan found. Address: {:s}+{:x}", prefix, sExeName.c_str(), (uintptr_t)foundPattern - (uintptr_t)baseModule);
             }
         }
         else
         {
-            if (errorMessage)
-            {
-                spdlog::error("{}", errorMessage);
 
-            }
-            else
-            {
-                spdlog::error("{}: Pattern scan failed.", prefix);
-            }
+            spdlog::error("{}: Pattern scan failed.", prefix);
         }
         return foundPattern;
     }
@@ -264,6 +247,7 @@ namespace Util
     {
         std::array<std::string, 4> paths = { "", "plugins", "scripts", "update" };
         std::filesystem::path foundPath;
+        bool bFoundOnce = false;
         for (const auto& path : paths)
         {
             auto filePath = sExePath / path / (fileName + ".asi");
@@ -279,18 +263,16 @@ namespace Util
                     ss >> std::get_time(&checkDate, "%Y-%m-%d");
                     if (ss.fail() || std::mktime(&fileCreationTime) >= std::mktime(&checkDate))
                     {
-                        continue; // Skip this file if it doesn't meet the creation date requirement
+                        continue;
                     }
                 }
-                if (!foundPath.empty()) // multiple versions found
+                if (bFoundOnce)
                 {
-                    AllocConsole();
-                    FILE* dummy;
-                    freopen_s(&dummy, "CONOUT$", "w", stdout);
+                    Logging::ShowConsole();
                     std::string errorMessage = "DUPLICATE FILE ERROR: Duplicate " + fileName + ".asi installations found! Please make sure to delete any old versions!\n";
-                    errorMessage.append("DUPLICATE FILE ERROR - Installation 1: ").append((sExePath / foundPath / (fileName + ".asi\n")).string());
-                    errorMessage.append("DUPLICATE FILE ERROR - Installation 2: ").append((sExePath / path / (fileName + ".asi\n")).string());
-                    std::cout << errorMessage;
+                    errorMessage.append("DUPLICATE FILE ERROR - Installation 1: ").append((sExePath / foundPath / (fileName + ".asi")).string().append("\n"));
+                    errorMessage.append("DUPLICATE FILE ERROR - Installation 2: ").append(filePath.string());
+                    std::cout << errorMessage << std::endl;
                     spdlog::error("{}", errorMessage);
                     FreeLibraryAndExitThread(baseModule, 1);
                 }
@@ -303,6 +285,7 @@ namespace Util
                 {
                     return TRUE;
                 }
+                bFoundOnce = true;
             }
         }
         return FALSE;

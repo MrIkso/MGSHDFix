@@ -1,6 +1,6 @@
 #pragma once
 
-class MultiSampleAntiAliasing
+class MultiSampleAntiAliasing final
 {
 public:
     bool isEnabled;

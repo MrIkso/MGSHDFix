@@ -1,7 +1,8 @@
 #pragma once
 
 #include "stdafx.h"
-#include "safetyhook.hpp"
+#include "RegStateHelpers.hpp"
+
 
 extern bool bVerboseLogging;
 
@@ -24,7 +25,7 @@ namespace Memory
 
     std::uint8_t* PatternScanSilent(void* module, const char* signature);
 
-    std::uint8_t* PatternScan(void* module, const char* signature, const char* prefix, const char* successMessage, const char* errorMessage);
+    std::uint8_t* PatternScan(void* module, const char* signature, const char* prefix);
 
     uintptr_t GetAbsolute(uintptr_t address) noexcept;
 
@@ -55,25 +56,14 @@ namespace Util
 
 
 ///Input: SafetyHookMid, const char* Prefix, const char* successMessage (or NULL), const char* errorMessage (or NULL)
-#define LOG_HOOK(hook, prefix, successMessage, errorMessage)\
+#define LOG_HOOK(hook, prefix)\
 {\
     if (hook)\
     {\
         if (bVerboseLogging)\
         {\
-            if (successMessage)\
-            {\
-                spdlog::info("{}", successMessage);\
-            }\
-            else\
-            {\
-                spdlog::info("{}: Hook installed.", prefix);\
-            }\
+            spdlog::info("{}: Hook installed.", prefix);\
         }\
-    }\
-    else if (errorMessage)\
-    {\
-        spdlog::error("{}", errorMessage);\
     }\
     else\
     {\
