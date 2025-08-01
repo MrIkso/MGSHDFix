@@ -867,8 +867,8 @@ static void Init_LauncherConfigOverride()
 
             spdlog::info("MG/MG2 | MGS 2 | MGS 3: Launcher Config: SkipLauncher set, attempting game launch");
 
-            PROCESS_INFORMATION processInfo = {};
-            STARTUPINFO startupInfo = {};
+            PROCESS_INFORMATION processInfo {};
+            STARTUPINFO startupInfo {};
             startupInfo.cb = sizeof(STARTUPINFO);
 
             std::wstring commandLine = L"\"" + gameExePath.wstring() + L"\"";
@@ -877,14 +877,11 @@ static void Init_LauncherConfigOverride()
             if (game->ExeName == "METAL GEAR.exe")
             {
                 // Add launch parameters for MG MSX
-                auto transformString = [](const std::string& input, int (*transformation)(int)) -> std::wstring {
-                    // Apply the transformation function to each character
-                    std::string transformedString = input;
-                    std::transform(transformedString.begin(), transformedString.end(), transformedString.begin(), transformation);
-
-                    // Convert the transformed string to std::wstring
-                    std::wstring wideString = Util::utf8_decode(transformedString);
-                    return wideString;
+                auto transformString = [](const std::string& input, int (*transformation)(int)) -> std::wstring
+                    {
+                        std::string transformedString = input;
+                        std::transform(transformedString.begin(), transformedString.end(), transformedString.begin(), transformation);
+                        return Util::UTF8toWide(transformedString);
                     };
 
                 commandLine += L" -mgst " + transformString(sLauncherConfigMSXGame, ::tolower); // -mgst must be lowercase
@@ -892,12 +889,11 @@ static void Init_LauncherConfigOverride()
                 commandLine += L" -wallalign " + transformString(sLauncherConfigMSXWallAlign, ::toupper); // -wallalign must be uppercase
             }
 
-            std::string sCommandLine(commandLine.begin(), commandLine.end());
-            spdlog::info("MG/MG2 | MGS 2 | MGS 3: Launcher Config: Launch command line: {}", sCommandLine.c_str());
-
+            std::string sCommandLine = Util::WideToUTF8(commandLine);
+            spdlog::info("MG/MG2 | MGS 2 | MGS 3: Launcher Config: Launch command line: {}", sCommandLine);
 
             // Call CreateProcess to start the game process
-            if (CreateProcess(nullptr, (LPWSTR)commandLine.c_str(), nullptr, nullptr, FALSE, 0, nullptr, nullptr, &startupInfo, &processInfo))
+            if (CreateProcessW(nullptr, commandLine.data(), nullptr, nullptr, FALSE, 0, nullptr, nullptr, &startupInfo, &processInfo))
             {
                 // Successfully started the process
                 CloseHandle(processInfo.hProcess);

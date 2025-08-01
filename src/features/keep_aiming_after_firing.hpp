@@ -6,8 +6,8 @@ public:
     static void Initialize();
 
     bool bAlwaysKeepAiming;
-    bool bKeepAimingOnR1Held;
-    bool bKeepAimingOnL1Held;
+    bool bKeepAimingInFirstPerson;
+    bool bKeepAimingOnLockOn;
 };
 
 inline KeepAimingAfterFiring g_KeepAimingAfterFiring;

@@ -158,8 +158,8 @@ void Config::Read()
     ConfigHelper::getValue(ini, "Reset All Achievements", "Reset_All_Achievements", g_SteamAPI.bResetAchievements);
 
     ConfigHelper::getValue(ini, "Keep Aiming After Firing", "AlwaysKeepAiming", g_KeepAimingAfterFiring.bAlwaysKeepAiming);
-    ConfigHelper::getValue(ini, "Keep Aiming After Firing", "While in First Person", g_KeepAimingAfterFiring.bKeepAimingOnR1Held);
-    ConfigHelper::getValue(ini, "Keep Aiming After Firing", "While Holding Lock On", g_KeepAimingAfterFiring.bKeepAimingOnL1Held);
+    ConfigHelper::getValue(ini, "Keep Aiming After Firing", "While in First Person", g_KeepAimingAfterFiring.bKeepAimingInFirstPerson);
+    ConfigHelper::getValue(ini, "Keep Aiming After Firing", "While Holding Lock On", g_KeepAimingAfterFiring.bKeepAimingOnLockOn);
 
     ConfigHelper::getValue(ini, "Fix Aiming After Equip", "Enabled", g_FixAimAfterEquip.bEnabled);
     ConfigHelper::getValue(ini, "Fix Aiming On Full Tilt", "Enabled", g_FixAimingFullTilt.bEnabled);
@@ -167,15 +167,12 @@ void Config::Read()
 
     std::string sShouldWearSunglasses;
     ConfigHelper::getValue(ini, "MGS2 Sunglasses", "ShouldWearSunglasses", sShouldWearSunglasses);
-    spdlog::info("MGS2 Sunglasses: ShouldWearSunglasses: {}", sShouldWearSunglasses);
     if (sShouldWearSunglasses != "normal")
     {
         g_MGS2Sunglasses.bEnabled = true;
-        spdlog::info("MGS2 Sunglasses: Enabled.");
         if (sShouldWearSunglasses == "always")
         {
             g_MGS2Sunglasses.bAlwaysWearingSunglasses = true;
-            spdlog::info("MGS2 Sunglasses: Always wearing sunglasses mode enabled.");
         }
     }
 
@@ -301,10 +298,10 @@ void Config::Read()
     {
         spdlog::info("Config Parse: Keep Aiming After Firing - Always Keep Aiming: Enabled");
     }
-    else if (g_KeepAimingAfterFiring.bKeepAimingOnR1Held || g_KeepAimingAfterFiring.bKeepAimingOnL1Held)
+    else if (g_KeepAimingAfterFiring.bKeepAimingInFirstPerson || g_KeepAimingAfterFiring.bKeepAimingOnLockOn)
     {
-        spdlog::info("Config Parse: Keep Aiming After Firing - While Holding R1: {}", g_KeepAimingAfterFiring.bKeepAimingOnR1Held);
-        spdlog::info("Config Parse: Keep Aiming After Firing - While Holding L1: {}", g_KeepAimingAfterFiring.bKeepAimingOnL1Held);
+        spdlog::info("Config Parse: Keep Aiming After Firing - While Holding R1: {}", g_KeepAimingAfterFiring.bKeepAimingInFirstPerson);
+        spdlog::info("Config Parse: Keep Aiming After Firing - While Holding L1: {}", g_KeepAimingAfterFiring.bKeepAimingOnLockOn);
     }
     else
     {

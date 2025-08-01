@@ -326,13 +326,18 @@ void SteamAPI::OnSteamInputLoaded()
         default: break;
         }
 
-        spdlog::info(
-            "SteamInput: Controller #{} | Type: {} | Handle: {} | Input Handler: {}",
-            i + 1,
-            typeStr,
-            handle,
-            gamepadIndex == -1 ? "Steam Input" : std::to_string(gamepadIndex)
-        );
+        if ((gamepadIndex == -1) || (eGameType & MG && gamepadIndex == 4) )
+        {
+            spdlog::info("SteamInput: Controller #{} | Type: {} | Handle: {} | Status: Good", i + 1, typeStr, handle);
+        }
+        else
+        {
+            spdlog::error("-------------------    ERROR     ----------------------");
+            spdlog::error("SteamInput: Controller #{} | Type: {} | Handle: {} | Status: ERROR: Gamepad Handler is NOT correct - {}", i + 1, typeStr, handle, gamepadIndex);
+            spdlog::error("SteamInput: Gamepad detected using incorrect input handler (ie Steam Input drivers.)");
+            spdlog::error("SteamInput: This indicates a Steam Input / OS level game controller driver conflict (do you have DS4Win installed?");
+            spdlog::error("-------------------    ERROR     ----------------------");
+        }
 
         InputActionSetHandle_t activeActionSet = steamInput->GetCurrentActionSet(handle);
 

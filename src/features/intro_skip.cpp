@@ -2,11 +2,16 @@
 #include "logging.hpp"
 #include "intro_skip.hpp"
 
+#include "config.hpp"
+
 void IntroSkip::Initialize() const
 {
     if (isEnabled && (eGameType & LAUNCHER))
     {
-        spdlog::info("Launcher: Skip Intro Logos: Use the Launcher Jumpstart configuration option to skip the launcher's intro logos!");
+        if (!bLauncherJumpStart)
+        {
+            spdlog::info("Launcher: Skip Intro Logos: Use the Launcher Jumpstart configuration option to skip the launcher's intro logos!");
+        }
         return;
     }
     if (!(eGameType & (MGS2 | MGS3)))

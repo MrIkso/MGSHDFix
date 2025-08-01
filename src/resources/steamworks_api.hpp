@@ -32,7 +32,7 @@ public:
     std::optional<uint64_t> steamID;
     bool bResetAchievements = false;
 
-    int* iNumberOfControllers;
+    int* iNumberOfControllers = nullptr;
     InputHandle_t controllerHandles[STEAM_INPUT_MAX_COUNT] = {};
 
     InputDigitalActionHandle_t hL1Button = {};

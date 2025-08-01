@@ -10,14 +10,8 @@
 
 void KeepAimingAfterFiring::Initialize()
 {
-    if (!(eGameType & (MGS2|MGS3)) || !(g_KeepAimingAfterFiring.bAlwaysKeepAiming || g_KeepAimingAfterFiring.bKeepAimingOnR1Held || g_KeepAimingAfterFiring.bKeepAimingOnL1Held))
+    if (!(eGameType & (MGS2|MGS3)) || !(g_KeepAimingAfterFiring.bAlwaysKeepAiming || g_KeepAimingAfterFiring.bKeepAimingInFirstPerson || g_KeepAimingAfterFiring.bKeepAimingOnLockOn))
     {
-        return;
-    }
-
-    if (!g_SteamAPI.bIsLegitCopy && !g_KeepAimingAfterFiring.bAlwaysKeepAiming)
-    {
-        spdlog::warn("MGS 2/3: Keep Aiming After Firing - Unable to load SteamInput API due to non-legitimate copy. Keep Aiming R1/L1 funtionality not avaiaible.");
         return;
     }
 
@@ -34,31 +28,18 @@ void KeepAimingAfterFiring::Initialize()
             }
             if (g_KeepAimingAfterFiring.bAlwaysKeepAiming)
             {
-                ctx.r12 = g_GameVars.GetAimingState();
+                ctx.r12 = 2;
                 return;
             }
-            if (*g_SteamAPI.iNumberOfControllers > 0)
+            if (g_KeepAimingAfterFiring.bKeepAimingInFirstPerson && g_GameVars.MGS2IsHoldingFirstPerson())
             {
-                const InputHandle_t controller = g_SteamAPI.controllerHandles[0];
-                if (g_KeepAimingAfterFiring.bKeepAimingOnR1Held)
-                {
-                    InputDigitalActionData_t R1Data = SteamInput()->GetDigitalActionData(controller, g_SteamAPI.hR1Button);
-                    if (R1Data.bState)
-                    {
-                        ctx.r12 = g_GameVars.GetAimingState();
-                        return;
-                    }
-                }
-                if (g_KeepAimingAfterFiring.bKeepAimingOnL1Held)
-                {
-                    InputDigitalActionData_t L1Data = SteamInput()->GetDigitalActionData(controller, g_SteamAPI.hL1Button);
-                    if (L1Data.bState)
-                    {
-                        ctx.r12 = g_GameVars.GetAimingState();
-                        return;
-                    }
-                }
-            
+                ctx.r12 = 2;
+                return;
+            }
+            if (g_KeepAimingAfterFiring.bKeepAimingOnLockOn && g_GameVars.MGS2IsHoldingLockOn())
+            {
+                ctx.r12 = 2;
+                return;
             }
         });
     }
@@ -83,30 +64,18 @@ void KeepAimingAfterFiring::Initialize()
             }
             if (g_KeepAimingAfterFiring.bAlwaysKeepAiming)
             {
-                ctx.r9 = g_GameVars.GetAimingState();
+                ctx.rbx = g_GameVars.GetAimingState();
                 return;
             }
-            if (*g_SteamAPI.iNumberOfControllers > 0)
+            if (g_KeepAimingAfterFiring.bKeepAimingInFirstPerson & g_GameVars.MGS3IsHoldingFirstPerson())
             {
-                const InputHandle_t controller = g_SteamAPI.controllerHandles[0];
-                if (g_KeepAimingAfterFiring.bKeepAimingOnR1Held)
-                {
-                    InputDigitalActionData_t R1Data = SteamInput()->GetDigitalActionData(controller, g_SteamAPI.hR1Button);
-                    if (R1Data.bState)
-                    {
-                        ctx.rbx = g_GameVars.GetAimingState();
-                        return;
-                    }
-                }
-                if (g_KeepAimingAfterFiring.bKeepAimingOnL1Held)
-                {
-                    InputDigitalActionData_t L1Data = SteamInput()->GetDigitalActionData(controller, g_SteamAPI.hL1Button);
-                    if (L1Data.bState)
-                    {
-                        ctx.rbx = g_GameVars.GetAimingState();
-                        return;
-                    }
-                }
+                ctx.rbx = g_GameVars.GetAimingState();
+                return;
+            }
+            if (g_KeepAimingAfterFiring.bKeepAimingOnLockOn & g_GameVars.MGS3IsHoldingLockOn())
+            {
+                ctx.rbx = g_GameVars.GetAimingState();
+                return;
             }
         });
     }

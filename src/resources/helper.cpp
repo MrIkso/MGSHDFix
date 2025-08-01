@@ -285,13 +285,34 @@ namespace Util
     }
 
     // Convert an UTF8 string to a wide Unicode String
-    std::wstring utf8_decode(const std::string& str)
+    std::wstring UTF8toWide(const std::string& str)
     {
         if (str.empty()) return std::wstring();
         int size_needed = MultiByteToWideChar(CP_UTF8, 0, &str[0], (int)str.size(), NULL, 0);
         std::wstring wstrTo(size_needed, 0);
         MultiByteToWideChar(CP_UTF8, 0, &str[0], (int)str.size(), &wstrTo[0], size_needed);
         return wstrTo;
+    }
+
+    std::string WideToUTF8(const std::wstring& wstr)
+    {
+        if (wstr.empty()) return {};
+
+        int sizeNeeded = WideCharToMultiByte(
+            CP_UTF8, 0,
+            wstr.data(), (int)wstr.size(),
+            nullptr, 0, nullptr, nullptr
+        );
+
+        std::string result(sizeNeeded, 0);
+        WideCharToMultiByte(
+            CP_UTF8, 0,
+            wstr.data(), (int)wstr.size(),
+            result.data(), sizeNeeded,
+            nullptr, nullptr
+        );
+
+        return result;
     }
 
     std::pair<int, int> GetPhysicalDesktopDimensions()

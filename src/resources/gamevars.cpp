@@ -15,14 +15,16 @@ void GameVars::Initialize()
         scriptedSequenceFlag = reinterpret_cast<int*>(Memory::GetRelativeOffset(Memory::PatternScan(baseModule, "44 39 35 ?? ?? ?? ?? 89 15", "MGS 2: GameVars: scriptedSequenceFlag") + 3));
         actorWaitValue = reinterpret_cast<double*>(Memory::GetRelativeOffset(Memory::PatternScan(baseModule, "66 0F 2F 05 ?? ?? ?? ?? 73 ?? 33 C0", "MGS 2: GameVars: actorWaitValue") + 4));
         currentStage = reinterpret_cast<char const*>(Memory::GetRelativeOffset(Memory::PatternScan(baseModule, "4C 8D 0D ?? ?? ?? ?? 48 8D 15 ?? ?? ?? ?? 4C 8D 05", "MGS 2: GameVars: currentStage") + 3));
-        if (g_Logging.bVerboseLogging)
-        {
-            spdlog::info("GameVars: aimingState address is {:s}+{:X}", sExeName.c_str(), (uintptr_t)aimingState - (uintptr_t)baseModule);
-            spdlog::info("GameVars: cutsceneFlag address is {:s}+{:X}", sExeName.c_str(), (uintptr_t)cutsceneFlag - (uintptr_t)baseModule);
-            spdlog::info("GameVars: scriptedSequenceFlag address is {:s}+{:X}", sExeName.c_str(), (uintptr_t)scriptedSequenceFlag - (uintptr_t)baseModule);
-            spdlog::info("GameVars: actorWaitValue address is {:s}+{:X}", sExeName.c_str(), (uintptr_t)actorWaitValue - (uintptr_t)baseModule);
-            spdlog::info("GameVars: currentStage address is {:s}+{:X}", sExeName.c_str(), (uintptr_t)currentStage - (uintptr_t)baseModule);
-        }
+
+        heldTriggers = reinterpret_cast<uint32_t*>(Memory::GetRelativeOffset(Memory::PatternScan(baseModule, "F2 0F 11 05 ?? ?? ?? ?? 0F 11 0D", "MGS 2: GameVars: heldTriggers") + 4));
+
+        spdlog::info("GameVars: aimingState address is {:s}+{:X}", sExeName.c_str(), (uintptr_t)aimingState - (uintptr_t)baseModule);
+        spdlog::info("GameVars: cutsceneFlag address is {:s}+{:X}", sExeName.c_str(), (uintptr_t)cutsceneFlag - (uintptr_t)baseModule);
+        spdlog::info("GameVars: scriptedSequenceFlag address is {:s}+{:X}", sExeName.c_str(), (uintptr_t)scriptedSequenceFlag - (uintptr_t)baseModule);
+        spdlog::info("GameVars: actorWaitValue address is {:s}+{:X}", sExeName.c_str(), (uintptr_t)actorWaitValue - (uintptr_t)baseModule);
+        spdlog::info("GameVars: currentStage address is {:s}+{:X}", sExeName.c_str(), (uintptr_t)currentStage - (uintptr_t)baseModule);
+        spdlog::info("GameVars: heldTriggers address is {:s}+{:X}", sExeName.c_str(), (uintptr_t)heldTriggers - (uintptr_t)baseModule);
+        
         if (uint8_t* LevelTransitionResult = Memory::PatternScan(baseModule, "89 73 ?? 81 25", "GameVars: Level Transition"))
         {
             static SafetyHookMid levelTransitionMidHook {};
@@ -37,10 +39,11 @@ void GameVars::Initialize()
     else if (eGameType & MGS3)
     {
         aimingState = reinterpret_cast<uint64_t*>(Memory::GetRelativeOffset(Memory::PatternScan(baseModule, "8B 35 ?? ?? ?? ?? 48 8D 0D ?? ?? ?? ?? 49 89 8D", "MGS 3: GameVars: aimingState") + 2));
-        if (g_Logging.bVerboseLogging)
-        {
-            spdlog::info("GameVars: aimingState address is {:s}+{:X}", sExeName.c_str(), (uintptr_t)aimingState - (uintptr_t)baseModule);
-        }
+        heldTriggers = reinterpret_cast<uint32_t*>(Memory::GetRelativeOffset(Memory::PatternScan(baseModule, "48 8D 3D ?? ?? ?? ?? BA ?? ?? ?? ?? 41 B8", "MGS 3: GameVars: heldTriggers") + 3));
+
+        spdlog::info("GameVars: aimingState address is {:s}+{:X}", sExeName.c_str(), (uintptr_t)aimingState - (uintptr_t)baseModule);
+        spdlog::info("GameVars: heldTriggers address is {:s}+{:X}", sExeName.c_str(), (uintptr_t)heldTriggers - (uintptr_t)baseModule);
+        
         if (uint8_t* LevelTransitionResult = Memory::PatternScan(baseModule, "89 5F ?? E9 ?? ?? ?? ?? 39 1D", "GameVars: Level Transition"))
         {
             static SafetyHookMid levelTransitionMidHook {};
@@ -80,11 +83,9 @@ void GameVars::SetAimingState(const uint64_t state) const
     if (aimingState != nullptr)
     {
         *aimingState = state;
+        return;
     }
-    else
-    {
-        spdlog::error("GameVars: SetAimingState: aimingState is null!");
-    }
+    spdlog::error("GameVars: SetAimingState: aimingState is null!");
 }
 
 uint64_t GameVars::GetAimingState() const
@@ -93,12 +94,48 @@ uint64_t GameVars::GetAimingState() const
     {
         return *aimingState;
     }
-    else
-    {
-        spdlog::error("GameVars: GetAimingState: aimingState is null!");
-        return 0;
-    }
+    spdlog::error("GameVars: GetAimingState: aimingState is null!");
+    return 0;
 }
+
+
+bool GameVars::MGS2IsHoldingWeaponMenu() const
+{
+    return (*heldTriggers & HoldingTriggers::MGS2_WeaponMenu) != 0;
+}
+bool GameVars::MGS2IsHoldingEquipmentMenu() const
+{
+    return (*heldTriggers & HoldingTriggers::MGS2_EquipmentMenu) != 0;
+}
+bool GameVars::MGS2IsHoldingFirstPerson() const
+{
+    return (*heldTriggers & HoldingTriggers::MGS2_FirstPerson) != 0;
+}
+bool GameVars::MGS2IsHoldingLockOn() const
+{
+    return (*heldTriggers & HoldingTriggers::MGS2_LockOn) != 0;
+}
+
+bool GameVars::MGS3IsHoldingEquipmentMenu() const
+{
+    return (*heldTriggers & HoldingTriggers::MGS3_EquipmentMenu) != 0;
+}
+
+bool GameVars::MGS3IsHoldingWeaponMenu() const
+{
+    return (*heldTriggers & HoldingTriggers::MGS3_WeaponMenu) != 0;
+}
+
+bool GameVars::MGS3IsHoldingLockOn() const
+{
+    return (*heldTriggers & HoldingTriggers::MGS3_LockOn) != 0;
+}
+
+bool GameVars::MGS3IsHoldingFirstPerson() const
+{
+    return (*heldTriggers & HoldingTriggers::MGS3_FirstPerson) != 0;
+}
+
 
 void GameVars::OnLevelTransition()
 {

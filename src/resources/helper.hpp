@@ -44,8 +44,9 @@ namespace Util
 
     int findStringInVector(std::string& str, const std::initializer_list<std::string>& search);
 
-    // Convert an UTF8 string to a wide Unicode String
-    std::wstring utf8_decode(const std::string& str);
+    std::wstring UTF8toWide(const std::string& str);
+
+    std::string WideToUTF8(const std::wstring& wstr);
 
     std::pair<int, int> GetPhysicalDesktopDimensions();
 
