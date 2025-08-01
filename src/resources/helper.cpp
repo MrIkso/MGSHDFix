@@ -1,13 +1,8 @@
-#include "helper.hpp"
+#include "common.hpp"
+
 #include "logging.hpp"
 
 #pragma comment(lib,"Version.lib")
-
-extern HMODULE baseModule;
-extern std::filesystem::path sExePath;
-extern std::filesystem::path sFixPath;
-extern std::string sExeName;
-
 
 namespace Memory
 {
@@ -114,10 +109,10 @@ namespace Memory
         std::uint8_t* foundPattern = PatternScanSilent(module, signature);
         if (foundPattern)
         {
-            if (bVerboseLogging)
+            if (g_Logging.bVerboseLogging)
             {
 
-                spdlog::info("{}: Pattern scan found. Address: {:s}+{:x}", prefix, sExeName.c_str(), (uintptr_t)foundPattern - (uintptr_t)baseModule);
+                spdlog::info("{}: Pattern scan found. Address: {:s}+{:X}", prefix, sExeName.c_str(), (uintptr_t)foundPattern - (uintptr_t)baseModule);
             }
         }
         else
@@ -247,6 +242,34 @@ namespace Memory
 
 namespace Util
 {
+#if !defined(RELEASE_BUILD)
+    void DumpContext(const safetyhook::Context& ctx)
+    {
+        spdlog::info("\n"
+            // General-purpose 64-bit registers
+            "RAX = 0x{:X}\t| RBX = 0x{:X}\t| RCX = 0x{:X}\t| RDX = 0x{:X}\n"
+            "RSI = 0x{:X}\t| RDI = 0x{:X}\t| RBP = 0x{:X}\t| RSP = 0x{:X}\n"
+            "R8  = 0x{:X}\t| R9  = 0x{:X}\t| R10 = 0x{:X}\t| R11 = 0x{:X}\n"
+            "R12 = 0x{:X}\t| R13 = 0x{:X}\t| R14 = 0x{:X}\t| R15 = 0x{:X}\n"
+            "RIP = 0x{:X}\n"
+            // XMM floats
+            "XMM0 = {:g}\t| XMM1 = {:g}\t| XMM2 = {:g}\t| XMM3 = {:g}\n"
+            "XMM4 = {:g}\t| XMM5 = {:g}\t| XMM6 = {:g}\t| XMM7 = {:g}\n"
+            "XMM8 = {:g}\t| XMM9 = {:g}\t| XMM10 = {:g}\t| XMM11 = {:g}\n"
+            "XMM12 = {:g}\t| XMM13 = {:g}\t| XMM14 = {:g}\t| XMM15 = {:g}",
+            ctx.rax, ctx.rbx, ctx.rcx, ctx.rdx,
+            ctx.rsi, ctx.rdi, ctx.rbp, ctx.rsp,
+            ctx.r8, ctx.r9, ctx.r10, ctx.r11,
+            ctx.r12, ctx.r13, ctx.r14, ctx.r15,
+            ctx.rip,
+            ctx.xmm0.f32[0], ctx.xmm1.f32[0], ctx.xmm2.f32[0], ctx.xmm3.f32[0],
+            ctx.xmm4.f32[0], ctx.xmm5.f32[0], ctx.xmm6.f32[0], ctx.xmm7.f32[0],
+            ctx.xmm8.f32[0], ctx.xmm9.f32[0], ctx.xmm10.f32[0], ctx.xmm11.f32[0],
+            ctx.xmm12.f32[0], ctx.xmm13.f32[0], ctx.xmm14.f32[0], ctx.xmm15.f32[0]
+        );
+    }
+#endif
+
 
     int findStringInVector(std::string& str, const std::initializer_list<std::string>& search)
     {
@@ -360,29 +383,6 @@ namespace Util
         }
         return FALSE;
     }
-
-    bool stringToBool(const std::string& str)
-    {
-        std::string lowerStr = str;
-        std::transform(lowerStr.begin(), lowerStr.end(), lowerStr.begin(),
-            [](unsigned char c)
-            {
-                return std::tolower(c);
-            });
-        if (lowerStr == "true" || lowerStr == "1")
-        {
-            return true;
-        }
-        if (lowerStr == "false" || lowerStr == "0")
-        {
-            return false;
-        }
-        // Handle cases where the string is not a recognized boolean representation
-        // For example, throw an exception, return a default value, or log an error.
-        // For simplicity, this example returns false for unrecognized strings.
-        return false;
-    }
-
 
     std::string GetUppercaseNameAtIndex(const std::initializer_list<std::string>& list, int index)
     {

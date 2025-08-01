@@ -11,9 +11,10 @@ private:
 
 public:
     void Initialize();
-    void LoadCompiledShader();
+    void LoadCompiledShader() const;
 
     bool bEnableVectorLineFix = false;
+    bool bNeedsCompiler = false;
     double iVectorLineScale = 360;
 };
 

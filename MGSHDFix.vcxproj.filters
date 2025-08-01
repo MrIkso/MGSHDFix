@@ -31,12 +31,6 @@
     <ClCompile Include="src\features\gamma_correction.cpp">
       <Filter>WIP</Filter>
     </ClCompile>
-    <ClCompile Include="src\fixes\aiming_after_equip.cpp">
-      <Filter>WIP</Filter>
-    </ClCompile>
-    <ClCompile Include="src\fixes\effect_speeds.cpp">
-      <Filter>WIP</Filter>
-    </ClCompile>
     <ClCompile Include="src\features\distance_culling.cpp">
       <Filter>WIP</Filter>
     </ClCompile>
@@ -109,6 +103,24 @@
     </ClCompile>
     <ClCompile Include="src\features\stat_persistence.cpp">
       <Filter>Features</Filter>
+    </ClCompile>
+    <ClCompile Include="src\resources\config.cpp">
+      <Filter>Config</Filter>
+    </ClCompile>
+    <ClCompile Include="src\features\mgs2_sunglasses.cpp">
+      <Filter>Features</Filter>
+    </ClCompile>
+    <ClCompile Include="src\features\keep_aiming_after_firing.cpp">
+      <Filter>Features</Filter>
+    </ClCompile>
+    <ClCompile Include="src\fixes\aiming_after_equip.cpp">
+      <Filter>Fixes</Filter>
+    </ClCompile>
+    <ClCompile Include="src\fixes\effect_speeds.cpp">
+      <Filter>Fixes</Filter>
+    </ClCompile>
+    <ClCompile Include="src\fixes\aiming_full_tilt.cpp">
+      <Filter>Fixes</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -205,14 +217,23 @@
     <ClInclude Include="src\resources\RegStateHelpers.hpp">
       <Filter>Utility</Filter>
     </ClInclude>
-    <ClInclude Include="src\resources\resource.h">
-      <Filter>Resources</Filter>
-    </ClInclude>
     <ClInclude Include="src\resources\steam_achievements.hpp">
       <Filter>APIs\Headers</Filter>
     </ClInclude>
     <ClInclude Include="src\features\stat_persistence.hpp">
       <Filter>Features\Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="src\resources\config.hpp">
+      <Filter>Config</Filter>
+    </ClInclude>
+    <ClInclude Include="src\features\mgs2_sunglasses.hpp">
+      <Filter>Features\Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="src\features\keep_aiming_after_firing.hpp">
+      <Filter>Features\Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="src\fixes\aiming_full_tilt.hpp">
+      <Filter>Fixes\Headers</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -267,6 +288,9 @@
     </Filter>
     <Filter Include="APIs\Headers">
       <UniqueIdentifier>{a3100db6-b5f8-4b1a-96dc-23576666050c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Config">
+      <UniqueIdentifier>{cd1768eb-087f-41c0-a320-8702dca4749f}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>

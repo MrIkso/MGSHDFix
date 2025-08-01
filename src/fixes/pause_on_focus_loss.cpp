@@ -8,7 +8,7 @@
 
 bool PauseOnFocusLoss::ShouldFixPauseState()
 {
-    return g_PauseOnFocusLoss.bPauseOnFocusLoss ? (g_GameVars.InCutscene() || g_GameVars.InPadDemo()) : true;
+    return g_PauseOnFocusLoss.bPauseOnFocusLoss ? (g_GameVars.InCutscene() || g_GameVars.InScriptedSequence()) : true;
 }
 
 void PauseOnFocusLoss::Initialize()
@@ -20,12 +20,13 @@ void PauseOnFocusLoss::Initialize()
 
     if (Util::CheckForASIFiles("MGSALTTABPatch", false, false, nullptr))
     {
-        std::cout << "MOD COMPATIBILITY WARNING: MGSAltTabPatch's functionality has been added directly to MGSHDFix." << std::endl;
-        std::cout << "MOD COMPATIBILITY WARNING: MGSAltTabPatch is no longer need & can cause crashes due to conflicts if not removed." << std::endl;
-        std::cout << "MOD COMPATIBILITY WARNING: Pause On Focus Loss has been forced OFF while MGSAltTabPatch.asi is present." << std::endl;
         spdlog::error("MOD COMPATIBILITY WARNING: MGSAltTabPatch's functionality has been added directly to MGSHDFix.");
         spdlog::error("MOD COMPATIBILITY WARNING: MGSAltTabPatch is no longer needed & can cause crashes due to conflicts if not removed.");
         spdlog::info("MOD COMPATIBILITY WARNING: Pause On Focus Loss has been forced OFF while MGSAltTabPatch.asi is present.");
+        Logging::ShowConsole();
+        std::cout << "MOD COMPATIBILITY WARNING: MGSAltTabPatch's functionality has been added directly to MGSHDFix." << std::endl;
+        std::cout << "MOD COMPATIBILITY WARNING: MGSAltTabPatch is no longer need & can cause crashes due to conflicts if not removed." << std::endl;
+        std::cout << "MOD COMPATIBILITY WARNING: Pause On Focus Loss has been forced OFF while MGSAltTabPatch.asi is present." << std::endl;
         g_PauseOnFocusLoss.bPauseOnFocusLoss = false;
     }
 

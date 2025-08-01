@@ -3,8 +3,7 @@
 #include "stdafx.h"
 #include "RegStateHelpers.hpp"
 
-
-extern bool bVerboseLogging;
+inline std::filesystem::path sFixPath;
 
 namespace Memory
 {
@@ -39,7 +38,11 @@ namespace Memory
 
 namespace Util
 {
-    extern int findStringInVector(std::string& str, const std::initializer_list<std::string>& search);
+#if !defined(RELEASE_BUILD)
+        void DumpContext(const safetyhook::Context& ctx);
+#endif
+
+    int findStringInVector(std::string& str, const std::initializer_list<std::string>& search);
 
     // Convert an UTF8 string to a wide Unicode String
     std::wstring utf8_decode(const std::string& str);
@@ -49,8 +52,6 @@ namespace Util
     std::string GetFileDescription(const std::string& filePath);
 
     bool CheckForASIFiles(std::string fileName, bool checkForDuplicates, bool setFixPath, const char* checkCreationDate);
-
-    bool stringToBool(const std::string& str);
 
     std::string GetUppercaseNameAtIndex(const std::initializer_list<std::string>& list, int index);
 
@@ -63,7 +64,7 @@ namespace Util
 {\
     if (hook)\
     {\
-        if (bVerboseLogging)\
+        if (g_Logging.bVerboseLogging)\
         {\
             spdlog::info("{}: Hook installed.", prefix);\
         }\
@@ -72,4 +73,81 @@ namespace Util
     {\
         spdlog::error("{}: Hook failed.", prefix);\
     }\
-}\
+}
+
+#define CONCAT_IMPL(x, y) x##y
+#define CONCAT(x, y) CONCAT_IMPL(x, y)
+#define UNIQUE_NAME(base) CONCAT(base, __COUNTER__)
+
+/**
+ * Usage:
+ * MAKE_HOOK_MID(module, pattern, name, {
+ *     // Your code here using ctx
+ * });
+ *
+ * Example:
+ * MAKE_HOOK_MID(baseModule, "74 ?? B9 ?? ?? ?? ??", "completion check", {
+ *     ctx.rax = 0;
+ *     reghelpers::SetZF(ctx, false);
+ * });
+ */
+#define MAKE_HOOK_MID_IMPL(module, pattern, name, body, uniq)                       \
+    if (uint8_t* CONCAT(_addr_, uniq) = Memory::PatternScan(module, pattern, name)) {\
+        static SafetyHookMid CONCAT(hook_, uniq) {};                               \
+        CONCAT(hook_, uniq) = safetyhook::create_mid(CONCAT(_addr_, uniq),         \
+            [](SafetyHookContext& ctx) { body });                                  \
+        LOG_HOOK(CONCAT(hook_, uniq), name)                                        \
+    }
+
+#define MAKE_HOOK_MID(module, pattern, name, body)                                 \
+    MAKE_HOOK_MID_IMPL(module, pattern, name, body, UNIQUE_NAME(_unique))
+
+ /**
+  * Usage:
+  * MAKE_HOOK_INLINE(module, pattern, name, {
+  *     // Your code here using ctx
+  * });
+  *
+  * Example:
+  * MAKE_HOOK_INLINE(baseModule, "83 F8 01 75 ?? 48 8B", "force always true", {
+  *     ctx.rax = 1;
+  * });
+  */
+
+#define MAKE_HOOK_INLINE_IMPL(module, pattern, name, body, uniq)                    \
+    if (uint8_t* CONCAT(_addr_, uniq) = Memory::PatternScan(module, pattern, name)) {\
+        static SafetyHookInline CONCAT(hook_, uniq) {};                            \
+        CONCAT(hook_, uniq) = safetyhook::create_inline(CONCAT(_addr_, uniq),      \
+            [](SafetyHookContext& ctx) { body });                                  \
+        LOG_HOOK(CONCAT(hook_, uniq), name)                                        \
+    }
+
+#define MAKE_HOOK_INLINE(module, pattern, name, body)                              \
+    MAKE_HOOK_INLINE_IMPL(module, pattern, name, body, UNIQUE_NAME(_unique))
+
+  /**
+   * Usage:
+   * MAKE_HOOK_TRAMPOLINE(module, pattern, name, ReturnType, {
+   *     // Your code here using ctx and trampoline
+   *     // Must return ReturnType
+   * });
+   *
+   * Example:
+   * MAKE_HOOK_TRAMPOLINE(baseModule, "E8 ?? ?? ?? ??", "feature toggle", bool, {
+   *     if (shouldEnableFeature())
+   *         return true;
+   *     return trampoline(ctx);
+   * });
+   */
+
+#define MAKE_HOOK_TRAMPOLINE_IMPL(module, pattern, name, retType, body, uniq)       \
+    if (uint8_t* CONCAT(_addr_, uniq) = Memory::PatternScan(module, pattern, name)) {\
+        static SafetyHookTrampoline<retType> CONCAT(hook_, uniq) {};               \
+        CONCAT(hook_, uniq) = safetyhook::create_trampoline<retType>(              \
+            CONCAT(_addr_, uniq), [](SafetyHookContext& ctx, auto& trampoline) {body});\
+        LOG_HOOK(CONCAT(hook_, uniq), name)                                        \
+    }
+
+#define MAKE_HOOK_TRAMPOLINE(module, pattern, name, retType, body)                 \
+    MAKE_HOOK_TRAMPOLINE_IMPL(module, pattern, name, retType, body, UNIQUE_NAME(_unique))
+

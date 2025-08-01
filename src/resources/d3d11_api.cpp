@@ -1,15 +1,20 @@
 #include "common.hpp"
 #include "d3d11_api.hpp"
+
+#include "line_scaling.hpp"
 #include "logging.hpp"
 
 #pragma comment(lib,"d3d11.lib")
 #pragma comment(lib, "dxgi.lib")
 
-extern void preD3D11CreateDevice();
-extern void afterD3D11CreateDevice();
 
-extern void preCreateDXGIFactory();
-extern void afterCreateDXGIFactory();
+void preD3D11CreateDevice();
+void afterD3D11CreateDevice();
+
+void preCreateDXGIFactory();
+void afterCreateDXGIFactory();
+
+
 namespace
 {
     // D3D11CreateDevice Hook
@@ -85,6 +90,15 @@ void D3D11Hooks::Initialize()
 {
     D3D11CreateDevice_hook = safetyhook::create_inline(D3D11CreateDevice, reinterpret_cast<void*>(D3D11CreateDevice_hooked));
     LOG_HOOK(D3D11CreateDevice_hook, "MG/MG2 | MGS 2 | MGS 3: D3D11CreateDevice: Hooked function.")
-        CreateDXGIFactory_hook = safetyhook::create_inline(CreateDXGIFactory, reinterpret_cast<void*>(CreateDXGIFactory_hooked));
+    CreateDXGIFactory_hook = safetyhook::create_inline(CreateDXGIFactory, reinterpret_cast<void*>(CreateDXGIFactory_hooked));
     LOG_HOOK(CreateDXGIFactory_hook, "MG/MG2 | MGS 2 | MGS 3: CreateDXGIFactory: Hooked function.")
+}
+
+void D3D11Hooks::UnloadCompiler(const HMODULE d3dcompiler)
+{
+    if (!g_VectorScalingFix.bNeedsCompiler)
+    {
+        FreeLibrary(d3dcompiler);
+        spdlog::info("D3D11Hooks: Released d3dcompiler_43.dll as it is no longer needed.");
+    }
 }

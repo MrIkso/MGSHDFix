@@ -1,19 +1,21 @@
 ﻿#pragma once
+// ReSharper disable CppClangTidyModernizeMacroToEnum
 
 // Core name & version
-#define FIX_NAME          "MGSHDFix"
-#define VERSION_STRING    "2.5.1"
-#define REPO_OWNER       "Lyall" //Owner of the repository to check for updates, ie github.com/ -> Lyall <- this part
-#define REPO_NAME         "MGSHDFix" //Name of the repository to check for updates, ie github.com/Lyall/ -> MGSHDFix <- this part
-/// Defines the repository API to use for version checking
-#define REPO_GITHUB
-//#define REPO_CODEBERG
-//#define REPO_GITLAB
+#define FIX_NAME "MGSHDFix"
+#define PRIMARY_REPO_URL "https://github.com/Lyall/MGSHDFix"
+#define FALLBACK_REPO_URL "https://github.com/ShizCalev/MGSHDFix"
+
+#define VERSION_MAJOR 2
+#define VERSION_MINOR 6
+#define VERSION_PATCH 0
 
 
-#define VERSION_MAJOR     2
-#define VERSION_MINOR     5
-#define VERSION_PATCH     1
+#define STRINGIFY_HELPER(x) #x
+#define STRINGIFY(x) STRINGIFY_HELPER(x)
+#define VERSION_STRING STRINGIFY(VERSION_MAJOR) "." STRINGIFY(VERSION_MINOR) "." STRINGIFY(VERSION_PATCH)
+inline constexpr std::string sFixVersion = VERSION_STRING;
+inline constexpr std::string sFixName = FIX_NAME;
 
 // Metadata
 #define COMPANY_NAME      "Lyall & Contributors"

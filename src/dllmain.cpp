@@ -1,8 +1,7 @@
 #include "common.hpp"
-#include "version.h"
 #include "logging.hpp"
 #include "submodule_initiailization.hpp"
-#include <inipp/inipp.h>
+#include "config.hpp"
 
 ///Resources
 #include "d3d11_api.hpp"
@@ -13,96 +12,39 @@
 ///Features
 #include "effect_speeds.hpp"
 #include "intro_skip.hpp"
+#include "keep_aiming_after_firing.hpp"
 #include "pause_on_focus_loss.hpp"
+#include "stat_persistence.hpp"
+#include "mgs2_sunglasses.hpp"
 
 ///Fixes
+#include "aiming_after_equip.hpp"
 #include "line_scaling.hpp"
-#include "stereo_audio.hpp"
-#include "water_reflections.hpp"
 #include "skyboxes.hpp"
+#include "stereo_audio.hpp"
 #include "texture_buffer_size.hpp"
+#include "water_reflections.hpp"
 
 //Warnings
 #include "asi_loader_checks.hpp"
-#include "reshade_compatibility_checks.hpp"
 #include "corrupt_save_message.hpp"
 #include "mute_warning.hpp"
+#include "reshade_compatibility_checks.hpp"
 
 ///WIP
 
-#include "aiming_after_equip.hpp"
+
+#include "aiming_full_tilt.hpp"
 #include "color_filters.hpp"
 #include "distance_culling.hpp"
 #include "gamma_correction.hpp"
 #include "mg1_custom_loading_screens.hpp"
 #include "msaa.hpp"
-#include "stat_persistence.hpp"
 #include "wireframe.hpp"
 
 
-HMODULE baseModule = GetModuleHandle(NULL);
-HMODULE engineModule;
-HMODULE unityPlayer;
-
-// Version
-std::string const sFixVersion = VERSION_STRING;
-std::string sFixName = FIX_NAME;
-constexpr int iConfigVersion = 4; //increment this when making config changes, along with the number at the bottom of the config file
-                        //that way we can sanity check to ensure people don't have broken/disabled features due to old config files.
-
-
-// Logger
-std::filesystem::path sFixPath;
-std::filesystem::path sExePath;
-std::filesystem::path sGameSavePath;
-std::string sExeName;
-std::string sGameVersion;
-
-// Ini
-inipp::Ini<char> ini;
-std::filesystem::path sConfigFile = sFixName + ".ini";
-std::pair DesktopDimensions = { 0,0 };
-
-// Ini Variables
-bool bVerboseLogging = true;
-bool bAspectFix;
-bool bHUDFix;
-bool bFOVFix;
-bool bOutputResolution;
-int iOutputResX;
-int iOutputResY;
-int iInternalResX;
-int iInternalResY;
-bool bWindowedMode;
-bool bBorderlessMode;
-bool bFramebufferFix;
-bool bLauncherJumpStart;
-int iAnisotropicFiltering;
-bool bDisableTextureFiltering;
-static bool bMouseSensitivity;
-static float fMouseSensitivityXMulti;
-static float fMouseSensitivityYMulti;
-static bool bDisableCursor;
-bool bOutdatedReshade;
-
-bool bShouldCheckForUpdates;
-bool bConsoleNotifications;
-
-// Add this global variable
-bool bIsPS2controltype = false;
-
-// Launcher ini variables
-bool bLauncherConfigSkipLauncher = false;
-int iLauncherConfigCtrlType = 5;
-int iLauncherConfigRegion = 0;
-int iLauncherConfigLanguage = 0;
-std::string sLauncherConfigMSXGame = "mg1";
-int iLauncherConfigMSXWallType = 0;
-std::string sLauncherConfigMSXWallAlign = "C";
-
 // Aspect ratio + HUD stuff
 constexpr float fNativeAspect = 16.0f / 9.0f;
-float fAspectRatio;
 float fAspectMultiplier;
 float fHUDWidth;
 float fHUDHeight;
@@ -113,57 +55,18 @@ float fHUDHeightOffset;
 float fMGS2_EffectScaleX;
 float fMGS2_EffectScaleY;
 
-const std::initializer_list<std::string> kLauncherConfigCtrlTypes = {
-    "ps5",
-    "ps4",
-    "xbox",
-    "nx",
-    "stmd",
-    "kbd",
-    "ps2"
-};
-
-const std::initializer_list<std::string> kLauncherConfigLanguages = {
-    "en",
-    "jp",
-    "fr",
-    "gr",
-    "it",
-    "pr",
-    "sp",
-    "du",
-    "ru"
-};
-
-const std::initializer_list<std::string> kLauncherConfigRegions = {
-    "us",
-    "jp",
-    "eu"
-};
-
-
-const std::map<MgsGame, GameInfo> kGames = {
-    {MGS2, {"Metal Gear Solid 2 MC", "METAL GEAR SOLID2.exe", 2131640}},
-    {MGS3, {"Metal Gear Solid 3 MC", "METAL GEAR SOLID3.exe", 2131650}},
-    {MG, {"Metal Gear / Metal Gear 2 (MSX)", "METAL GEAR.exe", 2131680}},
-};
-
-const GameInfo* game = nullptr;
-MgsGame eGameType =  UNKNOWN;
-const LPCSTR sClassName = "CSD3DWND";
-
-
 // CreateWindowExA Hook
 SafetyHookInline CreateWindowExA_hook{};
 HWND WINAPI CreateWindowExA_hooked(DWORD dwExStyle, LPCSTR lpClassName, LPCSTR lpWindowName, DWORD dwStyle, int X, int Y, int nWidth, int nHeight, HWND hWndParent, HMENU hMenu, HINSTANCE hInstance, LPVOID lpParam)
 {
+    const LPCSTR sClassName = "CSD3DWND";
     if (std::string(lpClassName) == std::string(sClassName))
     {
         if (bBorderlessMode && !(eGameType & UNKNOWN))
         {
             auto hWnd = CreateWindowExA_hook.stdcall<HWND>(dwExStyle, lpClassName, lpWindowName, WS_POPUP, X, Y, nWidth, nHeight, hWndParent, hMenu, hInstance, lpParam);
             SetWindowPos(hWnd, HWND_TOP, 0, 0, DesktopDimensions.first, DesktopDimensions.second, NULL);
-            spdlog::info("CreateWindowExA: Borderless: ClassName = {}, WindowName = {}, dwStyle = {:x}, X = {}, Y = {}, nWidth = {}, nHeight = {}", lpClassName, lpWindowName, WS_POPUP, X, Y, nWidth, nHeight);
+            spdlog::info("CreateWindowExA: Borderless: ClassName = {}, WindowName = {}, dwStyle = 0x{:08X}, X = {}, Y = {}, nWidth = {}, nHeight = {}", lpClassName, lpWindowName, WS_POPUP, X, Y, nWidth, nHeight);
             spdlog::info("CreateWindowExA: Borderless: SetWindowPos to X = {}, Y = {}, cx = {}, cy = {}", 0, 0, (int)DesktopDimensions.first, (int)DesktopDimensions.second);
             g_D3D11Hooks.MainHwnd = hWnd;
             return hWnd;
@@ -173,7 +76,7 @@ HWND WINAPI CreateWindowExA_hooked(DWORD dwExStyle, LPCSTR lpClassName, LPCSTR l
         {
             auto hWnd = CreateWindowExA_hook.stdcall<HWND>(dwExStyle, lpClassName, lpWindowName, dwStyle, X, Y, nWidth, nHeight, hWndParent, hMenu, hInstance, lpParam);
             SetWindowPos(hWnd, HWND_TOP, 0, 0, iOutputResX, iOutputResY, NULL);
-            spdlog::info("CreateWindowExA: Windowed: ClassName = {}, WindowName = {}, dwStyle = {:x}, X = {}, Y = {}, nWidth = {}, nHeight = {}", lpClassName, lpWindowName, dwStyle, X, Y, nWidth, nHeight);
+            spdlog::info("CreateWindowExA: Windowed: ClassName = {}, WindowName = {}, dwStyle = 0x{:08X}, X = {}, Y = {}, nWidth = {}, nHeight = {}", lpClassName, lpWindowName, dwStyle, X, Y, nWidth, nHeight);
             spdlog::info("CreateWindowExA: Windowed: SetWindowPos to X = {}, Y = {}, cx = {}, cy = {}", 0, 0, iOutputResX, iOutputResY);
             g_D3D11Hooks.MainHwnd = hWnd;
             return hWnd;
@@ -211,223 +114,6 @@ static void Init_CalculateScreenSize()
     spdlog::info("Current Resolution: Correct HUD Height: {}", fHUDHeight);
     spdlog::info("Current Resolution: HUD Width Offset: {}", fHUDWidthOffset);
     spdlog::info("Current Resolution: HUD Height Offset: {}", fHUDHeightOffset);
-}
-
-
-static void Init_ReadConfig()
-{
-    // Initialise config
-    std::ifstream iniFile((sExePath / sFixPath / sConfigFile).string());
-    if (!iniFile) 
-    {
-        spdlog::error("CONFIG ERROR: File not found: {}", (sExePath / sFixPath / sConfigFile).string());
-        Logging::ShowConsole();
-        std::cout << "" << sFixName << " v" << sFixVersion << " loaded." << std::endl;
-        std::cout << "ERROR: Could not locate config file." << std::endl;
-        std::cout << "ERROR: Make sure " << sConfigFile << " is located in " << sExePath / sFixPath << std::endl;
-        return FreeLibraryAndExitThread(baseModule, 1);
-    }
-
-    spdlog::info("Config file: {}", (sExePath / sFixPath / sConfigFile).string());
-    ini.parse(iniFile);
-    
-
-    int loadedConfigVersion;
-    inipp::get_value(ini.sections["Config Version"], "Version", loadedConfigVersion);
-    if (loadedConfigVersion != iConfigVersion) 
-    {
-        spdlog::error("CONFIG ERROR: Config file version mismatch! Expected version {}, but found version {}.", iConfigVersion, loadedConfigVersion);
-        Logging::ShowConsole();
-        std::cout << "" << sFixName << " v" << sFixVersion << " loaded." << std::endl;
-        std::cout << "MGSHDFix CONFIG ERROR: Outdated config file!" << std::endl;
-        std::cout << "MGSHDFix CONFIG ERROR: Please install -all- the files from the latest release!" << std::endl;
-        return FreeLibraryAndExitThread(baseModule, 1);
-    }
-
-    // Grab desktop resolution
-    DesktopDimensions = Util::GetPhysicalDesktopDimensions();
-
-    // Read ini file
-    bVerboseLogging = Util::stringToBool(ini.sections["Verbose Logging"]["Enabled"]);
-    bOutputResolution = Util::stringToBool(ini.sections["Output Resolution"]["Enabled"]);
-    inipp::get_value(ini.sections["Output Resolution"], "Width", iOutputResX);
-    inipp::get_value(ini.sections["Output Resolution"], "Height", iOutputResY);
-    bWindowedMode = Util::stringToBool(ini.sections["Output Resolution"]["Windowed"]);
-    bBorderlessMode = Util::stringToBool(ini.sections["Output Resolution"]["Borderless"]);
-    inipp::get_value(ini.sections["Internal Resolution"], "Width", iInternalResX);
-    inipp::get_value(ini.sections["Internal Resolution"], "Height", iInternalResY);
-    inipp::get_value(ini.sections["Anisotropic Filtering"], "Samples", iAnisotropicFiltering);
-    bDisableTextureFiltering = Util::stringToBool(ini.sections["Disable Texture Filtering"]["DisableTextureFiltering"]);
-    bFramebufferFix = Util::stringToBool(ini.sections["Framebuffer Fix"]["Enabled"]);
-    bLauncherJumpStart = Util::stringToBool(ini.sections["Launcher Config"]["LauncherJumpStart"]);
-    g_IntroSkip.isEnabled = Util::stringToBool(ini.sections["Skip Intro Logos"]["Enabled"]);
-    g_StereoAudioFix.isEnabled = Util::stringToBool(ini.sections["Force Stereo Audio"]["Enabled"]);
-    g_PauseOnFocusLoss.bPauseOnFocusLoss = Util::stringToBool(ini.sections["Pause On Focus Loss"]["Enabled"]);
-    g_PauseOnFocusLoss.bSpeedrunnerBugfixOverride = Util::stringToBool(ini.sections["Pause On Focus Loss"]["SpeedrunnerBugfixOverride"]);
-    g_MuteWarning.bEnabled = Util::stringToBool(ini.sections["Mute Warning"]["Enabled"]);
-
-    bShouldCheckForUpdates = Util::stringToBool(ini.sections["Update Notifications"]["CheckForUpdates"]);
-    bConsoleNotifications = Util::stringToBool(ini.sections["Update Notifications"]["ConsoleNotifications"]);
-    g_StatPersistence.bAchievementPersistenceEnabled = Util::stringToBool(ini.sections["Achievement Persistence"]["Enabled"]);
-    g_SteamAPI.bResetAchievements = Util::stringToBool(ini.sections["Reset All Achievements"]["Reset_All_Achievements"]);
-
-    /*//INITIALIZE(Init_GammaShader());
-    //INITIALIZE(g_DistanceCulling.Initialize());
-    //INITIALIZE(g_MultiSampleAntiAliasing.Initialize());
-    //INITIALIZE(g_Wireframe.Initialize());
-
-    //INITIALIZE(g_AimAfterEquipFix.Initialize());
-    //INITIALIZE(g_ColorFilterFix.Initialize());*/
-
-    //inipp::get_value(ini.sections["MG1 Custom Loading Screens"], "Enabled", g_MG1CustomLoadingScreens.isEnabled);
-    bMouseSensitivity = Util::stringToBool(ini.sections["Mouse Sensitivity"]["Enabled"]);
-    inipp::get_value(ini.sections["Mouse Sensitivity"], "X Multiplier", fMouseSensitivityXMulti);
-    inipp::get_value(ini.sections["Mouse Sensitivity"], "Y Multiplier", fMouseSensitivityYMulti);
-    bDisableCursor = Util::stringToBool(ini.sections["Disable Mouse Cursor"]["Enabled"]);
-    inipp::get_value(ini.sections["Texture Buffer"], "SizeMB", g_TextureBufferSize.iTextureBufferSizeMB);
-    bAspectFix = Util::stringToBool(ini.sections["Fix Aspect Ratio"]["Enabled"]);
-    bHUDFix = Util::stringToBool(ini.sections["Fix HUD"]["Enabled"]);
-    bFOVFix = Util::stringToBool(ini.sections["Fix FOV"]["Enabled"]);
-    bLauncherConfigSkipLauncher = Util::stringToBool(ini.sections["Launcher Config"]["SkipLauncher"]);
-
-    // Read launcher settings from ini
-    std::string sLauncherConfigCtrlType = "kbd";
-    std::string sLauncherConfigRegion = "us";
-    std::string sLauncherConfigLanguage = "en";
-    inipp::get_value(ini.sections["Launcher Config"], "CtrlType", sLauncherConfigCtrlType);
-    inipp::get_value(ini.sections["Launcher Config"], "Region", sLauncherConfigRegion);
-    inipp::get_value(ini.sections["Launcher Config"], "Language", sLauncherConfigLanguage);
-    inipp::get_value(ini.sections["Launcher Config"], "MSXGame", sLauncherConfigMSXGame);
-    inipp::get_value(ini.sections["Launcher Config"], "MSXWallType", iLauncherConfigMSXWallType);
-    inipp::get_value(ini.sections["Launcher Config"], "MSXWallAlign", sLauncherConfigMSXWallAlign);
-    iLauncherConfigCtrlType = Util::findStringInVector(sLauncherConfigCtrlType, kLauncherConfigCtrlTypes);
-    iLauncherConfigRegion = Util::findStringInVector(sLauncherConfigRegion, kLauncherConfigRegions);
-    iLauncherConfigLanguage = Util::findStringInVector(sLauncherConfigLanguage, kLauncherConfigLanguages);
-    
-
-
-    // Log config parse
-    spdlog::info("Config Parse: Verbose Logging: {}", bVerboseLogging);
-    spdlog::info("Config Parse: Custom Output Resolution: {}", bOutputResolution);
-    if (iOutputResX == 0 || iOutputResY == 0) 
-    {
-        iOutputResX = DesktopDimensions.first;
-        iOutputResY = DesktopDimensions.second;
-    }
-    spdlog::info("Config Parse: Output Resolution (X): {}", iOutputResX);
-    spdlog::info("Config Parse: Output Resolution (Y): {}", iOutputResY);
-    if (iInternalResX == 0 || iInternalResY == 0) 
-    {
-        iInternalResX = iOutputResX;
-        iInternalResY = iOutputResY;
-    }
-    spdlog::info("Config Parse: Internal Resolution (X): {}", iInternalResX);
-    spdlog::info("Config Parse: Internal Resolution (Y): {}", iInternalResY);
-    spdlog::info("Config Parse: Windowed Mode: {}", bWindowedMode);
-    spdlog::info("Config Parse: Borderless Mode: {}", bBorderlessMode);
-    spdlog::info("Config Parse: Fix Ultrawide Framebuffer: {}", bFramebufferFix);
-    spdlog::info("Config Parse: Fix Ultrawide Aspect Ratio: {}", bAspectFix);
-    spdlog::info("Config Parse: Fix Ultrawide HUD: {}", bHUDFix);
-    spdlog::info("Config Parse: Fix Ultrawide FOV: {}", bFOVFix);
-    spdlog::info("Config Parse: Texture Buffer Size (PER TEXTURE): {}MB", g_TextureBufferSize.iTextureBufferSizeMB); //g_TextureBufferSize
-    spdlog::info("Config Parse: Anisotropic Filtering Level: {}", iAnisotropicFiltering);
-    if (iAnisotropicFiltering < 0 || iAnisotropicFiltering > 16)
-    {
-        iAnisotropicFiltering = std::clamp(iAnisotropicFiltering, 0, 16);
-        spdlog::info("Config Parse: Anisotropic Filtering value invalid, clamped to {}", iAnisotropicFiltering);
-    }
-    spdlog::info("Config Parse: Disable Texture Filtering: {}", bDisableTextureFiltering);
-    spdlog::info("Config Parse: Disable Cursor Icon: {}", bDisableCursor);
-    spdlog::info("Config Parse: Mouse Sensitivity: {}", bMouseSensitivity);
-    spdlog::info("Config Parse: Mouse Sensitivity X Multiplier: {}", fMouseSensitivityXMulti);
-    spdlog::info("Config Parse: Mouse Sensitivity Y Multiplier: {}", fMouseSensitivityYMulti);
-
-
-    //spdlog::info("Config Parse: bMG1CustomLoadingScreens: {}", g_MG1CustomLoadingScreens.isEnabled);
-
-    spdlog::info("Config Parse: Launcher Jump Start: {}", bLauncherJumpStart);
-
-    spdlog::info("Config Parse: Launcher - Skip Launcher: {}", bLauncherConfigSkipLauncher);
-    spdlog::info("Config Parse: Launcher - Controller Glyphs: {} ( {} )", iLauncherConfigCtrlType, Util::GetUppercaseNameAtIndex(kLauncherConfigCtrlTypes, iLauncherConfigCtrlType));
-    spdlog::info("Config Parse: Launcher - MSX Game: {}", sLauncherConfigMSXGame);
-    spdlog::info("Config Parse: Launcher - Region: {} ({})", iLauncherConfigRegion, Util::GetUppercaseNameAtIndex(kLauncherConfigRegions, iLauncherConfigRegion));
-    spdlog::info("Config Parse: Launcher - Language: {} ({})", iLauncherConfigLanguage, Util::GetUppercaseNameAtIndex(kLauncherConfigLanguages, iLauncherConfigLanguage));
-    if (std::string ps2Str = "ps2"; (iLauncherConfigCtrlType == Util::findStringInVector(ps2Str, kLauncherConfigCtrlTypes)))
-    {
-        bIsPS2controltype = true;
-        ps2Str = "ps4";
-        iLauncherConfigCtrlType = Util::findStringInVector(ps2Str, kLauncherConfigCtrlTypes);
-    }
-    spdlog::info("Config Parse: Skip Intro Videos: {}", g_IntroSkip.isEnabled);
-    spdlog::info("Config Parse: Pause On Focus Loss: {}", g_PauseOnFocusLoss.bPauseOnFocusLoss);
-    spdlog::info("Config Parse: Cutscene Asset Loading Fix - Speedrunner Override: {}", g_PauseOnFocusLoss.bSpeedrunnerBugfixOverride);
-
-    spdlog::info("Config Parse: Force Stereo Audio: {}", g_StereoAudioFix.isEnabled);
-    spdlog::info("Config Parse: Muted Audio Console Warnings: {}", g_MuteWarning.bEnabled);
-    if (eGameType & (MGS2 | MGS3))
-    {
-        g_VectorScalingFix.bEnableVectorLineFix = Util::stringToBool(ini.sections["Vector Line Fix"]["Enabled"]);
-        spdlog::info("Config Parse: Fix Vector Effect (Rain) Scaling: {}", g_VectorScalingFix.bEnableVectorLineFix);
-        if (g_VectorScalingFix.bEnableVectorLineFix)
-        {
-            inipp::get_value(ini.sections["Vector Line Fix"], "Line Scale", g_VectorScalingFix.iVectorLineScale);
-            spdlog::info("Config Parse: Vector Effect Width: {} / {} pixels wide.", g_VectorScalingFix.iVectorLineScale, iInternalResY / g_VectorScalingFix.iVectorLineScale);
-        }
-    }
-
-    spdlog::info("Cofig Parse: Check for mod updates: {}", bShouldCheckForUpdates);
-    if (bShouldCheckForUpdates)
-    {
-        spdlog::info("Cofig Parse: Mod update console notifications: {}", bConsoleNotifications);
-    }
-
-    spdlog::info("Config Parse: Achievement Persistence: {}", g_StatPersistence.bAchievementPersistenceEnabled);
-    spdlog::info("Config Parse: Reset Achievements: {}", g_SteamAPI.bResetAchievements);
-}
-
-static bool DetectGame()
-{
-    eGameType = UNKNOWN;
-    // Special handling for launcher.exe
-    if (sExeName == "launcher.exe")
-    {
-        for (const auto& [type, info] : kGames)
-        {
-            auto gamePath = sExePath.parent_path() / info.ExeName;
-            if (std::filesystem::exists(gamePath))
-            {
-                spdlog::info("Detected launcher for game: {} (app {})", info.GameTitle.c_str(), info.SteamAppId);
-                eGameType = LAUNCHER;
-                unityPlayer = GetModuleHandleA("UnityPlayer.dll");
-                game = &info;
-                return true;
-            }
-        }
-
-        spdlog::error("Failed to detect supported game, unknown launcher");
-        FreeLibraryAndExitThread(baseModule, 1);
-    }
-
-    for (const auto& [type, info] : kGames)
-    {
-        if (info.ExeName == sExeName)
-        {
-            spdlog::info("Detected game: {} (app {})", info.GameTitle.c_str(), info.SteamAppId);
-            eGameType = type;
-            game = &info;
-
-            sGameSavePath = sExePath / (eGameType & MG ? "mg12_savedata_win" : eGameType & MGS2 ? "mgs2_savedata_win" : "mgs3_savedata_win");
-            spdlog::info("Game Save Path: {}", sGameSavePath.string());
-            if (engineModule = GetModuleHandleA("Engine.dll"); !engineModule)
-            {
-                spdlog::error("Failed to get Engine.dll module handle");
-            }
-            return true;
-        }
-    }
-
-    spdlog::error("Failed to detect supported game, {} isn't supported by MGSHDFix", sExeName.c_str());
-    FreeLibraryAndExitThread(baseModule, 1);
 }
 
 static void Init_FixDPIScaling()
@@ -772,7 +458,7 @@ static void Init_AspectFOVFix()
         if (uint8_t* MGS3_GameplayAspectScanResult = Memory::PatternScan(baseModule, "F3 0F ?? ?? E8 ?? ?? ?? ?? 48 8D ?? ?? ?? ?? ?? F3 0F ?? ?? ?? ?? ?? ??", "MGS 3: Aspect Ratio"))
         {
             DWORD64 MGS3_GameplayAspectAddress = Memory::GetAbsolute((uintptr_t)MGS3_GameplayAspectScanResult + 0x5);
-            spdlog::info("MGS 3: Aspect Ratio: Function address is {:s}+{:x}", sExeName.c_str(), (uintptr_t)MGS3_GameplayAspectAddress - (uintptr_t)baseModule);
+            spdlog::info("MGS 3: Aspect Ratio: Function address is {:s}+{:X}", sExeName.c_str(), (uintptr_t)MGS3_GameplayAspectAddress - (uintptr_t)baseModule);
 
             static SafetyHookMid MGS3_GameplayAspectMidHook{};
             MGS3_GameplayAspectMidHook = safetyhook::create_mid(MGS3_GameplayAspectAddress + 0x38,
@@ -790,7 +476,7 @@ static void Init_AspectFOVFix()
         if (uint8_t* MGS2_GameplayAspectScanResult = Memory::PatternScan(baseModule, "48 8D ?? ?? ?? E8 ?? ?? ?? ?? E8 ?? ?? ?? ?? F3 44 ?? ?? ?? ?? ?? ?? ??", "MGS 2: Aspect Ratio"))
         {
             DWORD64 MGS2_GameplayAspectAddress = Memory::GetAbsolute((uintptr_t)MGS2_GameplayAspectScanResult + 0xB);
-            spdlog::info("MGS 2: Aspect Ratio: Function address is {:s}+{:x}", sExeName.c_str(), (uintptr_t)MGS2_GameplayAspectAddress - (uintptr_t)baseModule);
+            spdlog::info("MGS 2: Aspect Ratio: Function address is {:s}+{:X}", sExeName.c_str(), (uintptr_t)MGS2_GameplayAspectAddress - (uintptr_t)baseModule);
 
             static SafetyHookMid MGS2_GameplayAspectMidHook{};
             MGS2_GameplayAspectMidHook = safetyhook::create_mid(MGS2_GameplayAspectAddress + 0x38,
@@ -849,7 +535,7 @@ static void Init_HUDFix()
         uint8_t* MGS2_HUDWidthScanResult = Memory::PatternScanSilent(baseModule, "E9 ?? ?? ?? ?? F3 0F ?? ?? ?? 0F ?? ?? F3 0F ?? ?? ?? F3 0F ?? ??");
         if (MGS2_HUDWidthScanResult)
         {
-            spdlog::info("MGS 2: HUD: Address is {:s}+{:x}", sExeName.c_str(), (uintptr_t)MGS2_HUDWidthScanResult - (uintptr_t)baseModule);
+            spdlog::info("MGS 2: HUD: Address is {:s}+{:X}", sExeName.c_str(), (uintptr_t)MGS2_HUDWidthScanResult - (uintptr_t)baseModule);
 
             static SafetyHookMid MGS2_HUDWidthMidHook{};
             MGS2_HUDWidthMidHook = safetyhook::create_mid(MGS2_HUDWidthScanResult + 0xD,
@@ -880,7 +566,7 @@ static void Init_HUDFix()
         {
             // Radar width
             DWORD64 MGS2_RadarWidthAddress = (uintptr_t)MGS2_RadarWidthScanResult;
-            spdlog::info("MGS 2: Radar Width: Hook address is {:s}+{:x}", sExeName.c_str(), (uintptr_t)MGS2_RadarWidthAddress - (uintptr_t)baseModule);
+            spdlog::info("MGS 2: Radar Width: Hook address is {:s}+{:X}", sExeName.c_str(), (uintptr_t)MGS2_RadarWidthAddress - (uintptr_t)baseModule);
 
             static SafetyHookMid MGS2_RadarWidthMidHook{};
             MGS2_RadarWidthMidHook = safetyhook::create_mid(MGS2_RadarWidthScanResult,
@@ -898,7 +584,7 @@ static void Init_HUDFix()
 
             // Radar width offset
             DWORD64 MGS2_RadarWidthOffsetAddress = (uintptr_t)MGS2_RadarWidthScanResult + 0x54;
-            spdlog::info("MGS 2: Radar Width Offset: Hook address is {:s}+{:x}", sExeName.c_str(), (uintptr_t)MGS2_RadarWidthOffsetAddress - (uintptr_t)baseModule);
+            spdlog::info("MGS 2: Radar Width Offset: Hook address is {:s}+{:X}", sExeName.c_str(), (uintptr_t)MGS2_RadarWidthOffsetAddress - (uintptr_t)baseModule);
 
             static SafetyHookMid MGS2_RadarWidthOffsetMidHook{};
             MGS2_RadarWidthOffsetMidHook = safetyhook::create_mid(MGS2_RadarWidthOffsetAddress,
@@ -909,7 +595,7 @@ static void Init_HUDFix()
 
             // Radar height offset
             DWORD64 MGS2_RadarHeightOffsetAddress = (uintptr_t)MGS2_RadarWidthScanResult + 0x90;
-            spdlog::info("MGS 2: Radar Height Offset: Hook address is {:s}+{:x}", sExeName.c_str(), (uintptr_t)MGS2_RadarHeightOffsetAddress - (uintptr_t)baseModule);
+            spdlog::info("MGS 2: Radar Height Offset: Hook address is {:s}+{:X}", sExeName.c_str(), (uintptr_t)MGS2_RadarHeightOffsetAddress - (uintptr_t)baseModule);
 
             static SafetyHookMid MGS2_RadarHeightOffsetMidHook{};
             MGS2_RadarHeightOffsetMidHook = safetyhook::create_mid(MGS2_RadarHeightOffsetAddress,
@@ -928,7 +614,7 @@ static void Init_HUDFix()
         uint8_t* MGS2_CodecPortraitsScanResult = Memory::PatternScanSilent(baseModule, "F3 0F ?? ?? ?? F3 0F ?? ?? F3 0F ?? ?? ?? F3 0F ?? ?? 66 0F ?? ?? 0F ?? ??");
         if (MGS2_CodecPortraitsScanResult)
         {
-            spdlog::info("MGS 2: Codec Portraits: Hook address is {:s}+{:x}", sExeName.c_str(), (uintptr_t)MGS2_CodecPortraitsScanResult - (uintptr_t)baseModule);
+            spdlog::info("MGS 2: Codec Portraits: Hook address is {:s}+{:X}", sExeName.c_str(), (uintptr_t)MGS2_CodecPortraitsScanResult - (uintptr_t)baseModule);
 
             static SafetyHookMid MGS2_CodecPortraitsMidHook{};
             MGS2_CodecPortraitsMidHook = safetyhook::create_mid(MGS2_CodecPortraitsScanResult,
@@ -954,7 +640,7 @@ static void Init_HUDFix()
         uint8_t* MGS2_MotionBlurScanResult = Memory::PatternScanSilent(baseModule, "F3 48 ?? ?? ?? ?? 48 ?? ?? ?? 48 ?? ?? ?? F3 0F ?? ?? ?? ?? ?? ?? 0F ?? ??");
         if (MGS2_MotionBlurScanResult)
         {
-            spdlog::info("MGS 2: Motion Blur: Address is {:s}+{:x}", sExeName.c_str(), (uintptr_t)MGS2_MotionBlurScanResult - (uintptr_t)baseModule);
+            spdlog::info("MGS 2: Motion Blur: Address is {:s}+{:X}", sExeName.c_str(), (uintptr_t)MGS2_MotionBlurScanResult - (uintptr_t)baseModule);
 
             Memory::PatchBytes((uintptr_t)MGS2_MotionBlurScanResult, "\x48\x31\xDB\x90\x90\x90", 6);
             spdlog::info("MGS 2: Motion Blur: Patched instruction.");
@@ -986,7 +672,7 @@ static void Init_HUDFix()
                     }
                 });
 
-            spdlog::info("MG1/2 | MGS 3: HUD Width: Hook address is{:s}+{:x}", sExeName.c_str(), (uintptr_t)MGS3_HUDWidthScanResult - (uintptr_t)baseModule);
+            spdlog::info("MG1/2 | MGS 3: HUD Width: Hook address is{:s}+{:X}", sExeName.c_str(), (uintptr_t)MGS3_HUDWidthScanResult - (uintptr_t)baseModule);
         }
         else if (!MGS3_HUDWidthScanResult)
         {
@@ -1001,7 +687,7 @@ static void Init_HUDFix()
         if (MGS2_MGS3_LetterboxingScanResult)
         {
             DWORD64 MGS2_MGS3_LetterboxingAddress = (uintptr_t)MGS2_MGS3_LetterboxingScanResult + 0x6;
-            spdlog::info("MGS 2 | MGS 3: Letterboxing: Address is {:s}+{:x}", sExeName.c_str(), (uintptr_t)MGS2_MGS3_LetterboxingAddress - (uintptr_t)baseModule);
+            spdlog::info("MGS 2 | MGS 3: Letterboxing: Address is {:s}+{:X}", sExeName.c_str(), (uintptr_t)MGS2_MGS3_LetterboxingAddress - (uintptr_t)baseModule);
 
             Memory::Write(MGS2_MGS3_LetterboxingAddress, (int)0);
             spdlog::info("MGS 2 | MGS 3: Letterboxing: Disabled letterboxing.");
@@ -1059,7 +745,7 @@ static void Init_Miscellaneous()
         uint8_t* MGS3_MouseSensitivityScanResult = Memory::PatternScanSilent(baseModule, "F3 0F ?? ?? ?? F3 0F ?? ?? 66 0F ?? ?? ?? 0F ?? ?? 66 0F ?? ?? 8B ?? ??");
         if (MGS3_MouseSensitivityScanResult)
         {
-            spdlog::info("MGS 3: Mouse Sensitivity: Address is {:s}+{:x}", sExeName.c_str(), (uintptr_t)MGS3_MouseSensitivityScanResult - (uintptr_t)baseModule);
+            spdlog::info("MGS 3: Mouse Sensitivity: Address is {:s}+{:X}", sExeName.c_str(), (uintptr_t)MGS3_MouseSensitivityScanResult - (uintptr_t)baseModule);
 
             static SafetyHookMid MouseSensitivityXMidHook{};
             MouseSensitivityXMidHook = safetyhook::create_mid(MGS3_MouseSensitivityScanResult,
@@ -1332,11 +1018,60 @@ static void Init_LauncherConfigOverride()
 }
 
 
-void afterSteamInit()
+static bool DetectGame()
 {
-    
+    eGameType = UNKNOWN;
+    // Special handling for launcher.exe
+    if (sExeName == "launcher.exe")
+    {
+        for (const auto& [type, info] : kGames)
+        {
+            auto gamePath = sExePath.parent_path() / info.ExeName;
+            if (std::filesystem::exists(gamePath))
+            {
+                spdlog::info("Detected launcher for game: {} (app {})", info.GameTitle.c_str(), info.SteamAppId);
+                eGameType = LAUNCHER;
+                unityPlayer = GetModuleHandleA("UnityPlayer.dll");
+                game = &info;
+                return true;
+            }
+        }
+
+        spdlog::error("Failed to detect supported game, unknown launcher");
+        FreeLibraryAndExitThread(baseModule, 1);
+    }
+
+    for (const auto& [type, info] : kGames)
+    {
+        if (info.ExeName == sExeName)
+        {
+            spdlog::info("Detected game: {} (app {})", info.GameTitle.c_str(), info.SteamAppId);
+            eGameType = type;
+            game = &info;
+
+            sGameSavePath = sExePath / (eGameType & MG ? "mg12_savedata_win" : eGameType & MGS2 ? "mgs2_savedata_win" : "mgs3_savedata_win");
+            spdlog::info("Game Save Path: {}", sGameSavePath.string());
+            if (engineModule = GetModuleHandleA("Engine.dll"); !engineModule)
+            {
+                spdlog::error("Failed to get Engine.dll module handle");
+            }
+            return true;
+        }
+    }
+
+    spdlog::error("Failed to detect supported game, {} isn't supported by MGSHDFix", sExeName.c_str());
+    FreeLibraryAndExitThread(baseModule, 1);
 }
 
+void AfterSteamInitialized()
+{
+    g_StatPersistence.OnSteamInitialized();
+}
+
+void AfterSteamInputInitialized()
+{
+
+}
 
 void preCreateDXGIFactory()
 {
@@ -1358,22 +1093,12 @@ void afterD3D11CreateDevice()
 {
     g_VectorScalingFix.LoadCompiledShader();
     g_MuteWarning.CheckStatus();
+    g_SteamAPI.OnSteamInputLoaded();
+
 
     //createGammaShader();
 
     //SetGamma(1.0);
-}
-
-static void CheckForUpdates()
-{
-    if (!bShouldCheckForUpdates)
-    {
-        spdlog::info("Mod update checking disabled via config.");
-        return;
-    }
-    std::filesystem::path cacheFilePath = sGameSavePath / (sFixName + "_version_check.txt");
-    LatestVersionChecker checker(sFixVersion, REPO_OWNER, REPO_NAME, cacheFilePath);
-    checker.checkForUpdates();
 }
 
 static void InitializeSubsystems()
@@ -1382,7 +1107,7 @@ static void InitializeSubsystems()
     INITIALIZE(g_Logging.LogSysInfo());            //0
     INITIALIZE(DetectGame());                      //1
     INITIALIZE(ASILoaderCompatibility::Check());   //2
-    INITIALIZE(Init_ReadConfig());                 //3
+    INITIALIZE(Config::Read());                    //3
     INITIALIZE(g_GameVars.Initialize());           //4
     INITIALIZE(g_D3D11Hooks.Initialize());         //5 Caches the D3DDevice, DXGIFactory, and D3DContext from D3DCreateDevice/DXGICreateFactory
     INITIALIZE(ReshadeCompatibility::Check());     //6 Dependent on ReadConfig, must also be before LauncherConfigOverride to warn the user before a crash.
@@ -1399,6 +1124,9 @@ static void InitializeSubsystems()
     INITIALIZE(g_TextureBufferSize.Initialize());
     INITIALIZE(g_PauseOnFocusLoss.Initialize());
     INITIALIZE(g_IntroSkip.Initialize());
+    INITIALIZE(g_KeepAimingAfterFiring.Initialize());
+    INITIALIZE(g_MGS2Sunglasses.Initialize());
+
 
     //INITIALIZE(Init_GammaShader());
     //INITIALIZE(g_DistanceCulling.Initialize());
@@ -1413,7 +1141,8 @@ static void InitializeSubsystems()
     INITIALIZE(g_EffectSpeedFix.Initialize());
     INITIALIZE(g_StereoAudioFix.Initialize());
     INITIALIZE(DamagedSaveFix::Initialize());
-    //INITIALIZE(g_AimAfterEquipFix.Initialize());
+    INITIALIZE(g_FixAimAfterEquip.Initialize());
+    INITIALIZE(g_FixAimingFullTilt.Initialize());
     //INITIALIZE(g_ColorFilterFix.Initialize());
 
         //Warnings
@@ -1480,6 +1209,8 @@ BOOL APIENTRY DllMain(HMODULE hModule, DWORD ul_reason_for_call, LPVOID lpReserv
 {
     if (ul_reason_for_call == DLL_PROCESS_ATTACH)
     {
+        DisableThreadLibraryCalls(hModule);
+
         HMODULE vcruntime140 = GetModuleHandleA("VCRUNTIME140.dll");
         if (vcruntime140)
         {

@@ -55,34 +55,23 @@ void ASILoaderCompatibility::Check()
         }
     }
 
-    if ((eGameType & (LAUNCHER|MGS3)) && Util::CheckForASIFiles("KeepAiming", false, false, "2025-07-15"))
+    if ((eGameType & (LAUNCHER|MGS3)) && Util::CheckForASIFiles("KeepAiming", false, false, nullptr))
     {
         std::string message =
             "MOD COMPATIBILITY ALERT:\n"
-            "The detected version of KeepAiming.asi is outdated and causes\n"
-            "the game to crash with the latest versions of MGSHDFix.\n\n"
+            "KeepAiming.asi's functionality has been integrated directly into MGSHDFix.\n"
+            "Having both present will cause the game to crash on launch.\n"
+            "Please remove KeepAiming.asi from your game directory.\n";
 
-            "Unfortunately, KeepAiming's project isn't open source,\n"
-            "so we can't fix this issue ourselves.\n\n"
-
-            "Please remove KeepAiming.asi from your game directory to use\n"
-            "the latest versions of MGSHDFix (until they can update their mod.)\n\n";
-
-        if (eGameType & MGS3)
-        {
-            message +=
-                "The crash has most likely already occured by the time\n"
-                "you're seeing this message.";
-        }
         int result = MessageBoxA(
             nullptr,
             message.c_str(),
             "MGSHDFix Mod Compatibility Alert",
             MB_ICONERROR | MB_OK
         );
-        spdlog::error("MOD COMPATIBILITY ALERT: The detected version of KeepAiming.asi is outdated and causes the game to crash with the latest versions of MGSHDFix.");
-        spdlog::error("MOD COMPATIBILITY ALERT: Unfortunately, KeepAiming's project isn't open source, so we can't fix this issue ourselves.");
-        spdlog::error("MOD COMPATIBILITY ALERT: Please remove KeepAiming.asi from your game directory to use the latest versions of MGSHDFix (until they can update their mod.)");
+        spdlog::error("MOD COMPATIBILITY ALERT: KeepAiming.asi's functionality has been integrated directly into MGSHDFix.");
+        spdlog::error("MOD COMPATIBILITY ALERT: Having both present will cause the game to crash on launch.");
+        spdlog::error("MOD COMPATIBILITY ALERT: Please remove KeepAiming.asi from your game directory.");
         if (eGameType & LAUNCHER)
         {
             return FreeLibraryAndExitThread(baseModule, 1); //Only exit if we're in the launcher. KeepAiming will crash the game

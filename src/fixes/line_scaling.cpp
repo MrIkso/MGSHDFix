@@ -2,10 +2,15 @@
 #include "line_scaling.hpp"
 #include "d3d11_api.hpp"
 #include <d3dcompiler.h>
+
+#include "config.hpp"
 #include "logging.hpp"
 
+namespace
+{
+    SafetyHookInline MGS3_DrawIndexedPrimitive_Hook {};
+}
 
-static SafetyHookInline MGS3_DrawIndexedPrimitive_Hook {};
 uint64_t MGS3_DrawIndexedPrimitive_Hooked(void* CD3DCachedDevice, int topologyType, int BaseVertexIndex, int MinVertexIndex, int NumVertices, int startIndex, int primCount)
 { //This is called every frame, DO NOT add logging or the I/O will nuke performance.
     if(!(topologyType == 0x1 || topologyType == 0x2))
@@ -13,16 +18,20 @@ uint64_t MGS3_DrawIndexedPrimitive_Hooked(void* CD3DCachedDevice, int topologyTy
         return MGS3_DrawIndexedPrimitive_Hook.call<uint64_t>(CD3DCachedDevice, topologyType, BaseVertexIndex, MinVertexIndex, NumVertices, startIndex, primCount);
     }
     g_D3D11Hooks.d3dDeviceContext->GSSetShader(g_D3D11Hooks.geometryShader, nullptr, 0);
-    auto ret = MGS3_DrawIndexedPrimitive_Hook.call<uint64_t>(CD3DCachedDevice, topologyType, BaseVertexIndex, MinVertexIndex, NumVertices, startIndex, primCount);
+    const auto ret = MGS3_DrawIndexedPrimitive_Hook.call<uint64_t>(CD3DCachedDevice, topologyType, BaseVertexIndex, MinVertexIndex, NumVertices, startIndex, primCount);
     g_D3D11Hooks.d3dDeviceContext->GSSetShader(nullptr, nullptr, 0);
     return ret;
 }
 
-void VectorScalingFix::LoadCompiledShader()
+void VectorScalingFix::LoadCompiledShader() const
 {
+    if (!(eGameType & (MGS2 | MGS3)))
+    {
+        return;
+    }
     if (!g_D3D11Hooks.geometryShader && compiledShaderBytecode && g_D3D11Hooks.d3dDevice)
     {
-        HRESULT result = g_D3D11Hooks.d3dDevice->CreateGeometryShader(
+        const HRESULT result = g_D3D11Hooks.d3dDevice->CreateGeometryShader(
             compiledShaderBytecode->GetBufferPointer(),
             compiledShaderBytecode->GetBufferSize(),
             nullptr,
@@ -142,6 +151,8 @@ bool VectorScalingFix::CompileGeometryShader()
         &compiledShader,
         &errorMsgs
     );
+    bNeedsCompiler = false;
+    D3D11Hooks::UnloadCompiler(d3dcompiler);
     if (FAILED(hr))
     {
         if (errorMsgs)

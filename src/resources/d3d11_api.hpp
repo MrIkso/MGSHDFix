@@ -7,6 +7,8 @@ class D3D11Hooks final
 public:
     static void Initialize();
 
+    static void UnloadCompiler(HMODULE d3dcompiler);
+
     HWND MainHwnd = nullptr;
 
     // ===================== Device and Context =====================

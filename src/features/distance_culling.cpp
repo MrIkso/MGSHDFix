@@ -2,7 +2,7 @@
 #include "distance_culling.hpp"
 #include "logging.hpp"
 
-
+#if !defined(RELEASE_BUILD)
 struct SkyboxPattern
 {
     const char* pattern;
@@ -11,7 +11,7 @@ struct SkyboxPattern
 
 SkyboxPattern testPatterns[] = {
     //known unique
- /*   { "0D 00 30 00 00",                    5 },
+    { "0D 00 30 00 00",                    5 },
    { "41 81 4A 58 00 30 00 00",          8 },
    { "41 81 ?? ?? 00 00 00 00 30 00 00",11 },
    { "41 81 C8 00 30 00 00",             7 },
@@ -20,20 +20,20 @@ SkyboxPattern testPatterns[] = {
    { "81 CA 00 30 00 00",                6 },
     { "42 81 4C 00 50 00 30 00 00",       9 },
    { "81 08 00 30 00 00",                6 },
-   { "81 09 00 30 00 00",                6 },*/
+   { "81 09 00 30 00 00",                6 },
     { "81 48 ?? ?? ?? ?? ?? 3B 96",             7 }, //lod stuff here
-    /*  { "81 ?? ?? ?? 00 00 00 30 00 00",   10 },
-      { "81 ?? ?? ?? ?? 00 00 00 30 00 00",11 },
+      { "81 ?? ?? ?? 00 00 00 30 00 00",   10 },
+      {"81 ?? ?? ?? ?? 00 00 00 30 00 00",11},
 
        //not unique / needs patterns
       { "41 81 48 ?? ?? ?? ?? ?? 48 8B 87",  8 },
-       //{"41 81 48 ?? ?? ?? ?? ?? F6 87",  8 },
-       //{"41 81 E0 ?? ?? ?? ?? 89 41", 7},
+       {"41 81 48 ?? ?? ?? ?? ?? F6 87",  8 },
+       {"41 81 E0 ?? ?? ?? ?? 89 41", 7},
 
        //need to do in sequence
-       //{"41 81 C9 00 30 00 00", 7},
-       //{"81 C9 00 30 00 00", 6}
-       */
+       {"41 81 C9 00 30 00 00", 7},
+       {"81 C9 00 30 00 00", 6}
+       
 };
 
 std::string GenerateNops(size_t count)
@@ -74,9 +74,13 @@ void ScanAndPatchSkybox()
     spdlog::info("[Skybox] Scan & patch completed.");
 }
 
-
+#endif
 void DistanceCulling::Initialize() const
 {
+#if !defined(RELEASE_BUILD)
+    ScanAndPatchSkybox();
+#endif
+
     /*
     if (!(eGameType & MGS2))
     {
@@ -113,9 +117,9 @@ void DistanceCulling::Initialize() const
         LOG_HOOK(grassTest1MidHook, "grass scan")
     }
 
-    /*
-    //ScanAndPatchSkybox();
+    */
 
+    /*
 
     if (uint8_t* lodtestResult = Memory::PatternScan(baseModule, "41 F7 C2 ?? ?? ?? ?? 75", "MGS 2: model test"))
     {

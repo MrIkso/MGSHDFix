@@ -1,6 +1,4 @@
 # Metal Gear Solid Master Collection Fix
-[![Patreon-Button](https://github.com/Lyall/FISTFix/assets/695941/19c468ac-52af-4790-b4eb-5187c06af949)](https://www.patreon.com/Wintermance) [![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/W7W01UAI9)<br />
-
 [![Releases](https://img.shields.io/github/v/release/Lyall/MGSHDFix)](https://github.com/Lyall/MGSHDFix/releases) [![Downloads](https://img.shields.io/github/downloads/Lyall/MGSHDFix/total)](https://github.com/Lyall/MGSHDFix/releases) ![Commits](https://img.shields.io/github/commit-activity/t/Lyall/MGSHDFix) ![License](https://img.shields.io/github/license/Lyall/MGSHDFix)
 
 
@@ -17,15 +15,11 @@ This is a fix that adds custom resolutions, ultrawide support and much more to t
 - For Metal Gear Solid 1 and the Vol 1. Bonus Content (MG1/2 NES), using [MGSM2Fix](https://github.com/nuggslet/MGSM2Fix) is recommended.
 
 ## Features
-- Warnings for common mod compatibility & installation issues - which often result in crashes.
 - Custom resolution/ultrawide support.
 - Experimental 16:9 HUD option that resizes HUD/movies (MGS2/MGS3).
 - Borderless/windowed mode.
 - Mouse cursor toggle.
 - Mouse sensitivity adjustment (MGS3).
-- Corrects gameplay/cutscene aspect ratio (MGS2/MGS3).
-- Corrects window size on displays with High DPI scaling enabled. [PR #127](https://github.com/Lyall/MGSHDFix/pull/127)
-- Corrects the monitor going to sleep during long cutscenes.
 - Launcher skips (see ini to configure).
 - Skip intro logos (MGS2/MGS3).
 - Option to disable pausing on alt-tab.
@@ -34,12 +28,27 @@ This is a fix that adds custom resolutions, ultrawide support and much more to t
 - Option to disable bilinear texture filtering, giving the games a pixel art/retro appearance. [PR #138](https://github.com/Lyall/MGSHDFix/pull/138)
 - Increased texture size limits (MG1/MG2/MGS3).
 - Adds support for custom PS2 controller glyphs without overwriting existing textures.
+- Option to force Snake / Raiden to wear their sunglasses (and outright disable their sunglasses.)
+- Option to continue aiming your gun after firing it while in first-person/while holding lock-on.
+
+## Bug Fixes
+- Fixes gameplay/cutscene aspect ratio for ultrawide resolutions (MGS2/MGS3).
+- Fixes window size on displays with High DPI scaling enabled. [PR #127](https://github.com/Lyall/MGSHDFix/pull/127)
+- Fixes the monitor going to sleep during long cutscenes (for Windows only, Linux needs to be [fixed by Valve](https://github.com/ValveSoftware/Proton/issues/8881).
 - Fixes the Steam Cloud related ["DAMAGED SAVE" / "CORRUPT SAVE"](https://www.pcgamingwiki.com/wiki/Metal_Gear_Solid_2:_Sons_of_Liberty_-_Master_Collection_Version#Save_File_Appears_as_DAMAGED_FILE) issue. 
-- Fixed water surface rendering (MGS3). See [PR #71](https://github.com/Lyall/MGSHDFix/pull/71) for a breakdown of the issue.
+- Fixes water surface rendering (MGS3). See [PR #71](https://github.com/Lyall/MGSHDFix/pull/71) for a breakdown of the issue.
 - Fixes crashes, audio desync, timer delays, and broken loading zones bugs caused by alt-tabbing the game. (For speedrunners who utilize this bug to skip forced codec calls, this bugfix can be forced off in the ini.)
-- Fixed various visual effects which ran at double speed, causing them to end early compared to on the PS2 (these issue even occur on PCSX2/PS2 emulation) (MGS2).
-- Fixed vector effects / line based rendering scaling (ie rain, lasers, bullet trails.) [PR #140](https://github.com/Lyall/MGSHDFix/pull/140)
-- Fixed broken skybox initialization procs (MGS2). [PR#142](https://github.com/Lyall/MGSHDFix/pull/142)
+- Fixes the bug where your character would start aiming right away after re-equipping a gun that was drawn when you put it away. 
+- Fixes the bug where your character would stop aiming their gun while holding L1 when you fully tilt your joystick.
+- Fixes various visual effects which ran at double speed, causing them to end early compared to on the PS2 (these issue even occur on PCSX2/PS2 emulation) (MGS2).
+- Fixes vector effects / line based rendering scaling (ie rain, lasers, bullet trails.) [PR #140](https://github.com/Lyall/MGSHDFix/pull/140)
+- Fixes broken skybox initialization procs (MGS2). [PR#142](https://github.com/Lyall/MGSHDFix/pull/142)
+
+## Logging / Warnings for Common Configuration Issues
+- Warnings for common mod compatibility & installation issues - which often result in crashes.
+- Warnings if your game's audio is muted via the game's main launcher.
+- Logging for Steam Input's controller status (ie detected controllers, keybinds, ect.)
+
 
 ## Installation
 
@@ -105,7 +114,7 @@ Open MGSFPSUnlock.sln in Visual Studio (2022) and build.
 ## Credits
 [@Lyall](https://codeberg.org/Lyall) for their amazing work making widescreen fix mods, and most importantly, the original creation of this mod!<br />
 [@ShizCalev/Afevis](https://github.com/shizcalev) for long-term maintenance and contributing fixes.<br />
-[@emoose](https://github.com/emoose), [@cipherxof](https://github.com/cipherxof), & [@Bud11](https://github.com/bud11) for contributing fixes. <br />
+[@emoose](https://github.com/emoose), [@cipherxof](https://github.com/cipherxof), [@Bud11](https://github.com/bud11), and [Zenf0](https://next.nexusmods.com/profile/zenf0) for contributing fixes/features. <br />
 [Ultimate ASI Loader](https://github.com/ThirteenAG/Ultimate-ASI-Loader) for ASI loading. <br />
 [inipp](https://github.com/mcmtroffaes/inipp) for ini reading. <br />
 [spdlog](https://github.com/gabime/spdlog) for logging. <br />
