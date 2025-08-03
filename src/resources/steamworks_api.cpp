@@ -215,6 +215,7 @@ void SteamAPI::OnSteamInputLoaded()
     {
         return;
     }
+    spdlog::info("SteamInput: Initializing...");
     ISteamInput* steamInput = SteamInput();
     steamInput->RunFrame();
     g_SteamAPI.iNumberOfControllers = reinterpret_cast<int*>(Memory::GetRelativeOffset(Memory::PatternScan(baseModule, "89 05 ?? ?? ?? ?? 85 C0 75 ?? 33 DB", "MGS 2: SteamInput: iNumberOfControllers") + 2));

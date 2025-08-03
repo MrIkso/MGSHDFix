@@ -10,6 +10,7 @@ void MuteWarning::CheckStatus() const
         return;
     }
 
+    spdlog::info("MG-MG2 | MGS 2 | MGS3: Mute Warning: Checking mute status...");
     if (*muteWarningAddress)
     {
         spdlog::warn("------ GAME AUDIO OUTPUT MUTED ------");
@@ -23,6 +24,10 @@ void MuteWarning::CheckStatus() const
         }
         spdlog::warn("------ GAME AUDIO OUTPUT MUTED ------");
 
+    }
+    else
+    {
+        spdlog::info("MG-MG2 | MGS 2 | MGS3: Mute Warning: Game audio output is not muted.");
     }
 }
 

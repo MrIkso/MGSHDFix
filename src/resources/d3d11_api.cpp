@@ -41,6 +41,29 @@ namespace
             if (g_D3D11Hooks.d3dDevice)
             {
                 spdlog::info("D3D11CreateDevice successful.");
+
+                DXGI_ADAPTER_DESC desc;
+                g_D3D11Hooks.dxgiAdapter->GetDesc(&desc);
+                std::string gpuName = Util::WideToUTF8(desc.Description);
+
+                LARGE_INTEGER driverVersion = {};
+                if (SUCCEEDED(g_D3D11Hooks.dxgiAdapter->CheckInterfaceSupport(
+                    __uuidof(IDXGIDevice), &driverVersion)))
+                {
+                    UINT product = HIWORD(driverVersion.HighPart);
+                    UINT version = LOWORD(driverVersion.HighPart);
+                    UINT subVersion = HIWORD(driverVersion.LowPart);
+                    UINT build = LOWORD(driverVersion.LowPart);
+
+                    spdlog::info("Running on GPU: {}  (Driver Version: {}.{}.{}.{})",
+                        gpuName,
+                        product, version, subVersion, build);
+                }
+                else
+                {
+                    spdlog::warn("Could not query GPU driver version.");
+                    spdlog::info("Running on GPU: {}", gpuName);
+                }
                 afterD3D11CreateDevice();
             }
             else
