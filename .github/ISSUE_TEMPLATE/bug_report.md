@@ -10,15 +10,11 @@ labels: ["bug"]
 
 <!-- Briefly explain your issue in a few plain sentences, e.g. "X has Y issue" "When I do X, Y happens instead of Z". You may copy and paste the issue title here if it is suitable.-->
 
-## MGSHDFix & Game Version Numbers:
-
-<!-- To help save some time, please include what version your game is, and what version of MGSHDFix you are using. (Yes, these are also in the log file, but it just makes things quicker at a glance to include here too!)-->
-<!-- Please be sure to include WHICH game you're opening this report for too.-->
-
-
 ## Log Files:
 
-<!-- Please include your MGSHDFix.log file, and if your issue is related to crashes / new graphical bugs that are not consistent across platforms / hardware, please also provide your basic system specs (ie what your CPU/GPU/RAM is) or a DXDiag log.-->
+<!-- Please include your MGSHDFix log files (they're located in the game's /logs subdirectory.-->
+<!-- Just drag the files themselves directly onto this box to upload them, no need to copy/paste the contents manually.-->
+<!-- Your issue report may be closed if you do not include your log files.-->
 
 ## Reproduction:
 
