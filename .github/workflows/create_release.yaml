@@ -45,7 +45,8 @@ jobs:
     - run: cp .\dinput8.dll .\wininet.dll
     - run: mv .\dinput8.dll .\winhttp.dll
     - run: mkdir .\logs
-    - run: cp .\README.md .\logs\${{ github.event.repository.name }}.log
+    - run: cp .\README.md .\logs\${{ github.event.repository.name }}_Game.log
+    - run: cp .\README.md .\logs\${{ github.event.repository.name }}_Launcher.log    
     - run: mkdir .\plugins
     - run: mv .\README.md .\plugins\${{ github.event.repository.name }}_README.md
     - run: mv .\${{ github.event.repository.name }}.ini .\plugins\${{ github.event.repository.name }}.ini
