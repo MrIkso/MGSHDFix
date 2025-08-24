@@ -91,7 +91,8 @@ jobs:
 
     # Package everything
     - name: Create release zip
-      run: 7z a -tzip "${{ github.event.repository.name }}_${{ steps.extract_version.outputs.version }}.zip" dist\
+      working-directory: dist
+      run: 7z a -tzip "../${{ github.event.repository.name }}_${{ steps.extract_version.outputs.version }}.zip" *
 
     - uses: ncipollo/release-action@v1
       with:
