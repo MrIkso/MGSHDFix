@@ -5,7 +5,10 @@ class DistanceCulling final
 public:
     void Initialize() const;
 
-    bool isEnabled;
+    bool bForceGrassAlways;
+    int vkForceGrassAlwaysToggle = 0;
+
+    float fGrassDistanceScalar;
 };
 
 inline DistanceCulling g_DistanceCulling;

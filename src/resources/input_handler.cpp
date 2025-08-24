@@ -1,5 +1,7 @@
 #include "common.hpp"
 #include "input_handler.hpp"
+
+#include "d3d11_api.hpp"
 #include "logging.hpp"
 
 #include "version.h"
@@ -261,6 +263,12 @@ void InputHandler::RegisterHotkey(int vkCode, const char* name, std::function<vo
 
 void InputHandler::Update()
 {
+
+    if (!g_InputHandler.bCaptureInputsWhileAltTabbed && (GetForegroundWindow() != g_D3D11Hooks.MainHwnd))
+    {
+        return;
+    }
+
     for (auto& hk : hotkeys)
     {
         const bool keyDown = (GetAsyncKeyState(hk.vkCode) & 0x8000) != 0;
@@ -297,7 +305,7 @@ void InputHandler::GetKeybind(const inipp::Ini<char>& ini,
         return;
     }
 
-    alias = keyIt->second;
+    alias = Util::StripQuotes(keyIt->second);
     if (alias.empty())
     {
         FatalKeyError(section, key, "Empty value");

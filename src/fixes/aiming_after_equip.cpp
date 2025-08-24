@@ -14,9 +14,20 @@ void FixAimAfterEquip::Initialize()
 
     if (eGameType & MGS2)
     {
-        MAKE_HOOK_MID(baseModule, "89 1D ?? ?? ?? ?? 8B C3 48 83 C4", "MGS2: Aiming After Equip", {
+
+        MAKE_HOOK_MID(baseModule, "C7 05 ?? ?? ?? ?? ?? ?? ?? ?? 8B C3", "MGS2: Aiming After Equip - Location 1", {
+            if (ctx.r8 == 0)
+            {
+                g_GameVars.SetAimingState(0);
+            }
+            });
+
+        MAKE_HOOK_MID(baseModule, "89 1D ?? ?? ?? ?? 8B C3 48 83 C4", "MGS2: Aiming After Equip - Location 2", {
             g_GameVars.SetAimingState(0);
-        })
+            });
+
+
+
     }
     else if (eGameType & MGS3)
     {
@@ -25,7 +36,7 @@ void FixAimAfterEquip::Initialize()
             {
                 g_GameVars.SetAimingState(0);
             }
-            })
-    }
+            });
 
+    }
 }

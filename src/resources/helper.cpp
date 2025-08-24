@@ -1,5 +1,11 @@
 #include "common.hpp"
 
+#include <windows.h>
+#include <tlhelp32.h>
+#include <psapi.h>
+#include <string>
+#include <filesystem>
+
 #include "logging.hpp"
 
 #pragma comment(lib,"Version.lib")
@@ -281,18 +287,63 @@ namespace Util
 #endif
 
 
-    int findStringInVector(std::string& str, const std::initializer_list<std::string>& search)
+    bool IsProcessRunning(const std::filesystem::path& fullPath)
     {
-        std::transform(str.begin(), str.end(), str.begin(),
-            [](unsigned char c)
+        HANDLE snapshot = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
+        if (snapshot == INVALID_HANDLE_VALUE)
+        {
+            return false;
+        }
+
+        PROCESSENTRY32W entry {};
+        entry.dwSize = sizeof(entry);
+
+        bool found = false;
+
+        if (Process32FirstW(snapshot, &entry))
+        {
+            do
             {
-                return std::tolower(c);
-            });
-        auto it = std::find(search.begin(), search.end(), str);
-        if (it != search.end())
-            return (int)std::distance(search.begin(), it);
+                HANDLE hProcess = OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION, FALSE, entry.th32ProcessID);
+                if (hProcess)
+                {
+                    wchar_t buf[MAX_PATH];
+                    DWORD size = MAX_PATH;
+                    if (QueryFullProcessImageNameW(hProcess, 0, buf, &size))
+                    {
+                        if (_wcsicmp(buf, fullPath.c_str()) == 0)
+                        {
+                            found = true;
+                        }
+                    }
+                    CloseHandle(hProcess);
+                    if (found) break;
+                }
+            } while (Process32NextW(snapshot, &entry));
+        }
+
+        CloseHandle(snapshot);
+        return found;
+    }
+
+
+    int findStringInVector(const std::string& str, const std::initializer_list<std::string>& search)
+    {
+        std::string lowerStr = str;
+        std::transform(lowerStr.begin(), lowerStr.end(), lowerStr.begin(), ::tolower);
+
+        for (auto it = search.begin(); it != search.end(); ++it)
+        {
+            std::string lower = *it;
+            std::transform(lower.begin(), lower.end(), lower.begin(), ::tolower);
+
+            if (lowerStr == lower)
+                return static_cast<int>(std::distance(search.begin(), it));
+        }
         return 0;
     }
+
+
 
     // Convert an UTF8 string to a wide Unicode String
     std::wstring UTF8toWide(const std::string& str)
@@ -324,6 +375,7 @@ namespace Util
 
         return result;
     }
+
 
     std::pair<int, int> GetPhysicalDesktopDimensions()
     {
@@ -415,6 +467,17 @@ namespace Util
         return FALSE;
     }
 
+    std::string GetNameAtIndex(const std::initializer_list<std::string>& list, int index)
+    {
+        if (index >= 0 && index < static_cast<int>(list.size()))
+        {
+            auto it = list.begin();
+            std::advance(it, index);
+            return *it;
+        }
+        return "Unknown";
+    }
+
     std::string GetUppercaseNameAtIndex(const std::initializer_list<std::string>& list, int index)
     {
         if (index >= 0 && index < static_cast<int>(list.size()))
@@ -444,6 +507,23 @@ namespace Util
             return true;
         }
         return false;
+    }
+
+    std::string StripQuotes(const std::string& value)
+    {
+        if (value.size() >= 2 && value.front() == '"' && value.back() == '"')
+        {
+            std::string s = value.substr(1, value.size() - 2);
+            // Handle escaped quotes
+            size_t pos = 0;
+            while ((pos = s.find("\\\"", pos)) != std::string::npos)
+            {
+                s.replace(pos, 2, "\"");
+                pos += 1;
+            }
+            return s;
+        }
+        return value;
     }
 
 }
