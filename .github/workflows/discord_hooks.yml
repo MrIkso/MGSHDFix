@@ -28,11 +28,12 @@ jobs:
         if: ${{ github.event_name == 'issues' && github.event.action == 'opened' }}
         run: |
           jq -n \
-            --arg t "🆕 New Mission #${{ github.event.issue.number }}" \
+            --arg t "🆕 New Mission" \
+            --arg num "${{ github.event.issue.number }}" \
             --arg title "${{ github.event.issue.title }}" \
             --arg user "${{ github.event.issue.user.login }}" \
-            --arg u "${{ github.event.issue.html_url }}" \
-            '{embeds:[{title:$t,description:( "**"+$title+"**" + "\n" + "Opened by @"+$user ),url:$u,color:15158332}]}' \
+            --arg url "${{ github.event.issue.html_url }}" \
+            '{embeds:[{title:$t,description:( "**[#" + $num + "](" + $url + ") " + $title + "**" + "\n" + "Opened by @"+$user ),url:$url,color:15158332}]}' \
           | curl -s -H "Content-Type: application/json" -d @- "$DISCORD_WEBHOOK"
 
       # 🗂️ Mission Resolved (Issue closed)
@@ -40,11 +41,12 @@ jobs:
         if: ${{ github.event_name == 'issues' && github.event.action == 'closed' }}
         run: |
           jq -n \
-            --arg t "🗂️ Mission Resolved #${{ github.event.issue.number }}" \
+            --arg t "🗂️ Mission Resolved" \
+            --arg num "${{ github.event.issue.number }}" \
             --arg title "${{ github.event.issue.title }}" \
             --arg user "${{ github.event.issue.closed_by.login }}" \
-            --arg u "${{ github.event.issue.html_url }}" \
-            '{embeds:[{title:$t,description:( "**"+$title+"**" + "\n" + "Closed by @"+$user ),url:$u,color:8359053}]}' \
+            --arg url "${{ github.event.issue.html_url }}" \
+            '{embeds:[{title:$t,description:( "**[#" + $num + "](" + $url + ") " + $title + "**" + "\n" + "Closed by @"+$user ),url:$url,color:8359053}]}' \
           | curl -s -H "Content-Type: application/json" -d @- "$DISCORD_WEBHOOK"
 
       # 📨 Intel Package Received (PR opened)
@@ -52,32 +54,55 @@ jobs:
         if: ${{ github.event_name == 'pull_request' && github.event.action == 'opened' }}
         run: |
           jq -n \
-            --arg t "📨 Intel Package Received #${{ github.event.pull_request.number }}" \
+            --arg t "📨 Intel Package Received" \
+            --arg num "${{ github.event.pull_request.number }}" \
             --arg title "${{ github.event.pull_request.title }}" \
             --arg user "${{ github.event.pull_request.user.login }}" \
-            --arg head "${{ github.event.pull_request.head.ref }}" \
-            --arg base "${{ github.event.pull_request.base.ref }}" \
-            --arg u "${{ github.event.pull_request.html_url }}" \
-            '{embeds:[{title:$t,description:( "**"+$title+"**" + "\n" + "Submitted by @"+$user + "\n" + $head + " -> " + $base ),url:$u,color:3447003}]}' \
+            --arg user_url "https://github.com/${{ github.event.pull_request.user.login }}" \
+            --arg avatar "${{ github.event.pull_request.user.avatar_url }}" \
+            --arg url "${{ github.event.pull_request.html_url }}" \
+            '{embeds:[{title:$t,description:( "**[#" + $num + "](" + $url + ") " + $title + "**" + "\n" + "Submitted by @"+$user ),url:$url,color:3447003,author:{name:("@" + $user),url:$user_url,icon_url:$avatar}}]}' \
           | curl -s -H "Content-Type: application/json" -d @- "$DISCORD_WEBHOOK"
 
       # ✅ Extraction Complete / ❌ Request Denied (PR closed/merged)
       - name: PR closed or merged
         if: ${{ github.event_name == 'pull_request' && github.event.action == 'closed' }}
         run: |
-          if [ "${{ github.event.pull_request.merged }}" = "true" ]; then
+          merged='${{ github.event.pull_request.merged }}'
+          if [ "$merged" = "true" ]; then
             status="✅ Extraction Complete"; color=3066993
+            extra="${{ github.event.pull_request.head.ref }} -> ${{ github.event.pull_request.base.ref }}"
           else
             status="❌ Request Denied"; color=9803374
+            extra=""
           fi
+
+          actor='${{ github.actor }}'
+          actor_url="https://github.com/${{ github.actor }}"
+          avatar='${{ github.event.sender.avatar_url }}'
+
           jq -n \
-            --arg t "${status} #${{ github.event.pull_request.number }}" \
+            --arg t "$status" \
+            --arg num "${{ github.event.pull_request.number }}" \
             --arg title "${{ github.event.pull_request.title }}" \
-            --arg head "${{ github.event.pull_request.head.ref }}" \
-            --arg base "${{ github.event.pull_request.base.ref }}" \
-            --arg u "${{ github.event.pull_request.html_url }}" \
+            --arg extra "$extra" \
+            --arg url "${{ github.event.pull_request.html_url }}" \
+            --arg actor "$actor" \
+            --arg actor_url "$actor_url" \
+            --arg avatar "$avatar" \
             --argjson c "$color" \
-            '{embeds:[{title:$t,description:( "**"+$title+"**" + "\n" + $head + " -> " + $base ),url:$u,color:$c}]}' \
+            '{
+              embeds:[{
+                title:$t,
+                description:(
+                  "**[#" + $num + "](" + $url + ") " + $title + "**" +
+                  (if ($extra|length)>0 then "\n"+$extra else "" end)
+                ),
+                url:$url,
+                color:$c,
+                author:{name:("@" + $actor),url:$actor_url,icon_url:$avatar}
+              }]
+            }' \
           | curl -s -H "Content-Type: application/json" -d @- "$DISCORD_WEBHOOK"
 
       # 🧰 MGSHDFix Update Released! (Release)
@@ -85,11 +110,36 @@ jobs:
         if: ${{ github.event_name == 'release' && github.event.action == 'published' }}
         run: |
           jq -n \
-            --arg t "🧰 MGSHDFix Update Released! ${{ github.event.release.tag_name }}" \
-            --arg name "${{ github.event.release.name }}" \
-            --arg user "${{ github.event.release.author.login }}" \
-            --arg u "${{ github.event.release.html_url }}" \
-            '{embeds:[{title:$t,description:( "**"+$name+"**" + "\n" + "Released by @"+$user ),url:$u,color:7506394}]}' \
+            --arg title   "🧰 MGSHDFix Update Released! ${{ github.event.release.tag_name }}" \
+            --arg tag     "${{ github.event.release.tag_name }}" \
+            --arg body    "${{ github.event.release.body }}" \
+            --arg author  "${{ github.event.release.author.login }}" \
+            --arg authoru "https://github.com/${{ github.event.release.author.login }}" \
+            --arg avatar  "${{ github.event.release.author.avatar_url }}" \
+            --arg url     "${{ github.event.release.html_url }}" \
+            '
+            def changelog($b):
+              # Normalize CRLF to LF, then take everything before "## Installation"
+              ($b // "") | gsub("\r\n"; "\n") | split("\n## Installation")[0];
+
+            def where_to_download($tag):
+              "## Where to Download\n\n" +
+              "**Nexus Mods:**\n" +
+              "• [MG1 / MG2SS](https://www.nexusmods.com/metalgearandmetalgear2mc/mods/9)\n" +
+              "• [MGS2](https://www.nexusmods.com/metalgearsolid2mc/mods/49)\n" +
+              "• [MGS3](https://www.nexusmods.com/metalgearsolid3mc/mods/139)\n\n" +
+              "**GitHub Releases:**\n" +
+              "• [MGSHDFix " + $tag + "](https://github.com/Lyall/MGSHDFix/releases)";
+
+            {
+              embeds: [{
+                title: $title,
+                description: (changelog($body) + "\n\n" + where_to_download($tag)),
+                url: $url,
+                color: 7506394,
+                author: { name: ("@" + $author), url: $authoru, icon_url: $avatar }
+              }]
+            }' \
           | curl -s -H "Content-Type: application/json" -d @- "$DISCORD_WEBHOOK"
 
       # 📡 Codec Update (push), suppressed for PR merges
@@ -105,9 +155,21 @@ jobs:
         run: |
           branch="${GITHUB_REF#refs/heads/}"
           echo '${{ toJson(github.event.commits) }}' > commits.json
-          lines=$(jq -r '.[0:5] | map("- " + (.id[0:7]) + " " + (.message | split("\n")[0])) | join("\n")' commits.json)
+
+          # Build up to 5 lines: - [abc1234](commit-url) First line - by @user
+          lines=$(jq -r '
+            def who($c):
+              ($c.author.username // $c.author.name // "unknown");
+            .[0:5]
+            | map("- [" + (.id[0:7]) + "](" + .url + ") " + (.message | split("\n")[0]) + " - by @" + who(.))
+            | join("\n")
+          ' commits.json)
+
           count=$(jq 'length' commits.json)
           compare='${{ github.event.compare }}'
+          actor='${{ github.actor }}'
+          actor_url="https://github.com/${{ github.actor }}"
+          avatar='${{ github.event.sender.avatar_url }}'
 
           if [ "$count" -eq 1 ]; then
             commit_text="1 commit"
@@ -120,5 +182,16 @@ jobs:
             --arg ct "$commit_text" \
             --arg lines "$lines" \
             --arg u "$compare" \
-            '{embeds:[{title:$t,description:( "**"+$ct+"**" + "\n" + $lines ),url:$u,color:5814783}]}' \
+            --arg actor "$actor" \
+            --arg actor_url "$actor_url" \
+            --arg avatar "$avatar" \
+            '{
+              embeds:[{
+                title:$t,
+                description:( "**"+$ct+"**" + "\n" + $lines ),
+                url:$u,
+                color:5814783,
+                author:{name:("@" + $actor), url:$actor_url, icon_url:$avatar}
+              }]
+            }' \
           | curl -s -H "Content-Type: application/json" -d @- "$DISCORD_WEBHOOK"
