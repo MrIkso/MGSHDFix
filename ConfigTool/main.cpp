@@ -915,16 +915,23 @@ private:
             }
         }
 
-        std::filesystem::path exePath = wxGetCwd().ToStdString();
-        exePath = exePath.parent_path() / "launcher.exe";
 
-        if (std::filesystem::exists(exePath))
+        std::wstring wGameToLaunch = iTargetGame == TARGET_GAME_MG1 ? L"steam://launch/2131680" : iTargetGame == TARGET_GAME_MGS2 ? L"steam://launch/2131640" : iTargetGame == TARGET_GAME_MGS3 ? L"steam://launch/2131650" : L"";
+        if (!wGameToLaunch.empty())
         {
-            wxExecute(exePath.string());
-        }
-        else
-        {
-            wxLogError("Launcher.exe not found in %s", wxGetCwd());
+            HINSTANCE result = ShellExecuteW(
+                nullptr,          // parent window
+                L"open",          // operation
+                wGameToLaunch.c_str(), // file/URL to open
+                nullptr,          // parameters
+                nullptr,          // default directory
+                SW_SHOWNORMAL     // show command
+            );
+
+            if ((INT_PTR)result <= 32)
+            {
+                MessageBoxW(nullptr, L"Failed to launch Steam game.", L"Error", MB_ICONERROR);
+            }
         }
         Close();
     }
