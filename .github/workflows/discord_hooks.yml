@@ -16,7 +16,6 @@ jobs:
     runs-on: ubuntu-latest
     env:
       DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
-      REPO_NAME: ${{ github.event.repository.full_name }}
     steps:
       - name: Check webhook
         if: ${{ env.DISCORD_WEBHOOK == '' }}
@@ -30,10 +29,10 @@ jobs:
         run: |
           jq -n \
             --arg t "🆕 New Mission #${{ github.event.issue.number }}" \
-            --arg d "**${{ github.event.issue.title }}**\nOpened by @${{ github.event.issue.user.login }}" \
+            --arg title "${{ github.event.issue.title }}" \
+            --arg user "${{ github.event.issue.user.login }}" \
             --arg u "${{ github.event.issue.html_url }}" \
-            --arg re "$REPO_NAME" \
-            '{embeds:[{title:$t,description:$d,url:$u,color:15158332,footer:{text:$re}}]}' \
+            '{embeds:[{title:$t,description:( "**"+$title+"**" + "\n" + "Opened by @"+$user ),url:$u,color:15158332}]}' \
           | curl -s -H "Content-Type: application/json" -d @- "$DISCORD_WEBHOOK"
 
       # 🗂️ Mission Resolved (Issue closed)
@@ -42,10 +41,10 @@ jobs:
         run: |
           jq -n \
             --arg t "🗂️ Mission Resolved #${{ github.event.issue.number }}" \
-            --arg d "**${{ github.event.issue.title }}**\nClosed by @${{ github.event.issue.closed_by.login }}" \
+            --arg title "${{ github.event.issue.title }}" \
+            --arg user "${{ github.event.issue.closed_by.login }}" \
             --arg u "${{ github.event.issue.html_url }}" \
-            --arg re "$REPO_NAME" \
-            '{embeds:[{title:$t,description:$d,url:$u,color:8359053,footer:{text:$re}}]}' \
+            '{embeds:[{title:$t,description:( "**"+$title+"**" + "\n" + "Closed by @"+$user ),url:$u,color:8359053}]}' \
           | curl -s -H "Content-Type: application/json" -d @- "$DISCORD_WEBHOOK"
 
       # 📨 Intel Package Received (PR opened)
@@ -54,10 +53,12 @@ jobs:
         run: |
           jq -n \
             --arg t "📨 Intel Package Received #${{ github.event.pull_request.number }}" \
-            --arg d "**${{ github.event.pull_request.title }}**\nSubmitted by @${{ github.event.pull_request.user.login }}\n${{ github.event.pull_request.head.ref }} -> ${{ github.event.pull_request.base.ref }}" \
+            --arg title "${{ github.event.pull_request.title }}" \
+            --arg user "${{ github.event.pull_request.user.login }}" \
+            --arg head "${{ github.event.pull_request.head.ref }}" \
+            --arg base "${{ github.event.pull_request.base.ref }}" \
             --arg u "${{ github.event.pull_request.html_url }}" \
-            --arg re "$REPO_NAME" \
-            '{embeds:[{title:$t,description:$d,url:$u,color:3447003,footer:{text:$re}}]}' \
+            '{embeds:[{title:$t,description:( "**"+$title+"**" + "\n" + "Submitted by @"+$user + "\n" + $head + " -> " + $base ),url:$u,color:3447003}]}' \
           | curl -s -H "Content-Type: application/json" -d @- "$DISCORD_WEBHOOK"
 
       # ✅ Extraction Complete / ❌ Request Denied (PR closed/merged)
@@ -71,11 +72,12 @@ jobs:
           fi
           jq -n \
             --arg t "${status} #${{ github.event.pull_request.number }}" \
-            --arg d "**${{ github.event.pull_request.title }}**\n${{ github.event.pull_request.head.ref }} -> ${{ github.event.pull_request.base.ref }}" \
+            --arg title "${{ github.event.pull_request.title }}" \
+            --arg head "${{ github.event.pull_request.head.ref }}" \
+            --arg base "${{ github.event.pull_request.base.ref }}" \
             --arg u "${{ github.event.pull_request.html_url }}" \
-            --arg re "$REPO_NAME" \
             --argjson c "$color" \
-            '{embeds:[{title:$t,description:$d,url:$u,color:$c,footer:{text:$re}}]}' \
+            '{embeds:[{title:$t,description:( "**"+$title+"**" + "\n" + $head + " -> " + $base ),url:$u,color:$c}]}' \
           | curl -s -H "Content-Type: application/json" -d @- "$DISCORD_WEBHOOK"
 
       # 🧰 MGSHDFix Update Released! (Release)
@@ -84,10 +86,10 @@ jobs:
         run: |
           jq -n \
             --arg t "🧰 MGSHDFix Update Released! ${{ github.event.release.tag_name }}" \
-            --arg d "**${{ github.event.release.name }}**\nReleased by @${{ github.event.release.author.login }}" \
+            --arg name "${{ github.event.release.name }}" \
+            --arg user "${{ github.event.release.author.login }}" \
             --arg u "${{ github.event.release.html_url }}" \
-            --arg re "$REPO_NAME" \
-            '{embeds:[{title:$t,description:$d,url:$u,color:7506394,footer:{text:$re}}]}' \
+            '{embeds:[{title:$t,description:( "**"+$name+"**" + "\n" + "Released by @"+$user ),url:$u,color:7506394}]}' \
           | curl -s -H "Content-Type: application/json" -d @- "$DISCORD_WEBHOOK"
 
       # 📡 Codec Update (push), suppressed for PR merges
@@ -115,8 +117,8 @@ jobs:
 
           jq -n \
             --arg t "📡 Codec Update: ${branch}" \
-            --arg d "**${commit_text}**\n${lines}" \
-            --arg u "${compare}" \
-            --arg re "$REPO_NAME" \
-            '{embeds:[{title:$t,description:$d,url:$u,color:5814783,footer:{text:$re}}]}' \
+            --arg ct "$commit_text" \
+            --arg lines "$lines" \
+            --arg u "$compare" \
+            '{embeds:[{title:$t,description:( "**"+$ct+"**" + "\n" + $lines ),url:$u,color:5814783}]}' \
           | curl -s -H "Content-Type: application/json" -d @- "$DISCORD_WEBHOOK"
