@@ -161,37 +161,35 @@ jobs:
 
           count=$(jq 'length' commits.json)
           compare='${{ github.event.compare }}'
+
+          # Collect unique authors
+          authors=$(jq -r '[.[].author.username // .[].author.name // "unknown"] | unique | map("@" + .) | join(", ")' commits.json)
+      
+          if [ "$count" -eq 1 ]; then
+            author_line="$authors — 1 commit"
+          else
+            author_line="$authors — $count commits"
+          fi
+
           actor='${{ github.actor }}'
           actor_url="https://github.com/${{ github.actor }}"
           avatar='${{ github.event.sender.avatar_url }}'
 
-          # Collect unique authors
-          authors=$(jq -r '[.[].author.username // .[].author.name // "unknown"] | unique | map("@" + .) | join(", ")' commits.json)
-          if [ -n "$authors" ]; then
-            authors=" by $authors"
-          fi
-
-          if [ "$count" -eq 1 ]; then
-            commit_text="1 commit$authors"
-          else
-            commit_text="$count commits$authors"
-          fi
-
           jq -n \
             --arg t "📡 Codec Update" \
-            --arg ct "$commit_text" \
             --arg lines "$lines" \
             --arg u "$compare" \
+            --arg author_line "$author_line" \
             --arg actor "$actor" \
             --arg actor_url "$actor_url" \
             --arg avatar "$avatar" \
             '{
               embeds:[{
                 title:$t,
-                description:( "**"+$ct+"**" + "\n" + $lines ),
+                description:$lines,
                 url:$u,
                 color:5814783,
-                author:{name:("@" + $actor), url:$actor_url, icon_url:$avatar}
+                author:{name:$author_line, url:$actor_url, icon_url:$avatar}
               }]
             }' \
           | curl -s -H "Content-Type: application/json" -d @- "$DISCORD_WEBHOOK"
