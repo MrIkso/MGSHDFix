@@ -8,7 +8,7 @@ on:
   release:
     types: [published]
   push:
-    branches: [main, master]
+    branches: [master]
   workflow_dispatch:
 
 jobs:
@@ -140,17 +140,16 @@ jobs:
           | curl -s -H "Content-Type: application/json" -d @- "$DISCORD_WEBHOOK"
 
       # 📡 Codec Update (push), suppressed for PR merges
-      - name: Push to main or master
+      - name: Push to master
         if: >
           ${{
             github.event_name == 'push' &&
-            (startsWith(github.ref, 'refs/heads/main') || startsWith(github.ref, 'refs/heads/master')) &&
+            startsWith(github.ref, 'refs/heads/master') &&
             github.event.pusher.name != 'web-flow' &&
             github.actor != 'github-actions' &&
             (github.event.head_commit && !startsWith(github.event.head_commit.message, 'Merge pull request'))
           }}
         run: |
-          branch="${GITHUB_REF#refs/heads/}"
           echo '${{ toJson(github.event.commits) }}' > commits.json
 
           # Commit lines: - [abc1234](url) message
@@ -179,7 +178,7 @@ jobs:
           fi
 
           jq -n \
-            --arg t "📡 Codec Update: ${branch}" \
+            --arg t "📡 Codec Update" \
             --arg ct "$commit_text" \
             --arg lines "$lines" \
             --arg u "$compare" \
