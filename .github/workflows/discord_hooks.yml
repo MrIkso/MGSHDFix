@@ -107,9 +107,15 @@ jobs:
           count=$(jq 'length' commits.json)
           compare='${{ github.event.compare }}'
 
+          if [ "$count" -eq 1 ]; then
+            commit_text="1 commit"
+          else
+            commit_text="$count commits"
+          fi
+
           jq -n \
             --arg t "📡 Codec Update: ${branch}" \
-            --arg d "**${count} commits**\n\n${lines}" \
+            --arg d "**${commit_text}**\n${lines}" \
             --arg u "${compare}" \
             --arg re "$REPO_NAME" \
             '{embeds:[{title:$t,description:$d,url:$u,color:5814783,footer:{text:$re}}]}' \
