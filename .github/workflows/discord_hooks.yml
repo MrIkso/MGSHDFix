@@ -28,12 +28,11 @@ jobs:
         if: ${{ github.event_name == 'issues' && github.event.action == 'opened' }}
         run: |
           jq -n \
-            --arg t "🆕 New Mission" \
+            --arg t "🆕 New Mission by @${{ github.event.issue.user.login }}" \
             --arg num "${{ github.event.issue.number }}" \
             --arg title "${{ github.event.issue.title }}" \
-            --arg user "${{ github.event.issue.user.login }}" \
             --arg url "${{ github.event.issue.html_url }}" \
-            '{embeds:[{title:$t,description:( "**[#" + $num + "](" + $url + ") " + $title + "**" + "\n" + "Opened by @"+$user ),url:$url,color:15158332}]}' \
+            '{embeds:[{title:$t,description:( "**[#" + $num + "](" + $url + ") " + $title + "**" ),url:$url,color:15158332}]}' \
           | curl -s -H "Content-Type: application/json" -d @- "$DISCORD_WEBHOOK"
 
       # 🗂️ Mission Resolved (Issue closed)
@@ -41,12 +40,11 @@ jobs:
         if: ${{ github.event_name == 'issues' && github.event.action == 'closed' }}
         run: |
           jq -n \
-            --arg t "🗂️ Mission Resolved" \
+            --arg t "🗂️ Mission Resolved by @${{ github.event.issue.closed_by.login }}" \
             --arg num "${{ github.event.issue.number }}" \
             --arg title "${{ github.event.issue.title }}" \
-            --arg user "${{ github.event.issue.closed_by.login }}" \
             --arg url "${{ github.event.issue.html_url }}" \
-            '{embeds:[{title:$t,description:( "**[#" + $num + "](" + $url + ") " + $title + "**" + "\n" + "Closed by @"+$user ),url:$url,color:8359053}]}' \
+            '{embeds:[{title:$t,description:( "**[#" + $num + "](" + $url + ") " + $title + "**" ),url:$url,color:8359053}]}' \
           | curl -s -H "Content-Type: application/json" -d @- "$DISCORD_WEBHOOK"
 
       # 📨 Intel Package Received (PR opened)
@@ -54,14 +52,14 @@ jobs:
         if: ${{ github.event_name == 'pull_request' && github.event.action == 'opened' }}
         run: |
           jq -n \
-            --arg t "📨 Intel Package Received" \
+            --arg t "📨 Intel Package Received by @${{ github.event.pull_request.user.login }}" \
             --arg num "${{ github.event.pull_request.number }}" \
             --arg title "${{ github.event.pull_request.title }}" \
             --arg user "${{ github.event.pull_request.user.login }}" \
             --arg user_url "https://github.com/${{ github.event.pull_request.user.login }}" \
             --arg avatar "${{ github.event.pull_request.user.avatar_url }}" \
             --arg url "${{ github.event.pull_request.html_url }}" \
-            '{embeds:[{title:$t,description:( "**[#" + $num + "](" + $url + ") " + $title + "**" + "\n" + "Submitted by @"+$user ),url:$url,color:3447003,author:{name:("@" + $user),url:$user_url,icon_url:$avatar}}]}' \
+            '{embeds:[{title:$t,description:( "**[#" + $num + "](" + $url + ") " + $title + "**" ),url:$url,color:3447003,author:{name:("@" + $user),url:$user_url,icon_url:$avatar}}]}' \
           | curl -s -H "Content-Type: application/json" -d @- "$DISCORD_WEBHOOK"
 
       # ✅ Extraction Complete / ❌ Request Denied (PR closed/merged)
@@ -82,7 +80,7 @@ jobs:
           avatar='${{ github.event.sender.avatar_url }}'
 
           jq -n \
-            --arg t "$status" \
+            --arg t "$status by @$actor" \
             --arg num "${{ github.event.pull_request.number }}" \
             --arg title "${{ github.event.pull_request.title }}" \
             --arg extra "$extra" \
@@ -119,7 +117,6 @@ jobs:
             --arg url     "${{ github.event.release.html_url }}" \
             '
             def changelog($b):
-              # Normalize CRLF to LF, then take everything before "## Installation"
               ($b // "") | gsub("\r\n"; "\n") | split("\n## Installation")[0];
 
             def where_to_download($tag):
@@ -156,12 +153,10 @@ jobs:
           branch="${GITHUB_REF#refs/heads/}"
           echo '${{ toJson(github.event.commits) }}' > commits.json
 
-          # Build up to 5 lines: - [abc1234](commit-url) First line - by @user
+          # Commit lines: - [abc1234](url) message
           lines=$(jq -r '
-            def who($c):
-              ($c.author.username // $c.author.name // "unknown");
             .[0:5]
-            | map("- [" + (.id[0:7]) + "](" + .url + ") " + (.message | split("\n")[0]) + " - by @" + who(.))
+            | map("- [" + (.id[0:7]) + "](" + .url + ") " + (.message | split("\n")[0]))
             | join("\n")
           ' commits.json)
 
@@ -171,10 +166,16 @@ jobs:
           actor_url="https://github.com/${{ github.actor }}"
           avatar='${{ github.event.sender.avatar_url }}'
 
+          # Collect unique authors
+          authors=$(jq -r '[.[].author.username // .[].author.name // "unknown"] | unique | map("@" + .) | join(", ")' commits.json)
+          if [ -n "$authors" ]; then
+            authors=" by $authors"
+          fi
+
           if [ "$count" -eq 1 ]; then
-            commit_text="1 commit"
+            commit_text="1 commit$authors"
           else
-            commit_text="$count commits"
+            commit_text="$count commits$authors"
           fi
 
           jq -n \
