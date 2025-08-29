@@ -149,7 +149,8 @@ void Config::Read()
         Logging::ShowConsole();
         std::cout << "" << sFixName << " v" << sFixVersion << " loaded." << std::endl;
         std::cout << "ERROR: Could not locate config file." << std::endl;
-        std::cout << "ERROR: Make sure " << sConfigFile << " is located in " << sExePath / sFixPath << std::endl;
+        std::cout << "ERROR: Make sure you've run the MGSHDFix Config Tool (located in the game's plugins folder) at least once." << std::endl;
+        std::cout << "ERROR: And that " << sConfigFile << " is located in " << sExePath / sFixPath << std::endl;
         return FreeLibraryAndExitThread(baseModule, 1);
     }
 
