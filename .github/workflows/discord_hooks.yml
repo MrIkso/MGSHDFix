@@ -39,8 +39,10 @@ jobs:
       - name: Issue closed
         if: ${{ github.event_name == 'issues' && github.event.action == 'closed' }}
         run: |
+          closer='${{ github.actor }}'
+
           jq -n \
-            --arg t "🗂️ Mission Resolved by @${{ github.event.issue.closed_by.login }}" \
+            --arg t "🗂️ Mission Resolved by @$closer" \
             --arg num "${{ github.event.issue.number }}" \
             --arg title "${{ github.event.issue.title }}" \
             --arg url "${{ github.event.issue.html_url }}" \
