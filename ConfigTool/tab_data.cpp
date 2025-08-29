@@ -127,7 +127,7 @@ const std::vector<std::pair<wxString, std::vector<Field>>> kTabs = {
     }},
     { wxString("Tweaks"), {
         { ConfigKeys::LauncherJumpStart_Section, ConfigKeys::LauncherJumpStart_Setting, ConfigKeys::LauncherJumpStart_Help, ConfigKeys::LauncherJumpStart_Tooltip,
-          std::nullopt, false, Field::Bool, false },
+          std::make_pair(ConfigKeys::SkipLauncher_Section, ConfigKeys::SkipLauncher_Setting), true, Field::Bool, false},
 
         { ConfigKeys::SkipIntroLogos_Section, ConfigKeys::SkipIntroLogos_Setting, ConfigKeys::SkipIntroLogos_Help, ConfigKeys::SkipIntroLogos_Tooltip,
           std::nullopt, false, Field::Bool, false },
