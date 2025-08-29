@@ -157,6 +157,7 @@ jobs:
             .[0:5]
             | map("- [" + (.id[0:7]) + "](" + .url + ") " + (.message | split("\n")[0]))
             | join("\n")
+            | @json
           ' commits.json)
 
           count=$(jq 'length' commits.json)
@@ -177,7 +178,7 @@ jobs:
 
           jq -n \
             --arg t "📡 Codec Update" \
-            --arg lines "$lines" \
+            --argjson lines "$lines" \
             --arg u "$compare" \
             --arg author_line "$author_line" \
             --arg actor "$actor" \
