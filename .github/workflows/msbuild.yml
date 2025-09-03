@@ -28,6 +28,7 @@ jobs:
     - name: Setup MSBuild
       uses: microsoft/setup-msbuild@v1.1
 
+    # wxWidgets cache setup
     - name: Get wxWidgets submodule hash
       id: wxhash
       run: |
@@ -40,6 +41,22 @@ jobs:
       with:
         path: external/wxWidgets/lib/vc_x64_lib
         key: wxwidgets-${{ runner.os }}-${{ steps.wxhash.outputs.hash }}
+
+    # Zydis cache setup
+    - name: Get Zydis submodule hash
+      id: zydishash
+      run: |
+        cd external/zydis
+        $hash = git rev-parse HEAD
+        "hash=$hash" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
+
+    - name: Cache Zydis
+      uses: actions/cache@v4
+      with:
+        path: |
+          external/zydis/msvc/bin/ReleaseX64
+          external/zydis/msvc/bin/ReleaseX86
+        key: zydis-${{ runner.os }}-${{ steps.zydishash.outputs.hash }}
 
     - name: Build
       run: msbuild "${{ github.event.repository.name }}.sln" /m -t:rebuild -verbosity:minimal -property:Configuration=Release -property:Platform=x64
