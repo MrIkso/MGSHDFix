@@ -6,7 +6,7 @@ on:
   pull_request:
     types: [opened, closed, reopened, ready_for_review, converted_to_draft]
   release:
-    types: [published]
+    types: [published, released]   # catch both published + draft → published
   push:
     branches: [master]
   workflow_dispatch:
@@ -40,7 +40,6 @@ jobs:
         if: ${{ github.event_name == 'issues' && github.event.action == 'closed' }}
         run: |
           closer='${{ github.actor }}'
-
           jq -n \
             --arg t "🗂️ Mission Resolved by @$closer" \
             --arg num "${{ github.event.issue.number }}" \
@@ -107,12 +106,13 @@ jobs:
 
       # 🧰 MGSHDFix Update Released! (Release)
       - name: Release published
-        if: ${{ github.event_name == 'release' && github.event.action == 'published' }}
+        if: ${{ github.event_name == 'release' && (github.event.action == 'published' || github.event.action == 'released') }}
         run: |
+          echo "${{ github.event.release.body }}" > release_body.txt
           jq -n \
+            --rawfile body release_body.txt \
             --arg title   "🧰 MGSHDFix Update Released! ${{ github.event.release.tag_name }}" \
             --arg tag     "${{ github.event.release.tag_name }}" \
-            --arg body    "${{ github.event.release.body }}" \
             --arg author  "${{ github.event.release.author.login }}" \
             --arg authoru "https://github.com/${{ github.event.release.author.login }}" \
             --arg avatar  "${{ github.event.release.author.avatar_url }}" \
@@ -153,21 +153,16 @@ jobs:
           }}
         run: |
           echo '${{ toJson(github.event.commits) }}' > commits.json
-
-          # Commit lines: - [abc1234](url) message
           lines=$(jq -r '
             .[0:5]
             | map("- [" + (.id[0:7]) + "](" + .url + ") " + (.message | split("\n")[0]))
             | join("\n")
             | @json
           ' commits.json)
-
           count=$(jq 'length' commits.json)
           compare='${{ github.event.compare }}'
-
-          # Collect unique authors
           authors=$(jq -r '[.[].author.username // .[].author.name // "unknown"] | unique | map("@" + .) | join(", ")' commits.json)
-      
+
           if [ "$count" -eq 1 ]; then
             author_line="$authors — 1 commit"
           else
