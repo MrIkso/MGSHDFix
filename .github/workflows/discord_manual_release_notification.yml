@@ -29,7 +29,7 @@ jobs:
             echo "Using provided tag: $TAG"
           fi
 
-          BODY_FILE=body.txt
+          BODY_FILE=release_body.txt
           gh release view "$TAG" --json body --jq '.body' > "$BODY_FILE"
           URL=$(gh release view "$TAG" --json url --jq '.url')
           AUTHOR=$(gh release view "$TAG" --json author --jq '.author.login')
@@ -49,22 +49,34 @@ jobs:
           AUTHOR="${{ steps.release.outputs.author }}"
           AVATAR="${{ steps.release.outputs.avatar }}"
 
-          # Clean body (remove Installation section and CRLF safely)
-          BODY_CLEAN=$(cat "$BODY_FILE" | sed 's/\r$//' | awk 'BEGIN{ORS="\n"} {print}' | sed '/^## Installation/,$d')
-
           jq -n \
+            --rawfile body "$BODY_FILE" \
             --arg title   "🧰 MGSHDFix Manual Release! $TAG" \
-            --arg body    "$BODY_CLEAN" \
-            --arg url     "$URL" \
+            --arg tag     "$TAG" \
             --arg author  "$AUTHOR" \
+            --arg authoru "https://github.com/$AUTHOR" \
             --arg avatar  "$AVATAR" \
-            '{
+            --arg url     "$URL" \
+            '
+            def changelog($b):
+              ($b // "") | gsub("\r\n"; "\n") | split("\n## Installation")[0];
+
+            def where_to_download($tag):
+              "## Where to Download\n\n" +
+              "**Nexus Mods:**\n" +
+              "• [MG1 / MG2SS](https://www.nexusmods.com/metalgearandmetalgear2mc/mods/9)\n" +
+              "• [MGS2](https://www.nexusmods.com/metalgearsolid2mc/mods/49)\n" +
+              "• [MGS3](https://www.nexusmods.com/metalgearsolid3mc/mods/139)\n\n" +
+              "**GitHub Releases:**\n" +
+              "• [MGSHDFix " + $tag + "](https://github.com/Lyall/MGSHDFix/releases)";
+
+            {
               embeds: [{
                 title: $title,
-                description: $body,
+                description: (changelog($body) + "\n\n" + where_to_download($tag)),
                 url: $url,
                 color: 7506394,
-                author: { name: ("@" + $author), url: ("https://github.com/" + $author), icon_url: $avatar }
+                author: { name: ("@" + $author), url: $authoru, icon_url: $avatar }
               }]
             }' \
           | curl -s -H "Content-Type: application/json" -d @- "$DISCORD_WEBHOOK"
