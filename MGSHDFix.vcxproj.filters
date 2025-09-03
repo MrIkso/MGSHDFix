@@ -25,9 +25,6 @@
     <ClCompile Include="src\features\gamma_correction.cpp">
       <Filter>WIP</Filter>
     </ClCompile>
-    <ClCompile Include="src\features\distance_culling.cpp">
-      <Filter>WIP</Filter>
-    </ClCompile>
     <ClCompile Include="src\features\mg1_custom_loading_screens.cpp">
       <Filter>WIP</Filter>
     </ClCompile>
@@ -136,6 +133,9 @@
     </ClCompile>
     <ClCompile Include="src\fixes\cpu_core_limit.cpp">
       <Filter>Fixes</Filter>
+    </ClCompile>
+    <ClCompile Include="src\features\distance_culling.cpp">
+      <Filter>Features</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

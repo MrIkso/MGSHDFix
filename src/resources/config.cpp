@@ -146,11 +146,28 @@ void Config::Read()
     if (!iniFile)
     {
         spdlog::error("CONFIG ERROR: File not found: {}", (sExePath / sFixPath / sConfigFile).string());
+        spdlog::error("Make sure that you've run the {} (in your game's /plugins folder) to generate your settings file.", sFixName + " Config Tool");
+        spdlog::error("and that {} is located in {}", sConfigFile.string(), (sExePath / sFixPath).string());
         Logging::ShowConsole();
         std::cout << "" << sFixName << " v" << sFixVersion << " loaded." << std::endl;
-        std::cout << "ERROR: Could not locate config file." << std::endl;
-        std::cout << "ERROR: Make sure you've run the MGSHDFix Config Tool (located in the game's plugins folder) at least once." << std::endl;
-        std::cout << "ERROR: And that " << sConfigFile << " is located in " << sExePath / sFixPath << std::endl;
+        std::cout << "ERROR: File not found: " << (sExePath / sFixPath / sConfigFile).string() << std::endl;
+        std::cout << "ERROR: Make sure that you've run the " << sFixName + " Config Tool" << " (in your game's /plugins folder) to generate your settings file." << std::endl;
+        std::cout << "ERROR: And that " << sConfigFile << " is located in " << sExePath / sFixPath << "\n" << std::endl;
+        if (Util::IsSteamOS())
+        {
+            std::cout << "ERROR: When launching the MGSHDFix Config Tool.exe on SteamOS, a protontricks window will open.\n"
+                "ERROR: Simply select ANY game that's in the list and hit OK.\n"
+                "ERROR: The Config Tool will then open normally.\n"
+                "\n"
+                "ERROR: If you still experience difficulty launching the config tool on SteamOS, add it as a non-steam game and launch it once.\n"
+                "ERROR: That will generate a new Wine prefix just for the config tool, allowing you to open it directly via protontricks in the future."
+                "\n" << std::endl;
+            spdlog::error("When launching the MGSHDFix Config Tool.exe on SteamOS, a protontricks window will open.");
+            spdlog::error("Simply select ANY game that's in the list and hit OK.");
+            spdlog::error("The Config Tool will then open normally.");
+            spdlog::error("If you still experience difficulty launching the config tool on SteamOS, add it as a non-steam game and launch it once.");
+            spdlog::error("That will generate a new Wine prefix just for the config tool, allowing you to open it directly via protontricks in the future.");
+        }
         return FreeLibraryAndExitThread(baseModule, 1);
     }
 
