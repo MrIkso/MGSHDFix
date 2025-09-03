@@ -15,8 +15,10 @@ This is a fix that adds custom resolutions, ultrawide support and much more to t
 - Metal Gear Solid 2
 - Metal Gear Solid 3
 
-## Metal Gear Solid 1 / Metal Gear 1/2 (NES)
-- For Metal Gear Solid 1 and the Vol 1. Bonus Content (MG1/2 NES), using [MGSM2Fix](https://github.com/nuggslet/MGSM2Fix) is recommended.
+## Other Metal Gear Fix Projects
+- MGS Master Collection - Metal Gear Solid 1 and Bonus Content (MG1/2 NES) | MGSM2Fix - [Repo](https://github.com/nuggslet/MGSM2Fix) / [Nexus Page](https://www.nexusmods.com/metalgearsolidmc/mods/5)
+- Metal Gear Solid V: The Phantom Pain | MGSVFix - [Repo](https://github.com/Lyall/MGSVFix)
+- Metal Gear Solid Delta: Snake Eater | MGSDeltaFix - [Repo](https://codeberg.org/Lyall/MGSDeltaFix) / [Nexus Page](https://www.nexusmods.com/metalgearsoliddeltasnakeeater/mods/27)
 
 ## Features
 - Custom resolution/ultrawide support.
@@ -35,6 +37,7 @@ This is a fix that adds custom resolutions, ultrawide support and much more to t
 - Option to force Snake / Raiden to wear their sunglasses (and outright disable their sunglasses.)
 - Option to continue aiming your gun after firing it while in first-person/while holding lock-on.
 - Toggleable wireframe modes.
+- Many more!
 
 ## Bug Fixes
 - Fixes the collection's games sometimes defaulting to intergrated graphics processors on systems with multiple GPUs (due to Nvidia/AMD driver misconfiguration.)
@@ -50,6 +53,7 @@ This is a fix that adds custom resolutions, ultrawide support and much more to t
 - Fixes vector effects / line based rendering scaling (ie rain, lasers, bullet trails.) [PR #140](https://github.com/Lyall/MGSHDFix/pull/140)
 - Fixes UI scaling. [PR #181](github.com/Lyall/MGSHDFix/pull/181)
 - Fixes broken skybox initialization procs (MGS2). [PR#142](https://github.com/Lyall/MGSHDFix/pull/142)
+- Many more!
 
 ## Logging / Warnings for Common Configuration Issues
 - Warnings for common mod compatibility & installation issues - which often result in crashes.
@@ -68,6 +72,7 @@ This is a fix that adds custom resolutions, ultrawide support and much more to t
 2. Extract the contents of the release zip into your game folder.
    - (e.g., `steamapps\common\MGS2` or `steamapps\common\MGS3` for Steam.)
 3. Set both "Internal Resolution" & "Internal Upscaling" to Default / Original in the game's launcher. (Resolution is entirely handled by MGSHDFix.)
+4. Launch the MGSHDFix Config Tool (in the game's /plugins folder) to generate a settings file if you're installing the mod for the first time.
 
 ### Steam Deck/Linux Additional Instructions
 
@@ -76,6 +81,11 @@ This is a fix that adds custom resolutions, ultrawide support and much more to t
 - Open up the game properties of either MGS2/MGS3 in Steam and add the following line to the launch options:
 
        `WINEDLLOVERRIDES="wininet,winhttp=n,b" %command%` 
+	   
+- When opening the MGSHDFix Config Tool on Steam Deck/Linux, a Proton Tricks Wine Prefix window will pop up. Select any game and hit "OK" to open the MGSHDFix Config Tool.
+   - If you do not have any games in the list, or the MGSHDFix Config Tool fails to launch, add it as a non-steam game and launch it once through Steam to generate a new Proton Tricks Wine Prefix entry.
+   - You can remove the Config Tool from your Steam game list and launch it directly after generating this prefix.
+   
 
 ### Configuration
 
