@@ -55,8 +55,13 @@ void KeepAimingAfterFiring::Initialize()
     else if (eGameType & MGS3)
     {
 
-        if (uint8_t* aimingaddress = Memory::PatternScan(baseModule,  "48 89 1D ?? ?? ?? ?? 4C 8D 15", "Aiming Scan");g_KeepAimingAfterFiring.bAlwaysKeepAiming)
+        if (g_KeepAimingAfterFiring.bAlwaysKeepAiming)
         {
+            uint8_t* aimingaddress = Memory::PatternScan(baseModule, "48 89 1D ?? ?? ?? ?? 4C 8D 15", "Aiming Scan");
+            if (!aimingaddress)
+            {
+                return;
+            }
             Memory::PatchBytes(reinterpret_cast<uintptr_t>(aimingaddress), "\x90\x90\x90\x90\x90\x90\x90", 7);
             spdlog::info("Keep Aiming After Firing: Address Patched");
         }
