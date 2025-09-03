@@ -153,9 +153,10 @@ jobs:
           }}
         run: |
           echo '${{ toJson(github.event.commits) }}' > commits.json
+
           lines=$(jq -r '
             .[0:5]
-            | map("- [" + (.id[0:7]) + "](" + .url + ") " + (.message | split("\n")[0]))
+            | map("- [" + (.id[0:7]) + "](" + .url + ") " + (((.message // "(no commit message)") | split("\n")[0])))
             | join("\n")
             | @json
           ' commits.json)
