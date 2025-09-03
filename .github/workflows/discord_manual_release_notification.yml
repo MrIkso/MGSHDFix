@@ -51,7 +51,7 @@ jobs:
 
           jq -n \
             --rawfile body "$BODY_FILE" \
-            --arg title   "🧰 MGSHDFix Manual Release! $TAG" \
+            --arg title   "🧰 MGSHDFix Update Released! $TAG" \
             --arg tag     "$TAG" \
             --arg author  "$AUTHOR" \
             --arg authoru "https://github.com/$AUTHOR" \
