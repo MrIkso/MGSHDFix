@@ -65,6 +65,11 @@ namespace Util
     bool IsSteamOS();
 
     std::string StripQuotes(const std::string& value);
+
+    std::string GetParentProcessName();
+
+    bool IsProcessParent(const std::string& exeName);
+
 }
 
 

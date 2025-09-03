@@ -6,6 +6,9 @@
 #include <string>
 #include <filesystem>
 
+
+#include <algorithm>
+
 #include "logging.hpp"
 
 #pragma comment(lib,"Version.lib")
@@ -524,6 +527,79 @@ namespace Util
             return s;
         }
         return value;
+    }
+
+
+    std::string GetParentProcessName()
+    {
+        DWORD currentPid = GetCurrentProcessId();
+        DWORD parentPid = 0;
+
+        HANDLE snapshot = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
+        if (snapshot == INVALID_HANDLE_VALUE)
+        {
+            return {};
+        }
+
+        PROCESSENTRY32 pe;
+        pe.dwSize = sizeof(PROCESSENTRY32);
+
+        if (Process32First(snapshot, &pe))
+        {
+            do
+            {
+                if (pe.th32ProcessID == currentPid)
+                {
+                    parentPid = pe.th32ParentProcessID;
+                    break;
+                }
+            } while (Process32Next(snapshot, &pe));
+        }
+        CloseHandle(snapshot);
+
+        if (parentPid == 0)
+        {
+            return {};
+        }
+
+        HANDLE hParent = OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION, FALSE, parentPid);
+        if (!hParent)
+        {
+            return {};
+        }
+
+        char exePath[MAX_PATH] = {};
+        DWORD size = sizeof(exePath);
+        if (!QueryFullProcessImageNameA(hParent, 0, exePath, &size))
+        {
+            CloseHandle(hParent);
+            return {};
+        }
+        CloseHandle(hParent);
+
+        std::string name = exePath;
+        size_t pos = name.find_last_of("\\/");
+        if (pos != std::string::npos)
+        {
+            name = name.substr(pos + 1);
+        }
+
+        // lowercase normalize
+        std::transform(name.begin(), name.end(), name.begin(), ::tolower);
+        return name;
+    }
+
+    bool IsProcessParent(const std::string& exeName)
+    {
+        std::string parent = GetParentProcessName();
+        if (parent.empty())
+        {
+            return false;
+        }
+
+        std::string target = exeName;
+        std::transform(target.begin(), target.end(), target.begin(), ::tolower);
+        return parent == target;
     }
 
 }
