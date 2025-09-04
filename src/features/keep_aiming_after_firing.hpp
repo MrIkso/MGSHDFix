@@ -8,6 +8,7 @@ public:
     bool bAlwaysKeepAiming;
     bool bKeepAimingInFirstPerson;
     bool bKeepAimingOnLockOn;
+    bool bOverrodeState = false;
 };
 
 inline KeepAimingAfterFiring g_KeepAimingAfterFiring;

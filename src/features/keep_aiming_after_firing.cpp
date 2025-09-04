@@ -54,46 +54,49 @@ void KeepAimingAfterFiring::Initialize()
     }
     else if (eGameType & MGS3)
     {
+        MAKE_HOOK_MID(baseModule, "48 89 1D ?? ?? ?? ?? 4C 8D 15", "MGS 3: Keep Aiming After Firing", {
+            switch (ctx.r9)
+            {
+                case MGS3_WEAPON_INDEX_MK22:
+                case MGS3_WEAPON_INDEX_M1911A1:
+                case MGS3_WEAPON_INDEX_EzGun:
+                case MGS3_WEAPON_INDEX_SAA:
+                case MGS3_WEAPON_INDEX_Patriot:
+                case MGS3_WEAPON_INDEX_Scorpion:
+                case MGS3_WEAPON_INDEX_XM16E1:
+                case MGS3_WEAPON_INDEX_AK47:
+                case MGS3_WEAPON_INDEX_M63:
+                case MGS3_WEAPON_INDEX_M37:
+                    break;
+                default:
+                    return;
+            }
+            if (g_KeepAimingAfterFiring.bAlwaysKeepAiming){
+                ctx.rbx = g_GameVars.GetAimingState();
+                g_KeepAimingAfterFiring.bOverrodeState = true;
+                return;
+            }
+            if (g_KeepAimingAfterFiring.bKeepAimingInFirstPerson && g_GameVars.MGS3IsHoldingFirstPerson())
+            {
+                ctx.rbx = g_GameVars.GetAimingState();
+                return;
+            }
+            if (g_KeepAimingAfterFiring.bKeepAimingOnLockOn && g_GameVars.MGS3IsHoldingLockOn())
+            {
+                ctx.rbx = g_GameVars.GetAimingState();
+                return;
+            }
+            });
 
         if (g_KeepAimingAfterFiring.bAlwaysKeepAiming)
         {
-            uint8_t* aimingaddress = Memory::PatternScan(baseModule, "48 89 1D ?? ?? ?? ?? 4C 8D 15", "Aiming Scan");
-            if (!aimingaddress)
-            {
-                return;
-            }
-            Memory::PatchBytes(reinterpret_cast<uintptr_t>(aimingaddress), "\x90\x90\x90\x90\x90\x90\x90", 7);
-            spdlog::info("Keep Aiming After Firing: Address Patched");
-        }
-        else
-        {
-            MAKE_HOOK_MID(baseModule, "48 89 1D ?? ?? ?? ?? 4C 8D 15", "MGS 3: Keep Aiming After Firing", {
-                switch (ctx.r9)
+            MAKE_HOOK_MID(baseModule, "4C 8D 15 ?? ?? ?? ?? 4C 8B A4 24", "MGS 3: Keep Aiming After Firing 2", {
+                if (!g_KeepAimingAfterFiring.bOverrodeState)
                 {
-                    case MGS3_WEAPON_INDEX_MK22:
-                    case MGS3_WEAPON_INDEX_M1911A1:
-                    case MGS3_WEAPON_INDEX_EzGun:
-                    case MGS3_WEAPON_INDEX_SAA:
-                    case MGS3_WEAPON_INDEX_Patriot:
-                    case MGS3_WEAPON_INDEX_Scorpion:
-                    case MGS3_WEAPON_INDEX_XM16E1:
-                    case MGS3_WEAPON_INDEX_AK47:
-                    case MGS3_WEAPON_INDEX_M63:
-                    case MGS3_WEAPON_INDEX_M37:
-                        break;
-                    default:
-                        return;
-                }
-                if (g_KeepAimingAfterFiring.bKeepAimingInFirstPerson & g_GameVars.MGS3IsHoldingFirstPerson())
-                {
-                    ctx.rbx = g_GameVars.GetAimingState();
                     return;
                 }
-                if (g_KeepAimingAfterFiring.bKeepAimingOnLockOn & g_GameVars.MGS3IsHoldingLockOn())
-                {
-                    ctx.rbx = g_GameVars.GetAimingState();
-                    return;
-                }
+                ctx.rbx = 0LL;
+                g_KeepAimingAfterFiring.bOverrodeState = false;
                 });
         }
     }
