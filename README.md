@@ -93,6 +93,7 @@ This is a fix that adds custom resolutions, ultrawide support and much more to t
 
 ## Support
 Please report any issues you notice on our Github [here](https://github.com/Lyall/MGSHDFix/issues/new/choose).
+
 For more immediate problems, you can contact us in the [#HDFix](https://discord.gg/bFv9bZmWDV) channel of the Metal Gear Network Discord.
 
 ## Known Issues
