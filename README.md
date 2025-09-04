@@ -91,8 +91,11 @@ This is a fix that adds custom resolutions, ultrawide support and much more to t
 
 - See **MGSHDFix Config Tool.exe** in the `/plugins` folder to adjust settings for the fix.
 
+## Support
+Please report any issues you notice on our Github [here](https://github.com/Lyall/MGSHDFix/issues/new/choose).
+For more immediate problems, you can contact us in the [#HDFix](https://discord.gg/bFv9bZmWDV) channel of the Metal Gear Network Discord.
+
 ## Known Issues
-Please report any issues you see.
 This list will contain bugs which may or may not be fixed.
 
 ### MGS 2

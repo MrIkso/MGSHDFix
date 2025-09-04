@@ -17,10 +17,12 @@ void InputHandler::FatalKeyError(const std::string& section,
         "' in section '" + section + "': " + reason;
 
     spdlog::error(message);
-    spdlog::error("Please check that you're using the latest version's config file, and that there are no typos in it.");
+    spdlog::error("Please run the MGSHDFix Config Tool to update your settings file to the latest version.");
+    spdlog::error("If this issue persists after updating your settings file, you can find our Discord support channel at the Metal Gear Network Discord - #HDFix: {}", DISCORD_URL);
     Logging::ShowConsole();
     std::cout << message << std::endl;
-    std::cout << "Please check that you're using the latest version's config file, and that there are no typos in it." << std::endl;
+    std::cout << "Please run the MGSHDFix Config Tool to update your settings file to the latest version." << std::endl;
+    std::cout << "If this issue persists after updating your settings file, you can find our Discord support channel at the Metal Gear Network Discord - #HDFix: " << DISCORD_URL << std::endl;
 
     FreeLibraryAndExitThread(baseModule, 1);
 }

@@ -838,7 +838,7 @@ static void Init_LauncherConfigOverride()
 
         if (bLauncherConfigSkipLauncher)
         {
-            if (!hasJumpstart)
+            if (!hasJumpstart || Util::IsProcessParent("steam.exe"))
             {
                 auto gameExePath = sExePath.parent_path() / game->ExeName;
 
@@ -893,11 +893,6 @@ static void Init_LauncherConfigOverride()
             }
             else //hasJumpstart && bLauncherConfigSkipLauncher -> we reentered the launcher from the main game. lets terminate once the game finishes closing.
             {
-                if (Util::IsProcessParent("steam.exe")) //User has the jumpstart arg directly in their steam launch options, we're all set - lets bail.
-                {
-                    return;
-                }
-
                 spdlog::info("MG/MG2 | MGS 2 | MGS 3: Launcher jumpstart detected on commandline.");
                 spdlog::info("MG/MG2 | MGS 2 | MGS 3: Waiting for companion game to exit before terminating launcher.");
                 while (Util::IsProcessRunning(sExePath / game->ExeName))

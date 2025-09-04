@@ -6,6 +6,7 @@
 #define FIX_NAME "MGSHDFix"
 #define PRIMARY_REPO_URL "https://github.com/Lyall/MGSHDFix"
 #define FALLBACK_REPO_URL "https://github.com/ShizCalev/MGSHDFix"
+#define DISCORD_URL "https://discord.gg/bFv9bZmWDV"
 
 #define VERSION_MAJOR 2
 #define VERSION_MINOR 8

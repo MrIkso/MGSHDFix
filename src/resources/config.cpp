@@ -161,12 +161,14 @@ void Config::Read()
                 "\n"
                 "ERROR: If you still experience difficulty launching the config tool on SteamOS, add it as a non-steam game and launch it once.\n"
                 "ERROR: That will generate a new Wine prefix just for the config tool, allowing you to open it directly via protontricks in the future."
-                "\n" << std::endl;
+                "\n"
+                "If you require further assistance, you can find our support channel at the Metal Gear Network Discord - #HDFix: " << DISCORD_URL << std::endl;
             spdlog::error("When launching the MGSHDFix Config Tool.exe on SteamOS, a protontricks window will open.");
             spdlog::error("Simply select ANY game that's in the list and hit OK.");
             spdlog::error("The Config Tool will then open normally.");
             spdlog::error("If you still experience difficulty launching the config tool on SteamOS, add it as a non-steam game and launch it once.");
             spdlog::error("That will generate a new Wine prefix just for the config tool, allowing you to open it directly via protontricks in the future.");
+            spdlog::error("If you require further assistance, you can find our support channel at the Metal Gear Network Discord - #HDFix: {}", DISCORD_URL);
         }
         return FreeLibraryAndExitThread(baseModule, 1);
     }

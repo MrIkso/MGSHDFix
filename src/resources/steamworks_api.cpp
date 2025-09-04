@@ -8,6 +8,7 @@
 #include <isteamuser.h>
 #include <isteamuserstats.h>
 #include "isteaminput.h"
+#include "version.h"
 
 #pragma warning(pop)
 
@@ -326,16 +327,18 @@ void SteamAPI::OnSteamInputLoaded()
 
         if ((gamepadIndex == -1) || (eGameType & MG && gamepadIndex == 4) )
         {
-            spdlog::info("SteamInput: Controller #{} | Type: {} | Handle: {} | Status: Good", i + 1, typeStr, handle);
+            spdlog::info("SteamInput: Controller #{} | Type: {} | Handle: {} | Controller -> Game Connection Status: Good", i + 1, typeStr, handle);
         }
         else
         {
             spdlog::error("-------------------    ERROR     ----------------------");
-            spdlog::error("SteamInput: Controller #{} | Type: {} | Handle: {} | Status: ERROR: Gamepad Handler is NOT correct - {}", i + 1, typeStr, handle, gamepadIndex);
+            spdlog::error("SteamInput: Controller #{} | Type: {} | Handle: {} | Status: ERROR: Controller -> Game Connection Status is NOT correct - {}", i + 1, typeStr, handle, gamepadIndex);
             spdlog::error("SteamInput: Gamepad detected using incorrect input handler (ie Steam Input drivers.)");
             spdlog::error("SteamInput: This indicates a Steam Input / OS level game controller driver conflict.");
             spdlog::error("SteamInput: It's been reported that deleting the \"controller_base\" folder from your main Steam directory & then restarting Steam will resolve this issue.");
+            spdlog::error("SteamInput: If you require further assistance, you can find our Discord support channel at the Metal Gear Network Discord - #HDFix: {}", DISCORD_URL);
             spdlog::error("-------------------    ERROR     ----------------------");
+            continue;
         }
 
         InputActionSetHandle_t activeActionSet = steamInput->GetCurrentActionSet(handle);
@@ -358,7 +361,7 @@ void SteamAPI::OnSteamInputLoaded()
             InputDigitalActionHandle_t actionHandle = steamInput->GetDigitalActionHandle(actionName.c_str());
             if (actionHandle == 0)
             {
-                spdlog::warn("SteamInput: Action '{}' not bound for Controller #{}", actionName, i + 1);
+                spdlog::error("SteamInput: Game Action '{}' not bound for Controller #{}", actionName, i + 1);
                 bHasUnboundButtons = true;
                 continue;
             }
@@ -370,7 +373,7 @@ void SteamAPI::OnSteamInputLoaded()
             {
                 const char* originName = steamInput->GetStringForActionOrigin(origins[j]);
                 spdlog::info(
-                    "SteamInput: Controller #{} | Action (0x{:X}) '{}' bound to: {}",
+                    "SteamInput: Controller #{} | Game Action (0x{:X}) '{}' bound to: {}",
                     i + 1,
                     actionHandle,
                     actionName,
@@ -381,9 +384,13 @@ void SteamAPI::OnSteamInputLoaded()
 
         if (bHasUnboundButtons)
         {
-            spdlog::warn("-------------------    WARNING     ----------------------");
-            spdlog::warn("SteamInput: One or more actions are unbound for Controller #{}. Please check your Steam Input configuration for this game.", i + 1);
-            spdlog::warn("-------------------    WARNING     ----------------------");
+            spdlog::error("-------------------    ERROR     ----------------------");
+            spdlog::error("SteamInput: One or more Game Actions are not bound for Controller #{}. ", i + 1);
+            spdlog::error("SteamInput: This usually indicates your Steam Input controller layout/profile is using \"GAMEPAD\" buttons instead of \"GAME ACTION\" buttons.");
+            spdlog::error("SteamInput: Switching to a community-made controller layout/profile and then back to the default should resolve this issue.");
+            spdlog::error("SteamInput: Alternatively, you can manually rebind your controller layout/profile to use the correct \"GAME ACTION\" buttons.");
+            spdlog::error("SteamInput: If you require further assistance, you can find our Discord support channel at the Metal Gear Network Discord - #HDFix: {}", DISCORD_URL);
+            spdlog::error("-------------------    ERROR     ----------------------");
 
         }
     }
