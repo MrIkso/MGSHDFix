@@ -107,6 +107,10 @@ This list will contain bugs which may or may not be fixed.
 - Strength of post-processing may be reduced at higher resolutions. ([#35](https://github.com/Lyall/MGSHDFix/issues/35))
 - Various visual issues when using the experimental HUD fix. ([#41](https://github.com/Lyall/MGSHDFix/issues/41))
 
+### MGS Master Collection - Community Bug Tracker
+- A detailed tracker which catalogs all of the known Master Collection bugs (including issues fixed by MGSHDFix) can be located [here](https://docs.google.com/spreadsheets/d/1WhQSRpkC_A9wBDV0o-Pohh1dMhL1H6nbVzvdluIVWrw/edit?gid=0#gid=0).
+- To submit new entries to the tracker, either report a new issue on the MGSHDFix [Github](https://github.com/Lyall/MGSHDFix/issues/new/choose), or use [this form](https://docs.google.com/forms/d/e/1FAIpQLSef8Vx38tHpBsR-dXnawF6X0iad3XU7vmDX29pcmjbaZhQiew/viewform).
+
 ## Screenshots
 
 | ![MGS2 widescreen cutscene preview](screenshots/after/mgs2%20-%20widescreen.gif) |
