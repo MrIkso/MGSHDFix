@@ -32,8 +32,20 @@ jobs:
             --arg num "${{ github.event.issue.number }}" \
             --arg title "${{ github.event.issue.title }}" \
             --arg url "${{ github.event.issue.html_url }}" \
-            '{embeds:[{title:$t,description:( "**[#" + $num + "](" + $url + ") " + $title + "**" ),url:$url,color:15158332}]}' \
+            --arg body "${{ github.event.issue.body }}" \
+            '{
+              embeds:[{
+                title:$t,
+                description:(
+                  "**[#" + $num + "](" + $url + ") " + $title + "**\n\n" +
+                  (if ($body|length)>2048 then ($body[0:2048] + "...") else $body end)
+                ),
+                url:$url,
+                color:15158332
+              }]
+            }' \
           | curl -s -H "Content-Type: application/json" -d @- "$DISCORD_WEBHOOK"
+
 
       # 🗂️ Mission Resolved (Issue closed)
       - name: Issue closed
@@ -45,8 +57,20 @@ jobs:
             --arg num "${{ github.event.issue.number }}" \
             --arg title "${{ github.event.issue.title }}" \
             --arg url "${{ github.event.issue.html_url }}" \
-            '{embeds:[{title:$t,description:( "**[#" + $num + "](" + $url + ") " + $title + "**" ),url:$url,color:8359053}]}' \
+            --arg body "${{ github.event.issue.body }}" \
+            '{
+              embeds:[{
+                title:$t,
+                description:(
+                  "**[#" + $num + "](" + $url + ") " + $title + "**\n\n" +
+                  (if ($body|length)>2048 then ($body[0:2048] + "...") else $body end)
+                ),
+                url:$url,
+                color:8359053
+              }]
+            }' \
           | curl -s -H "Content-Type: application/json" -d @- "$DISCORD_WEBHOOK"
+
 
       # 📨 Intel Package Received (PR opened)
       - name: PR opened
