@@ -6,7 +6,7 @@ on:
   pull_request:
     types: [opened, closed, reopened, ready_for_review, converted_to_draft]
   release:
-    types: [published, released]   # catch both published + draft → published
+    types: [published]
   push:
     branches: [master]
   workflow_dispatch:
@@ -130,7 +130,7 @@ jobs:
 
       # 🧰 MGSHDFix Update Released! (Release)
       - name: Release published
-        if: ${{ github.event_name == 'release' && (github.event.action == 'published' || github.event.action == 'released') }}
+        if: ${{ github.event_name == 'release' && github.event.action == 'published' }}
         run: |
           echo "${{ github.event.release.body }}" > release_body.txt
           jq -n \
