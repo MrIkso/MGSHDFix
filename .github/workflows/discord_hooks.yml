@@ -52,25 +52,43 @@ jobs:
         if: ${{ github.event_name == 'issues' && github.event.action == 'closed' }}
         run: |
           closer='${{ github.actor }}'
+          closed_at='${{ github.event.issue.closed_at }}'
+
+          closed_epoch=$(date -d "$closed_at" +%s 2>/dev/null || date -j -f "%Y-%m-%dT%H:%M:%SZ" "$closed_at" +%s)
+
+          comments_url='${{ github.event.issue.comments_url }}'
+          last_comment=$(curl -s -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" "$comments_url" \
+            | jq -r --arg closer "$closer" --argjson closed_epoch "$closed_epoch" '
+                [ .[]
+                  | select(.user.login == $closer)
+                  | .created_at as $c
+                  | ($c | sub("Z$"; "") | strptime("%Y-%m-%dT%H:%M:%S") | mktime) as $comment_epoch
+                  | select(($closed_epoch - $comment_epoch) <= 300)  # within 5 minutes
+                ][-1].body
+              ')
+
+          if [ -z "$last_comment" ] || [ "$last_comment" == "null" ]; then
+            last_comment=""
+          fi
+
           jq -n \
             --arg t "🗂️ Mission Resolved by @$closer" \
             --arg num "${{ github.event.issue.number }}" \
             --arg title "${{ github.event.issue.title }}" \
             --arg url "${{ github.event.issue.html_url }}" \
-            --arg body "${{ github.event.issue.body }}" \
+            --arg body "$last_comment" \
             '{
               embeds:[{
                 title:$t,
                 description:(
-                  "**[#" + $num + "](" + $url + ") " + $title + "**\n\n" +
-                  (if ($body|length)>2048 then ($body[0:2048] + "...") else $body end)
+                  "**[#" + $num + "](" + $url + ") " + $title + "**" +
+                  (if ($body|length)>0 then "\n\n" + $body else "" end)
                 ),
                 url:$url,
                 color:8359053
               }]
             }' \
           | curl -s -H "Content-Type: application/json" -d @- "$DISCORD_WEBHOOK"
-
 
       # 📨 Intel Package Received (PR opened)
       - name: PR opened
