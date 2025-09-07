@@ -334,8 +334,8 @@ void SteamAPI::OnSteamInputLoaded()
             spdlog::error("-------------------    ERROR     ----------------------");
             spdlog::error("SteamInput: Controller #{} | Type: {} | Handle: {} | Status: ERROR: Controller -> Game Connection Status is NOT correct - {}", i + 1, typeStr, handle, gamepadIndex);
             spdlog::error("SteamInput: Gamepad detected using incorrect input handler (ie Steam Input drivers.)");
-            spdlog::error("SteamInput: This indicates a Steam Input / OS level game controller driver conflict.");
-            spdlog::error("SteamInput: It's been reported that deleting the \"controller_base\" folder from your main Steam directory & then restarting Steam will resolve this issue.");
+            spdlog::error("SteamInput: This indicates a Steam Input / OS level game controller driver conflict, or that Steam Input itself is disabled.");
+            spdlog::error("SteamInput: It's been reported that deleting the \"controller_base\" folder from your main Steam directory & then restarting Steam can also resolve this issue if you're having continued trouble.");
             spdlog::error("SteamInput: If you require further assistance, you can find our Discord support channel at the Metal Gear Network Discord - #HDFix: {}", DISCORD_URL);
             spdlog::error("-------------------    ERROR     ----------------------");
             continue;
