@@ -50,6 +50,12 @@ if exist "%HASH_FILE%" (
     if not "!OLD_HASH!"=="%ZY_HASH%" set "NEED_BUILD=1"
 )
 
+if "%NEED_BUILD%"=="1" (
+    echo [Zydis] Clearing old output...
+    rmdir /s /q "%~dp0external\zydis\msvc\bin\Release%PLAT%" 2>nul
+    mkdir "%~dp0external\zydis\msvc\bin\Release%PLAT%"
+)
+
 REM --- Build if needed ---
 if "%NEED_BUILD%"=="1" (
     echo [Zydis] Building Release MT %PLAT%
