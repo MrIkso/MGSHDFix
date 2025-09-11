@@ -1,7 +1,7 @@
 #pragma once
 #include <functional>
 
-#include <inipp/inipp.h>
+#include "inipp/inipp.h"
 
 class InputHandler
 {

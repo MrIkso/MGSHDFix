@@ -1,7 +1,8 @@
+#include "stdafx.h"
 #include "common.hpp"
 #include "logging.hpp"
 
-#include <spdlog/sinks/base_sink.h>
+#include "spdlog/sinks/base_sink.h"
 
 #include "steamworks_api.hpp"
 #include "version.h"

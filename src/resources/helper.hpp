@@ -1,6 +1,4 @@
 #pragma once
-
-#include "stdafx.h"
 #include "RegStateHelpers.hpp"
 
 inline std::filesystem::path sFixPath;
@@ -69,6 +67,8 @@ namespace Util
     std::string GetParentProcessName();
 
     bool IsProcessParent(const std::string& exeName);
+
+    int compareSemVer(const std::string& a, const std::string& b);
 
 }
 

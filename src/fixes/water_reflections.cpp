@@ -1,3 +1,4 @@
+#include "stdafx.h"
 #include "common.hpp"
 #include "water_reflections.hpp"
 #include "logging.hpp"

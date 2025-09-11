@@ -1,3 +1,4 @@
+#include "stdafx.h"
 #include "depth_of_field.hpp"
 
 #include "common.hpp"

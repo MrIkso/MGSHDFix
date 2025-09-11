@@ -1,3 +1,4 @@
+#include "stdafx.h"
 #include "common.hpp"
 #include "texture_buffer_size.hpp"
 #include "logging.hpp"

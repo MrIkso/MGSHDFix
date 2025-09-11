@@ -1,3 +1,4 @@
+#include "stdafx.h"
 #include "common.hpp"
 #include "gamevars.hpp"
 #include "effect_speeds.hpp"

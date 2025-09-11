@@ -1,3 +1,5 @@
+#include "stdafx.h"
+
 #include "common.hpp"
 #include "keep_aiming_after_firing.hpp"
 

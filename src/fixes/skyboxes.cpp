@@ -1,3 +1,5 @@
+#include "stdafx.h"
+
 #include "common.hpp"
 #include "skyboxes.hpp"
 #include "logging.hpp"

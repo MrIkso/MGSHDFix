@@ -2,7 +2,7 @@
 
 #pragma warning(push)
 #pragma warning(disable:4828)
-#include <isteaminput.h>
+#include "isteaminput.h"
 #pragma warning(pop)
 
 class FixAimingFullTilt final

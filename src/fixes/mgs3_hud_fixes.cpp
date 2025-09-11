@@ -1,3 +1,4 @@
+#include "stdafx.h"
 #include "common.hpp"
 #include "mgs3_hud_fixes.hpp"
 

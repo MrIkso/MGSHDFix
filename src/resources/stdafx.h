@@ -7,7 +7,6 @@
 #ifndef NOMINMAX
 #define NOMINMAX
 #endif
-
 #include <SDKDDKVer.h>
 #include <cassert>
 #include <Windows.h>
@@ -23,3 +22,21 @@
 #include <inttypes.h>
 #include <filesystem>
 #include <codecvt>
+#include <chrono>
+#include <iomanip>
+#include <algorithm>
+#include <regex>
+#include <windows.h>
+#include <tlhelp32.h>
+#include <psapi.h>
+#include <map>
+#include <winhttp.h>
+#include <random>
+#include <d3dcompiler.h>
+#include <d3d11.h>
+#include <dxgi.h>
+#include <wrl/client.h>
+#include <initializer_list>
+#include <functional>
+#include <optional>
+#include <array>

@@ -1,4 +1,4 @@
-#include <windows.h>
+#include "stdafx.h"
 #include "cpu_core_limit.hpp"
 #include "logging.hpp"
 

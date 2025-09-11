@@ -1,4 +1,5 @@
 ﻿#pragma once
+#include "stdafx.h"
 #include <chrono>
 #include <string>
 #include "logging.hpp"

@@ -1,11 +1,6 @@
+#include "stdafx.h"
 #include "common.hpp"
 #include "corrupt_save_message.hpp"
-
-#include <filesystem>
-#include <chrono>
-#include <iomanip>
-#include <sstream>
-#include <algorithm>
 
 #include "logging.hpp"
 

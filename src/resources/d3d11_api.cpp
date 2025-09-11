@@ -1,3 +1,5 @@
+#include "stdafx.h"
+
 #include "common.hpp"
 #include "d3d11_api.hpp"
 
@@ -8,7 +10,6 @@
 #pragma comment(lib, "d3d11.lib")
 #pragma comment(lib, "dxgi.lib")
 
-#include <dxgi.h>
 #include "gamma_correction.hpp"
 #include "input_handler.hpp"
 

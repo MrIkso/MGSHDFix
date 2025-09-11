@@ -1,7 +1,7 @@
+#include "stdafx.h"
 #include "common.hpp"
 #include "line_scaling.hpp"
 #include "d3d11_api.hpp"
-#include <d3dcompiler.h>
 
 #include "config.hpp"
 #include "input_handler.hpp"

@@ -23,6 +23,7 @@
 // THE SOFTWARE.
 // ============================================================================
 
+#include "pch.h"
 #include "config_keys.hpp"
 #include <wx/wx.h>
 #include <wx/dcbuffer.h>
@@ -32,12 +33,6 @@
 #include <wx/choice.h>
 #include <wx/stdpaths.h>
 #include <wx/mstream.h>
-#include <unordered_map>
-#include <vector>
-#include <map>
-#include <fstream>
-#include <filesystem>
-#include <windows.h>
 
 #include "helper.hpp"
 #include "version.h"

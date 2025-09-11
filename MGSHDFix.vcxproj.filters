@@ -137,6 +137,7 @@
     <ClCompile Include="src\features\distance_culling.cpp">
       <Filter>Features</Filter>
     </ClCompile>
+    <ClCompile Include="src\resources\stdafx.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\fixes\line_scaling.hpp">

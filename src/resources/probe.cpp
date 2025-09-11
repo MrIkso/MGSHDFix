@@ -1,3 +1,5 @@
+#include "stdafx.h"
+
 /*#if !defined(RELEASE_BUILD)
 struct SkyboxPattern
 {

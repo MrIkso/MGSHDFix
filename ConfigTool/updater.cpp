@@ -1,3 +1,4 @@
+#include "pch.h"
 #include "updater.hpp"
 
 #include <wx/wx.h>

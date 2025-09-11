@@ -1,10 +1,10 @@
+#include "stdafx.h"
 #include "common.hpp"
 
 #include "mgs2_sunglasses.hpp"
 
 #include "logging.hpp"
 #include "steamworks_api.hpp"
-#include <random>
 
 bool MGS2Sunglasses::ShouldTriggerSunglasses()
 {

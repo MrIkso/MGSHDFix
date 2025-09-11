@@ -1,7 +1,9 @@
+#include "stdafx.h"
+
 #include "common.hpp"
 #include "config.hpp"
 
-#include <inipp/inipp.h>
+#include "inipp/inipp.h"
 
 #include "aiming_after_equip.hpp"
 #include "aiming_full_tilt.hpp"

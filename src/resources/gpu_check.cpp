@@ -1,14 +1,15 @@
+#include "stdafx.h"
+
 #include "gpu_check.hpp"
 
-#include <spdlog/spdlog.h>
-#include <string>
-#include <vector>
-#include <algorithm>
-#include <regex>
+#include "spdlog/spdlog.h"
 
 #ifndef MINIMUM_GPU_NAME
 #define MINIMUM_GPU_NAME "NVIDIA GeForce GTX 970"
 #endif
+
+constexpr auto LATEST_NVIDIA_DRIVER_VERSION = "32.0.15.8130";
+constexpr auto LATEST_AMD_DRIVER_VERSION = "32.0.21025.1024";
 
 namespace
 {
@@ -36,6 +37,10 @@ namespace
         {"RTX 3080", 300}, {"RTX 3080 TI", 320}, {"RTX 3090", 350}, {"RTX 3090 TI", 370},
         {"RTX 4060", 220}, {"RTX 4060 TI", 240}, {"RTX 4070", 280}, {"RTX 4070 TI", 310},
         {"RTX 4080", 350}, {"RTX 4090", 400},
+        {"RTX 5060", 270}, {"RTX 5060 TI", 300},
+        {"RTX 5070", 340}, {"RTX 5070 TI", 370},
+        {"RTX 5080", 430}, {"RTX 5090", 460},
+
 
         // AMD GPUs
         {"R7 250", 30}, {"R7 250X", 35}, {"R7 260", 45}, {"R7 260X", 50},
@@ -155,6 +160,10 @@ namespace
     {
         if (model >= 1650 && model < 1660) return 85;
         if (model >= 1050 && model < 1060) return 70;
+        if (model >= 5090) return 460;
+        if (model >= 5080) return 430;
+        if (model >= 5070) return 340;
+        if (model >= 5060) return 270;
         if (model >= 4090) return 400;
         if (model >= 4080) return 350;
         if (model >= 4070) return 280;
@@ -305,6 +314,30 @@ namespace
             return tier;
         }();
 
+    void CheckDriverVersion(const std::string& vendor, const std::string& version)
+    {
+        bool bOutdatedDriver = false;
+
+        if (vendor == "NVIDIA")
+        {
+            bOutdatedDriver = (Util::compareSemVer(version, LATEST_NVIDIA_DRIVER_VERSION) < 0);
+        }
+        else if (vendor == "AMD")
+        {
+            bOutdatedDriver = (Util::compareSemVer(version, LATEST_AMD_DRIVER_VERSION) < 0);
+        }
+
+        if (bOutdatedDriver)
+        {
+            spdlog::warn("-------------------    GPU WARNING     ----------------------");
+            spdlog::warn("GPU WARNING: Your {} graphics driver is out of date.", vendor);
+            spdlog::warn("GPU WARNING: Outdated drivers can cause performance and stability issues.");
+            spdlog::warn("GPU WARNING: Please update to the latest driver version from the vendor's website.");
+            spdlog::warn("-------------------    GPU WARNING     ----------------------");
+        }
+
+    }
+
 } // namespace
 
 void CheckMinimumGPU(const std::string& gpuName, UINT product, UINT version, UINT subVersion, UINT build)
@@ -337,7 +370,10 @@ void CheckMinimumGPU(const std::string& gpuName, UINT product, UINT version, UIN
         return;
     }
 
-    spdlog::info("Game is running on GPU: {} (Driver Version: {}.{}.{}.{})", sanitizedName, product, version, subVersion, build);
+    std::string driverVersion = fmt::format("{}.{}.{}.{}", product, version, subVersion, build);
+
+    spdlog::info("Game is running on GPU: {} (Driver Version: {})", sanitizedName, driverVersion);
+    CheckDriverVersion(vendor, driverVersion);
 
     if (tier < kMinimumTier)
     {

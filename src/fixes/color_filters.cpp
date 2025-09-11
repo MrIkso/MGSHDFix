@@ -1,7 +1,8 @@
+#include "stdafx.h"
+
 #include "common.hpp"
 #include "color_filters.hpp"
 
-#include <logging.hpp>
 
 
 #define NORMAL_FILTER "\x38"

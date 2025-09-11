@@ -1,6 +1,6 @@
+#include "stdafx.h"
 #include "postfx.hpp"
-#include <d3dcompiler.h>
-#include <spdlog/spdlog.h>
+#include "logging.hpp"
 
 // Bright magenta test shader
 static const char* SolidColorPS = R"(

@@ -1,3 +1,5 @@
+#include "stdafx.h"
+
 #include "common.hpp"
 #include "input_handler.hpp"
 

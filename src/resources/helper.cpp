@@ -1,13 +1,6 @@
+#include "stdafx.h"
 #include "common.hpp"
 
-#include <windows.h>
-#include <tlhelp32.h>
-#include <psapi.h>
-#include <string>
-#include <filesystem>
-
-
-#include <algorithm>
 
 #include "logging.hpp"
 
@@ -600,6 +593,62 @@ namespace Util
         std::string target = exeName;
         std::transform(target.begin(), target.end(), target.begin(), ::tolower);
         return parent == target;
+    }
+
+    int compareSemVer(const std::string& a, const std::string& b)
+    {
+        auto parse = [](const std::string& s)
+            {
+                std::vector<int> parts;
+                std::istringstream ss(s);
+                std::string token;
+
+                while (std::getline(ss, token, '.'))
+                {
+                    if (token.empty())
+                    {
+                        parts.push_back(0);
+                        continue;
+                    }
+
+                    size_t i = 0;
+                    while (i < token.size() && std::isdigit(static_cast<unsigned char>(token[i])))
+                        ++i;
+
+                    int value = (i > 0) ? std::stoi(token.substr(0, i)) : 0;
+                    parts.push_back(value);
+
+                    if (i < token.size())
+                    {
+                        // take first suffix letter -> 'a' = 1, 'b' = 2, etc.
+                        char c = static_cast<char>(std::tolower(token[i]));
+                        if (c >= 'a' && c <= 'z')
+                        {
+                            parts.push_back((c - 'a') + 1);
+                        }
+                        else
+                        {
+                            parts.push_back(1); // fallback for weird suffix
+                        }
+                    }
+                }
+
+                return parts;
+            };
+
+        std::vector<int> va = parse(a);
+        std::vector<int> vb = parse(b);
+
+        size_t n = std::max(va.size(), vb.size());
+        va.resize(n, 0);
+        vb.resize(n, 0);
+
+        for (size_t i = 0; i < n; ++i)
+        {
+            if (va[i] < vb[i]) return -1;
+            if (va[i] > vb[i]) return 1;
+        }
+        return 0;
     }
 
 }

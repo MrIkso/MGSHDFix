@@ -1,3 +1,5 @@
+#include "stdafx.h"
+
 #include "common.hpp"
 #include "logging.hpp"
 #include "intro_skip.hpp"

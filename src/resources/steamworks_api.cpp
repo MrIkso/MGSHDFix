@@ -1,12 +1,13 @@
+#include "stdafx.h"
 #include "common.hpp"
 #include "steamworks_api.hpp"
-#include <logging.hpp>
+#include "logging.hpp"
 
 
 #pragma warning(push)
 #pragma warning(disable:4828)
-#include <isteamuser.h>
-#include <isteamuserstats.h>
+#include "isteamuser.h"
+#include "isteamuserstats.h"
 #include "isteaminput.h"
 #include "version.h"
 

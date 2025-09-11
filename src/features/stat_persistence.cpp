@@ -1,3 +1,4 @@
+#include "stdafx.h"
 #include "common.hpp"
 #include "stat_persistence.hpp"
 
@@ -6,7 +7,7 @@
 #include "steam_achievements.hpp"
 #pragma warning(push)
 #pragma warning(disable:4828)
-#include <isteamuserstats.h>
+#include "isteamuserstats.h"
 #pragma warning(pop)
 
 using BoolPtr = bool StatPersistence::*;

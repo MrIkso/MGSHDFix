@@ -1,3 +1,4 @@
+#include "stdafx.h"
 #include "common.hpp"
 #include "aiming_full_tilt.hpp"
 

@@ -1,5 +1,5 @@
 #pragma once
-#include <safetyhook.hpp>
+#include "safetyhook.hpp"
 
 // ==========================================================
 // ContextHelpers

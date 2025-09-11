@@ -1,3 +1,4 @@
+#include "stdafx.h"
 #include "common.hpp"
 #include "asi_loader_checks.hpp"
 #include "logging.hpp"

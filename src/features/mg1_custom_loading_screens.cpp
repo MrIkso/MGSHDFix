@@ -1,3 +1,5 @@
+#include "stdafx.h"
+
 #include "common.hpp"
 #include "mg1_custom_loading_screens.hpp"
 

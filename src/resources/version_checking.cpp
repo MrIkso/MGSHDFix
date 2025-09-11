@@ -1,3 +1,5 @@
+#include "stdafx.h"
+
 #include "common.hpp"
 #include "version_checking.hpp"
 
@@ -173,7 +175,7 @@ bool LatestVersionChecker::checkForUpdates()
         spdlog::info("Version Check: Under {} hours since last update check. Skipping update check.", iCacheTTLHours);
     }
 
-    const int cmp = compareSemVer(VERSION_STRING, cachedLatest);
+    const int cmp = Util::compareSemVer(VERSION_STRING, cachedLatest);
 
     if (cmp < 0)
     {
@@ -452,31 +454,6 @@ bool LatestVersionChecker::queryLatestVersion(const RepoInfo& repoInfo, std::str
     }
 
     return false;
-}
-
-int LatestVersionChecker::compareSemVer(const std::string& a, const std::string& b)
-{
-    std::istringstream sa(a);
-    std::istringstream sb(b);
-    int va[3] = { 0 };
-    int vb[3] = { 0 };
-    char dot = 0;
-
-    sa >> va[0] >> dot >> va[1] >> dot >> va[2];
-    sb >> vb[0] >> dot >> vb[1] >> dot >> vb[2];
-
-    for (int i = 0; i < 3; ++i)
-    {
-        if (va[i] < vb[i])
-        {
-            return -1;
-        }
-        if (va[i] > vb[i])
-        {
-            return 1;
-        }
-    }
-    return 0;
 }
 
 std::string LatestVersionChecker::currentTimeISO8601()

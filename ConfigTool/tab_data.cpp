@@ -23,6 +23,7 @@
 // THE SOFTWARE.
 // ============================================================================
 // ReSharper disable CppClangTidyClangDiagnosticMissingFieldInitializers
+#include "pch.h"
 #include "tab_data.hpp"
 #include <d3d11.h>
 

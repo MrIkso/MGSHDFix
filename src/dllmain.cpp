@@ -1,3 +1,5 @@
+#include "stdafx.h"
+
 #include "common.hpp"
 #include "logging.hpp"
 #include "submodule_initiailization.hpp"
@@ -1186,7 +1188,7 @@ bool mainThreadFinished = false;
 DWORD __stdcall Main(void*)
 {
     g_Logging.initStartTime = std::chrono::high_resolution_clock::now();
-    g_Logging.Initialize();
+    Logging::Initialize();
 
     INITIALIZE(InitializeSubsystems());
 

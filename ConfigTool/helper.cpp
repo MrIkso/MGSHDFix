@@ -1,5 +1,5 @@
+#include "pch.h"
 #include "helper.hpp"
-#include <array>
 #include <wx/filefn.h>
 #include <wx/log.h>
 
