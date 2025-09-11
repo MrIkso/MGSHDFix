@@ -177,21 +177,36 @@ void StatPersistence::MGS3_SnakeEyes_SetSeen(int iSceneNumber)
     }
 }
 
+#if !defined(RELEASE_BUILD)
+//#define DEBUG_LOG_ACHIEVEMENT(...) spdlog::info(__VA_ARGS__)
+#define DEBUG_LOG_ACHIEVEMENT(...) ((void)0)
+#else
+#define DEBUG_LOG_ACHIEVEMENT(...) ((void)0)
+#endif
+
 #define HANDLE_COUNT_ACHIEVEMENT(ctx, unlockedFlag, currentCountVar, targetCount) \
     do { \
         if (g_StatPersistence.unlockedFlag) \
             return; \
+        DEBUG_LOG_ACHIEVEMENT("Steam Stat Persistance: Handling count achievement, current count: {}, target count: {}", g_StatPersistence.currentCountVar, targetCount);\
         const unsigned int iCurrentNum = reghelpers::get_eax(ctx); \
-        if (iCurrentNum >= targetCount) { \
+        if (iCurrentNum >= static_cast<unsigned int>(targetCount)) { \
             g_StatPersistence.unlockedFlag = true; \
+            DEBUG_LOG_ACHIEVEMENT("Steam Stat Persistance: Achievement unlocked!"); \
             return; \
         } \
-        if (g_StatPersistence.currentCountVar < iCurrentNum) { \
+        if (static_cast<unsigned int>(g_StatPersistence.currentCountVar) < iCurrentNum) { \
+            DEBUG_LOG_ACHIEVEMENT("g_StatPersistence.currentCountVar {} < iCurrentNum {}", g_StatPersistence.currentCountVar, iCurrentNum); \
             g_StatPersistence.currentCountVar = iCurrentNum; \
+            DEBUG_LOG_ACHIEVEMENT("Steam Stat Persistance: Synced current count to {}", g_StatPersistence.currentCountVar); \
             g_StatPersistence.bUpdatedState = true; \
+            DEBUG_LOG_ACHIEVEMENT("Update Queued");\
             return; \
         } \
-        reghelpers::set_eax(ctx, g_StatPersistence.currentCountVar++); \
+        g_StatPersistence.currentCountVar++;\
+        reghelpers::set_eax(ctx, g_StatPersistence.currentCountVar); \
+        g_StatPersistence.bUpdatedState = true; \
+        DEBUG_LOG_ACHIEVEMENT("Steam Stat Persistance: New EAX value set to {}, currentCount = {}, target = {}", reghelpers::get_eax(ctx), g_StatPersistence.currentCountVar, targetCount); \
     } while (0)
 
 void StatPersistence::Setup() const
@@ -426,10 +441,12 @@ void StatPersistence::LoadPersistentStats()
 /// "Renaming is an atomic operation and ensures that at no point is the file in an incomplete or invalid state."
 void StatPersistence::SaveStats() const
 {
+
     if (!g_StatPersistence.bUpdatedState)
     {
         return;
     }
+
 
     try
     {
@@ -439,7 +456,9 @@ void StatPersistence::SaveStats() const
             spdlog::error("Steam Stat Persistence: Failed to open temp file for writing: {}", pTempSaveFile.string());
             return;
         }
-
+#if !defined(RELEASE_BUILD)
+        spdlog::info("Steam Stat Persistence: Writing stats to temp file: {}", pTempSaveFile.string());
+#endif
         if (eGameType & MGS2)
         {
             if (!bMGS2_Achvmt_JohnnyOnTheSpot_Unlocked)
@@ -486,7 +505,9 @@ void StatPersistence::SaveStats() const
         // Rename temp -> final (atomic)
         std::filesystem::rename(pTempSaveFile, pPersistenceSaveFile);
 
+#if !defined(RELEASE_BUILD)
         spdlog::info("Steam Stat Persistence: Stats saved successfully.");
+#endif
         g_StatPersistence.bUpdatedState = false;
     }
     catch (const std::exception& e)

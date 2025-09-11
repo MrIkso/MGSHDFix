@@ -3,6 +3,7 @@
 
 #include <wx/wx.h>
 
+#include "helper.hpp"
 #include "wx/filefn.h"
 #include "wx/log.h"
 
@@ -181,10 +182,16 @@ bool LatestVersionChecker::checkForUpdates()
         wxLogDebug("Version Check: Under %i hours since last update check. Skipping update check.", iCacheTTLHours);
     }
 
-    const int cmp = compareSemVer(VERSION_STRING, cachedLatest);
-
-    if (cmp < 0)
+    switch (Helper::compareSemVer(VERSION_STRING, cachedLatest))
     {
+    case Helper::VersionCompareResult::Equal:
+        wxLogDebug("Version Check: %s is up to date.", FIX_NAME);
+        return false;
+    case Helper::VersionCompareResult::Newer:
+        wxLogDebug("Version Check: Welcome back, Commander! You are running a development build of %s!", FIX_NAME);
+        wxLogDebug("Version Check - Current Version: %s, Latest Release: %s", VERSION_STRING, cachedLatest);
+        return false;
+    case Helper::VersionCompareResult::Older:
         wxLogDebug("Version Check: A new version of %s is available.", FIX_NAME);
         wxLogDebug("Version Check - Current Version: %s, Latest Version: %s", VERSION_STRING, cachedLatest);
 
@@ -204,15 +211,9 @@ bool LatestVersionChecker::checkForUpdates()
         }
         return false;
     }
-    else if (cmp > 0)
-    {
-        wxLogDebug("Version Check: Welcome back, Commander! You are running a development build of %s!", FIX_NAME);
-        wxLogDebug("Version Check - Current Version: %s, Latest Release: %s", VERSION_STRING, cachedLatest);
-        return false;
-    }
 
-    wxLogDebug("Version Check: %s is up to date.", FIX_NAME);
     return false;
+
 }
 
 bool LatestVersionChecker::loadCache(std::string& cachedLatest, std::string& warnedVersion, bool& cacheIsFresh)
@@ -462,31 +463,6 @@ bool LatestVersionChecker::queryLatestVersion(const RepoInfo& repoInfo, std::str
     }
 
     return false;
-}
-
-int LatestVersionChecker::compareSemVer(const std::string& a, const std::string& b)
-{
-    std::istringstream sa(a);
-    std::istringstream sb(b);
-    int va[3] = { 0 };
-    int vb[3] = { 0 };
-    char dot = 0;
-
-    sa >> va[0] >> dot >> va[1] >> dot >> va[2];
-    sb >> vb[0] >> dot >> vb[1] >> dot >> vb[2];
-
-    for (int i = 0; i < 3; ++i)
-    {
-        if (va[i] < vb[i])
-        {
-            return -1;
-        }
-        if (va[i] > vb[i])
-        {
-            return 1;
-        }
-    }
-    return 0;
 }
 
 std::string LatestVersionChecker::currentTimeISO8601()

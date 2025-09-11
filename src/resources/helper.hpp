@@ -68,7 +68,15 @@ namespace Util
 
     bool IsProcessParent(const std::string& exeName);
 
-    int compareSemVer(const std::string& a, const std::string& b);
+    enum class VersionCompareResult
+    {
+        Older = -1,
+        Equal = 0,
+        Newer = 1
+    };
+
+    // Compare two semantic-style version strings (e.g. "32.0.15.8130" vs "32.0.15.9000")
+    VersionCompareResult compareSemVer(const std::string& currentVersion, const std::string& targetVersion);
 
 }
 

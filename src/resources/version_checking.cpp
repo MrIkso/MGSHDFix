@@ -175,10 +175,16 @@ bool LatestVersionChecker::checkForUpdates()
         spdlog::info("Version Check: Under {} hours since last update check. Skipping update check.", iCacheTTLHours);
     }
 
-    const int cmp = Util::compareSemVer(VERSION_STRING, cachedLatest);
-
-    if (cmp < 0)
+    switch (Util::compareSemVer(VERSION_STRING, cachedLatest))
     {
+    case Util::VersionCompareResult::Equal:
+        spdlog::info("Version Check: {} is up to date.", FIX_NAME);
+        return false;
+    case Util::VersionCompareResult::Newer:
+        spdlog::info("Version Check: Welcome back, Commander! You are running a development build of {}!", FIX_NAME);
+        spdlog::info("Version Check - Current Version: {}, Latest Release: {}", VERSION_STRING, cachedLatest);
+        return false;
+    case Util::VersionCompareResult::Older:
         spdlog::warn("Version Check: A new version of {} is available.", FIX_NAME);
         spdlog::warn("Version Check - Current Version: {}, Latest Version: {}", VERSION_STRING, cachedLatest);
 
@@ -196,14 +202,6 @@ bool LatestVersionChecker::checkForUpdates()
         }
         return false;
     }
-    else if (cmp > 0)
-    {
-        spdlog::info("Version Check: Welcome back, Commander! You are running a development build of {}!", FIX_NAME);
-        spdlog::info("Version Check - Current Version: {}, Latest Release: {}", VERSION_STRING, cachedLatest);
-        return false;
-    }
-
-    spdlog::info("Version Check: {} is up to date.", FIX_NAME);
     return false;
 }
 

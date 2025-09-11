@@ -8,7 +8,7 @@
 #define MINIMUM_GPU_NAME "NVIDIA GeForce GTX 970"
 #endif
 
-constexpr auto LATEST_NVIDIA_DRIVER_VERSION = "32.0.15.8130";
+constexpr auto LATEST_NVIDIA_DRIVER_VERSION = "32.0.15.8129";
 constexpr auto LATEST_AMD_DRIVER_VERSION = "32.0.21025.1024";
 
 namespace
@@ -320,11 +320,11 @@ namespace
 
         if (vendor == "NVIDIA")
         {
-            bOutdatedDriver = (Util::compareSemVer(version, LATEST_NVIDIA_DRIVER_VERSION) < 0);
+            bOutdatedDriver = (Util::compareSemVer(version, LATEST_NVIDIA_DRIVER_VERSION) == Util::VersionCompareResult::Older);
         }
         else if (vendor == "AMD")
         {
-            bOutdatedDriver = (Util::compareSemVer(version, LATEST_AMD_DRIVER_VERSION) < 0);
+            bOutdatedDriver = (Util::compareSemVer(version, LATEST_AMD_DRIVER_VERSION) == Util::VersionCompareResult::Older);
         }
 
         if (bOutdatedDriver)
