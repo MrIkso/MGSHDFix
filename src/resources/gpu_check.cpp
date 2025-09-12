@@ -2,6 +2,7 @@
 
 #include "gpu_check.hpp"
 
+#include "version_checking.hpp"
 #include "spdlog/spdlog.h"
 
 #ifndef MINIMUM_GPU_NAME
@@ -351,7 +352,7 @@ void CheckMinimumGPU(const std::string& gpuName, UINT product, UINT version, UIN
 
     spdlog::info("Game is running on GPU: {} (Driver Version: {})", sanitizedName, driverVersion);
 
-    if ((vendor == "NVIDIA" || vendor == "AMD") && (Util::CompareSemanticVersion(driverVersion, vendor == "NVIDIA" ? LATEST_NVIDIA_DRIVER_VERSION : LATEST_AMD_DRIVER_VERSION) == Util::VersionCompareResult::Older))
+    if ((vendor == "NVIDIA" || vendor == "AMD") && (VersionCheck::CompareSemanticVersion(driverVersion, vendor == "NVIDIA" ? LATEST_NVIDIA_DRIVER_VERSION : LATEST_AMD_DRIVER_VERSION) == VersionCheck::CompareResult::Older))
     {
         spdlog::warn("-------------------    GPU WARNING     ----------------------");
         spdlog::warn("GPU WARNING: Your {} graphics drivers are out of date.", vendor);

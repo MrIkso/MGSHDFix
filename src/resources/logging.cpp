@@ -6,9 +6,8 @@
 
 #include "steamworks_api.hpp"
 #include "version.h"
+#include "version_checking.hpp"
 
-constexpr auto MinimumWindows10Version = "10.0.19045.6332"; //September 9, 2025 / 22H2 / KB5065429
-constexpr auto MinimumWindows11Version = "10.0.26100.4946"; //August 12, 2025 / 24H2 / KB5063878
 
 // Spdlog sink (truncate on startup, single file)
 template<typename Mutex>
@@ -295,8 +294,11 @@ void Logging::LogSysInfo()
         spdlog::info("System Details - OS:  {}", os);
         if (!Util::IsSteamOS())
         {
+            constexpr auto MinimumWindows10Version = "10.0.19045.6332"; //September 9, 2025 / 22H2 / KB5065429
+            constexpr auto MinimumWindows11Version = "10.0.26100.4946"; //August 12, 2025 / 24H2 / KB5063878
+
             const auto minRequired = isWindows11 ? MinimumWindows11Version : MinimumWindows10Version;
-            if (Util::CompareSemanticVersion(WindowsVersionNumber, minRequired) == Util::VersionCompareResult::Older)
+            if (VersionCheck::CompareSemanticVersion(WindowsVersionNumber, minRequired) == VersionCheck::CompareResult::Older)
             {
                 spdlog::warn("-------------------    SYSTEM WARNING     ----------------------");
                 spdlog::warn("SYSTEM WARNING: Outdated Windows version detected: {}", os);

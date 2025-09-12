@@ -5,6 +5,20 @@
 #include <chrono>
 #include <filesystem>
 
+namespace VersionCheck
+{
+    enum class CompareResult : uint8_t
+    {
+        Older = -1,
+        Equal = 0,
+        Newer = 1
+    };
+
+    // Compare two semantic-style version strings (e.g. "32.0.15.8130" vs "32.0.15.9000")
+    CompareResult CompareSemanticVersion(const std::string& currentVersion, const std::string& targetVersion);
+
+}
+
 class LatestVersionChecker
 {
 public:

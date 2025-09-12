@@ -9,25 +9,25 @@ void UnitTests::runAllTests()
 #else
 #undef NDEBUG
 
-#include "helper.hpp"
 #include "logging.hpp"
+#include "version_checking.hpp"
 
 namespace
 {
     void testCompareSemVer()
     {
-        assert(Util::CompareSemanticVersion("1.0.0", "1.0.0") == Util::VersionCompareResult::Equal);
-        assert(Util::CompareSemanticVersion("1.0.0", "0.0.9") == Util::VersionCompareResult::Newer);
-        assert(Util::CompareSemanticVersion("1.0.0", "1.0.1") == Util::VersionCompareResult::Older);
-        assert(Util::CompareSemanticVersion("1.2a", "1.2.1") == Util::VersionCompareResult::Equal);
-        assert(Util::CompareSemanticVersion("1.0.0", "1.0.0.0") == Util::VersionCompareResult::Equal);
-        assert(Util::CompareSemanticVersion("1.0.0", "0.0.9.9") == Util::VersionCompareResult::Newer);
-        assert(Util::CompareSemanticVersion("1.0.0", "1.0.1.1") == Util::VersionCompareResult::Older);
-        assert(Util::CompareSemanticVersion("1.2a", "1.2.1.0") == Util::VersionCompareResult::Equal);
-        assert(Util::CompareSemanticVersion("1.0.0", "1.0.0.0") == Util::VersionCompareResult::Equal);
-        assert(Util::CompareSemanticVersion("1.0.0", "0.0.9.9") == Util::VersionCompareResult::Newer);
-        assert(Util::CompareSemanticVersion("1.0.0", "1.0.1.1") == Util::VersionCompareResult::Older);
-        assert(Util::CompareSemanticVersion("1.2a", "1.2.1.0") == Util::VersionCompareResult::Equal);
+        assert(VersionCheck::CompareSemanticVersion("1.0.0", "1.0.0") == VersionCheck::CompareResult::Equal);
+        assert(VersionCheck::CompareSemanticVersion("1.0.0", "0.0.9") == VersionCheck::CompareResult::Newer);
+        assert(VersionCheck::CompareSemanticVersion("1.0.0", "1.0.1") == VersionCheck::CompareResult::Older);
+        assert(VersionCheck::CompareSemanticVersion("1.2a", "1.2.1") == VersionCheck::CompareResult::Equal);
+        assert(VersionCheck::CompareSemanticVersion("1.0.0", "1.0.0.0") == VersionCheck::CompareResult::Equal);
+        assert(VersionCheck::CompareSemanticVersion("1.0.0", "0.0.9.9") == VersionCheck::CompareResult::Newer);
+        assert(VersionCheck::CompareSemanticVersion("1.0.0", "1.0.1.1") == VersionCheck::CompareResult::Older);
+        assert(VersionCheck::CompareSemanticVersion("1.2a", "1.2.1.0") == VersionCheck::CompareResult::Equal);
+        assert(VersionCheck::CompareSemanticVersion("1.0.0", "1.0.0.0") == VersionCheck::CompareResult::Equal);
+        assert(VersionCheck::CompareSemanticVersion("1.0.0", "0.0.9.9") == VersionCheck::CompareResult::Newer);
+        assert(VersionCheck::CompareSemanticVersion("1.0.0", "1.0.1.1") == VersionCheck::CompareResult::Older);
+        assert(VersionCheck::CompareSemanticVersion("1.2a", "1.2.1.0") == VersionCheck::CompareResult::Equal);
         spdlog::info("Unit Test: compareSemVersion completed successfully.");
     }
 
