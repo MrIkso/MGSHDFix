@@ -1243,8 +1243,7 @@ BOOL APIENTRY DllMain(HMODULE hModule, DWORD ul_reason_for_call, LPVOID lpReserv
     {
         DisableThreadLibraryCalls(hModule);
 
-        HMODULE vcruntime140 = GetModuleHandleA("VCRUNTIME140.dll");
-        if (vcruntime140)
+        if (GetModuleHandleA("VCRUNTIME140.dll"))
         {
             // Read the current IAT entry for memset in the base module.
             // Note: it may already point to another mod's hook if they loaded first.

@@ -2,7 +2,10 @@
 #include "unit_tests.hpp"
 
 #if defined(RELEASE_BUILD)
-void UnitTests::runAllTests();
+void UnitTests::runAllTests()
+{
+    
+}
 #else
 #undef NDEBUG
 

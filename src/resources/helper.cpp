@@ -248,6 +248,7 @@ namespace Util
     void DumpContext(const safetyhook::Context& ctx)
     {
         spdlog::info("\n"
+#if defined(_M_X64) || defined(__x86_64__)
             // General-purpose 64-bit registers
             "RAX = 0x{:X}\t| RBX = 0x{:X}\t| RCX = 0x{:X}\t| RDX = 0x{:X}\n"
             "RSI = 0x{:X}\t| RDI = 0x{:X}\t| RBP = 0x{:X}\t| RSP = 0x{:X}\n"
@@ -268,6 +269,20 @@ namespace Util
             ctx.xmm4.f32[0], ctx.xmm5.f32[0], ctx.xmm6.f32[0], ctx.xmm7.f32[0],
             ctx.xmm8.f32[0], ctx.xmm9.f32[0], ctx.xmm10.f32[0], ctx.xmm11.f32[0],
             ctx.xmm12.f32[0], ctx.xmm13.f32[0], ctx.xmm14.f32[0], ctx.xmm15.f32[0]
+#else       
+            // General-purpose 32-bit registers
+             "EAX = 0x{:X}\t| EBX = 0x{:X}\t| ECX = 0x{:X}\t| EDX = 0x{:X}\n"
+             "ESI = 0x{:X}\t| EDI = 0x{:X}\t| EBP = 0x{:X}\t| ESP = 0x{:X}\n"
+             "EIP = 0x{:X}\n"
+             // XMM floats
+             "XMM0 = {:g}\t| XMM1 = {:g}\t| XMM2 = {:g}\t| XMM3 = {:g}\n"
+             "XMM4 = {:g}\t| XMM5 = {:g}\t| XMM6 = {:g}\t| XMM7 = {:g}\n",
+             ctx.eax, ctx.ebx, ctx.ecx, ctx.edx,
+             ctx.esi, ctx.edi, ctx.ebp, ctx.esp,
+             ctx.eip,
+             ctx.xmm0.f32[0], ctx.xmm1.f32[0], ctx.xmm2.f32[0], ctx.xmm3.f32[0],
+             ctx.xmm4.f32[0], ctx.xmm5.f32[0], ctx.xmm6.f32[0], ctx.xmm7.f32[0]
+#endif
         );
     }
 
