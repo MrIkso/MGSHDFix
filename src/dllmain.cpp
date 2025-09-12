@@ -47,6 +47,9 @@
 #include "gamma_correction.hpp"
 #include "mg1_custom_loading_screens.hpp"
 
+#if !defined(RELEASE_BUILD)
+#include "unit_tests.hpp"
+#endif
 
 // Aspect ratio + HUD stuff
 constexpr float fNativeAspect = 16.0f / 9.0f;
@@ -1179,6 +1182,10 @@ static void InitializeSubsystems()
         INITIALIZE(g_StatPersistence.Setup());
         INITIALIZE(CheckForUpdates());
     }
+
+#if !defined(RELEASE_BUILD)
+    INITIALIZE(UnitTests::runAllTests());
+#endif
 }
 
 std::mutex mainThreadFinishedMutex;

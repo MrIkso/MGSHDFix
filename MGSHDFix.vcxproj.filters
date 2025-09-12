@@ -138,6 +138,9 @@
       <Filter>Features</Filter>
     </ClCompile>
     <ClCompile Include="src\resources\stdafx.cpp" />
+    <ClCompile Include="src\resources\unit_tests.cpp">
+      <Filter>Utility</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\fixes\line_scaling.hpp">
@@ -262,6 +265,9 @@
     </ClInclude>
     <ClInclude Include="src\fixes\cpu_core_limit.hpp">
       <Filter>Fixes\Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="src\resources\unit_tests.hpp">
+      <Filter>Utility\Headers</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
