@@ -182,7 +182,7 @@ bool LatestVersionChecker::checkForUpdates()
         wxLogDebug("Version Check: Under %i hours since last update check. Skipping update check.", iCacheTTLHours);
     }
 
-    switch (Helper::compareSemVer(VERSION_STRING, cachedLatest))
+    switch (Helper::CompareSemanticVersion(VERSION_STRING, cachedLatest))
     {
     case Helper::VersionCompareResult::Equal:
         wxLogDebug("Version Check: %s is up to date.", FIX_NAME);

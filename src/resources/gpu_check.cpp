@@ -9,7 +9,7 @@
 #endif
 
 constexpr auto LATEST_NVIDIA_DRIVER_VERSION = "32.0.15.8129";
-constexpr auto LATEST_AMD_DRIVER_VERSION = "32.0.21025.1024";
+constexpr auto LATEST_AMD_DRIVER_VERSION = "32.0.21025.10016";
 
 namespace
 {
@@ -314,29 +314,6 @@ namespace
             return tier;
         }();
 
-    void CheckDriverVersion(const std::string& vendor, const std::string& version)
-    {
-        bool bOutdatedDriver = false;
-
-        if (vendor == "NVIDIA")
-        {
-            bOutdatedDriver = (Util::compareSemVer(version, LATEST_NVIDIA_DRIVER_VERSION) == Util::VersionCompareResult::Older);
-        }
-        else if (vendor == "AMD")
-        {
-            bOutdatedDriver = (Util::compareSemVer(version, LATEST_AMD_DRIVER_VERSION) == Util::VersionCompareResult::Older);
-        }
-
-        if (bOutdatedDriver)
-        {
-            spdlog::warn("-------------------    GPU WARNING     ----------------------");
-            spdlog::warn("GPU WARNING: Your {} graphics driver is out of date.", vendor);
-            spdlog::warn("GPU WARNING: Outdated drivers can cause performance and stability issues.");
-            spdlog::warn("GPU WARNING: Please update to the latest driver version from the vendor's website.");
-            spdlog::warn("-------------------    GPU WARNING     ----------------------");
-        }
-
-    }
 
 } // namespace
 
@@ -373,7 +350,15 @@ void CheckMinimumGPU(const std::string& gpuName, UINT product, UINT version, UIN
     std::string driverVersion = fmt::format("{}.{}.{}.{}", product, version, subVersion, build);
 
     spdlog::info("Game is running on GPU: {} (Driver Version: {})", sanitizedName, driverVersion);
-    CheckDriverVersion(vendor, driverVersion);
+
+    if ((vendor == "NVIDIA" || vendor == "AMD") && (Util::CompareSemanticVersion(driverVersion, vendor == "NVIDIA" ? LATEST_NVIDIA_DRIVER_VERSION : LATEST_AMD_DRIVER_VERSION) == Util::VersionCompareResult::Older))
+    {
+        spdlog::warn("-------------------    GPU WARNING     ----------------------");
+        spdlog::warn("GPU WARNING: Your {} graphics drivers are out of date.", vendor);
+        spdlog::warn("GPU WARNING: Outdated drivers can cause performance and stability issues.");
+        spdlog::warn("GPU WARNING: Please update to the latest driver version from the vendor's website.");
+        spdlog::warn("-------------------    GPU WARNING     ----------------------");
+    }
 
     if (tier < kMinimumTier)
     {

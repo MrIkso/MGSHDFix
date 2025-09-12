@@ -7,6 +7,8 @@
 #include "steamworks_api.hpp"
 #include "version.h"
 
+constexpr auto MinimumWindows10Version = "10.0.19045.6332"; //September 9, 2025 / 22H2 / KB5065429
+constexpr auto MinimumWindows11Version = "10.0.26100.4946"; //August 12, 2025 / 24H2 / KB5063878
 
 // Spdlog sink (truncate on startup, single file)
 template<typename Mutex>
@@ -219,6 +221,8 @@ void Logging::LogSysInfo()
 
 
     std::string os;
+    std::string WindowsVersionNumber;
+    bool isWindows11 = false;
 
     if (Util::IsSteamOS())
     {
@@ -233,6 +237,7 @@ void Logging::LogSysInfo()
             0, KEY_READ | KEY_WOW64_64KEY, &key
         );
 
+        DWORD ubr = 0;
         if (versionResult == ERROR_SUCCESS)
         {
             char buffer[256]; DWORD size = sizeof(buffer);
@@ -245,17 +250,12 @@ void Logging::LogSysInfo()
             {
                 os = buffer;
             }
-        }
 
-        // Read UBR (Update Build Revision) value from registry
-        DWORD ubr = 0;
-        if (key != nullptr)
-        {
             DWORD ubrSize = sizeof(ubr);
             RegQueryValueExA(key, "UBR", nullptr, nullptr, reinterpret_cast<LPBYTE>(&ubr), &ubrSize);
-        }
 
-        RegCloseKey(key);
+            RegCloseKey(key);
+        }
 
         HMODULE ntdll = GetModuleHandleA("ntdll.dll");
         if (ntdll)
@@ -270,12 +270,15 @@ void Logging::LogSysInfo()
 
                 if (RtlGetVersion(&info) == 0)
                 {
+                    // Build the semantic version number
+                    WindowsVersionNumber = std::to_string(info.dwMajorVersion) + "." + std::to_string(info.dwMinorVersion) + "." + std::to_string(info.dwBuildNumber) + "." + std::to_string(ubr);
                     // Append build number and UBR (e.g. " (26100.4652)")
                     os += " (" + std::to_string(info.dwBuildNumber) + "." + std::to_string(ubr) + ")";
 
                     // Replace "Windows 10" with "Windows 11" if build number is 22000 or greater
                     if (info.dwBuildNumber >= 22000)
                     {
+                        isWindows11 = true;
                         std::size_t pos = os.find("Windows 10");
                         if (pos != std::string::npos)
                         {
@@ -286,6 +289,22 @@ void Logging::LogSysInfo()
             }
         }
     }
-    if (!os.empty()) spdlog::info("System Details - OS:  {}", os);
+
+    if (!os.empty())
+    {
+        spdlog::info("System Details - OS:  {}", os);
+        if (!Util::IsSteamOS())
+        {
+            const auto minRequired = isWindows11 ? MinimumWindows11Version : MinimumWindows10Version;
+            if (Util::CompareSemanticVersion(WindowsVersionNumber, minRequired) == Util::VersionCompareResult::Older)
+            {
+                spdlog::warn("-------------------    SYSTEM WARNING     ----------------------");
+                spdlog::warn("SYSTEM WARNING: Outdated Windows version detected: {}", os);
+                spdlog::warn("SYSTEM WARNING: Performance issues, controller connection problems, or crashes may occur.");
+                spdlog::warn("SYSTEM WARNING: Please fully run Windows Updates for the best experience.");
+                spdlog::warn("-------------------    SYSTEM WARNING     ----------------------");
+            }
+        }
+    }
 
 }

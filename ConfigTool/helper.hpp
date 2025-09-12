@@ -15,6 +15,6 @@ namespace Helper
     };
 
     // Compare two semantic-style version strings (e.g. "32.0.15.8130" vs "32.0.15.9000")
-    VersionCompareResult compareSemVer(const std::string& currentVersion, const std::string& targetVersion);
+    VersionCompareResult CompareSemanticVersion(const std::string& currentVersion, const std::string& targetVersion);
 
 }

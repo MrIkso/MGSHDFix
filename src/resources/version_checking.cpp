@@ -175,7 +175,7 @@ bool LatestVersionChecker::checkForUpdates()
         spdlog::info("Version Check: Under {} hours since last update check. Skipping update check.", iCacheTTLHours);
     }
 
-    switch (Util::compareSemVer(VERSION_STRING, cachedLatest))
+    switch (Util::CompareSemanticVersion(VERSION_STRING, cachedLatest))
     {
     case Util::VersionCompareResult::Equal:
         spdlog::info("Version Check: {} is up to date.", FIX_NAME);

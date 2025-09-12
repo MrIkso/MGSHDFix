@@ -636,7 +636,7 @@ namespace Util
         return parts;
     }
 
-    VersionCompareResult compareSemVer(const std::string& currentVersion,
+    VersionCompareResult CompareSemanticVersion(const std::string& currentVersion,
         const std::string& targetVersion)
     {
         std::vector<int> currentParts = parseVersionString(currentVersion);
