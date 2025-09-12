@@ -25,7 +25,7 @@ namespace Memory
         return len ? (HMODULE)info.AllocationBase : NULL;
     }
 
-    std::string GetModuleVersion(HMODULE module)
+    std::string GetModuleVersion(HMODULE module, VersionType type = VersionType::File, bool fourDigit = false)
     {
         if (!module)
             return "0.0.0";
@@ -43,19 +43,45 @@ namespace Memory
         if (!GetFileVersionInfoA(modulePath, handle, size, versionInfo.data()))
             return "0.0.0";
 
+        if (type == VersionType::Product)
+        {
+            struct LANGANDCODEPAGE
+            {
+                WORD wLanguage; WORD wCodePage;
+            };
+            LANGANDCODEPAGE* lpTranslate = nullptr; UINT cbTranslate = 0;
+            if (VerQueryValueA(versionInfo.data(), "\\VarFileInfo\\Translation", reinterpret_cast<LPVOID*>(&lpTranslate), &cbTranslate) && cbTranslate >= sizeof(LANGANDCODEPAGE))
+            {
+                char subBlock[64] = { 0 };
+                sprintf_s(subBlock, "\\StringFileInfo\\%04x%04x\\ProductVersion", lpTranslate[0].wLanguage, lpTranslate[0].wCodePage);
+                char* productVersion = nullptr; UINT len = 0;
+                if (VerQueryValueA(versionInfo.data(), subBlock, reinterpret_cast<LPVOID*>(&productVersion), &len) && productVersion)
+                {
+                    return std::string(productVersion, len - 1);
+                }
+            }
+        }
         VS_FIXEDFILEINFO* fileInfo = nullptr;
         UINT fileInfoLen = 0;
         if (!VerQueryValueA(versionInfo.data(), "\\", reinterpret_cast<LPVOID*>(&fileInfo), &fileInfoLen) || !fileInfo)
             return "0.0.0";
 
         // Extract version numbers
-        DWORD verMS = fileInfo->dwFileVersionMS;
-        DWORD verLS = fileInfo->dwFileVersionLS;
+        DWORD verMS = (type == VersionType::Product) ? fileInfo->dwProductVersionMS : fileInfo->dwFileVersionMS;
+        DWORD verLS = (type == VersionType::Product) ? fileInfo->dwProductVersionLS : fileInfo->dwFileVersionLS;
         int major = HIWORD(verMS);
         int minor = LOWORD(verMS);
         int patch = HIWORD(verLS);
 
-        return std::to_string(major) + "." + std::to_string(minor) + "." + std::to_string(patch);
+        if (fourDigit)
+        {
+            int build = LOWORD(verLS);
+            return std::to_string(major) + "." + std::to_string(minor) + "." + std::to_string(patch) + "." + std::to_string(build);
+        }
+        else
+        {
+            return std::to_string(major) + "." + std::to_string(minor) + "." + std::to_string(patch);
+        }
     }
 
     // CSGOSimple's pattern scan

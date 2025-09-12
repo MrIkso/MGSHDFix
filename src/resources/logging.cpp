@@ -123,7 +123,7 @@ void Logging::Initialize()
             spdlog::info("Module Path: {0:s}", sExePath.string());
             spdlog::info("Module Address: 0x{0:X}", (uintptr_t)baseModule);
             spdlog::info("Module First Segment: 0x{0:X}", (uintptr_t)baseModule+0x1000);
-            spdlog::info("Module Version: {}", Memory::GetModuleVersion(baseModule));
+            spdlog::info("Module Version: {}", Memory::GetModuleVersion(baseModule, Memory::VersionType::File, (sExeName == "launcher.exe")));
             if (std::filesystem::exists(sExePath / "steamclient64.dll") || std::filesystem::exists(sExePath / "steamclient.dll") || std::filesystem::exists(sExePath / "GameOverlayRenderer64.dll") || std::filesystem::exists(sExePath / "GameOverlayRenderer.dll"))
             {
                 g_SteamAPI.bIsLegitCopy = false;
