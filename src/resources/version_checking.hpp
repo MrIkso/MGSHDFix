@@ -6,6 +6,14 @@
 
 namespace VersionCheck
 {
+
+    enum class VersionType : std::uint8_t
+    {
+        File,
+        Product
+    };
+    std::string GetModuleVersion(HMODULE module, VersionType type, bool fourDigit);
+
     enum class CompareResult  // NOLINT(performance-enum-size)
     {
         Older = -1,

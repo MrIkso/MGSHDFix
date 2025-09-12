@@ -18,13 +18,6 @@ namespace Memory
 
     static HMODULE GetThisDllHandle();
 
-    enum class VersionType : std::uint8_t
-    {
-        File,
-        Product
-    };
-    std::string GetModuleVersion(HMODULE module, VersionType type, bool fourDigit);
-
     std::uint8_t* PatternScanSilent(void* module, const char* signature);
 
     std::uint8_t* PatternScan(void* module, const char* signature, const char* prefix);
