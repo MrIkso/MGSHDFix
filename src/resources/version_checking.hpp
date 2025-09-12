@@ -1,13 +1,12 @@
 #pragma once
-#include "version.h"
-
 #include <string>
 #include <chrono>
 #include <filesystem>
+#include "version.h"
 
 namespace VersionCheck
 {
-    enum class CompareResult : uint8_t
+    enum class CompareResult  // NOLINT(performance-enum-size)
     {
         Older = -1,
         Equal = 0,

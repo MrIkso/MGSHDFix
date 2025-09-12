@@ -8,10 +8,9 @@
 
 // MIRROR SYNC WITH THE CONFIG TOOL'S UPDATER.CPP
 
-namespace VersionCheck
+namespace
 {
-
-    static std::vector<int> parseVersionString(const std::string& versionStr)
+    std::vector<int> parseVersionString(const std::string& versionStr)
     {
         std::vector<int> parts;
         std::istringstream ss(versionStr);
@@ -51,6 +50,10 @@ namespace VersionCheck
 
         return parts;
     }
+}
+
+namespace VersionCheck
+{
 
     CompareResult CompareSemanticVersion(const std::string& currentVersion, const std::string& targetVersion)
     {
