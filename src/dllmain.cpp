@@ -1270,5 +1270,10 @@ BOOL APIENTRY DllMain(HMODULE hModule, DWORD ul_reason_for_call, LPVOID lpReserv
         // Prevent monitor or system sleep while the game is running.
         SetThreadExecutionState(ES_CONTINUOUS | ES_SYSTEM_REQUIRED | ES_DISPLAY_REQUIRED);
     }
+    else if (ul_reason_for_call == DLL_PROCESS_DETACH)
+    {
+        spdlog::info("DLL_PROCESS_DETACH called, shutting down MGSHDFix.");
+        g_StatPersistence.SaveStats();
+    }
     return TRUE;
 }

@@ -467,7 +467,7 @@ void StatPersistence::SaveStats() const
                 ofs << "MGS2_JohnnyOnTheSpot_Scene2=" << bMGS2_Achvmt_JohnnyOnTheSpot_Scene2_Watched << "\n";
             }
 
-            if (!iMGS2_Achvmt_ByeByeBigBrother_Current_Count == 0)
+            if (!bMGS2_Achvmt_ByeByeBigBrother_Unlocked && iMGS2_Achvmt_ByeByeBigBrother_Current_Count > 0)
                 ofs << "MGS2_ByeByeBigBrother_Count=" << iMGS2_Achvmt_ByeByeBigBrother_Current_Count << "\n";
 
             if (!bMGS2_Achvmt_HoldUpAholic_Unlocked && iMGS2_Achvmt_HoldUpAholic_Current_Count > 0)
