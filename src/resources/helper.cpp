@@ -577,4 +577,49 @@ namespace Util
         return parent == target;
     }
 
+
+    std::string GetFileProductName(const std::filesystem::path& path)
+    {
+        DWORD handle = 0;
+        DWORD size = GetFileVersionInfoSizeW(path.c_str(), &handle);
+        if (size == 0)
+        {
+            return {};
+        }
+
+        std::vector<char> buffer(size);
+        if (!GetFileVersionInfoW(path.c_str(), handle, size, buffer.data()))
+        {
+            return {};
+        }
+
+        struct LANGANDCODEPAGE
+        {
+            WORD wLanguage; WORD wCodePage;
+        };
+        LANGANDCODEPAGE* lpTranslate = nullptr;
+        UINT cbTranslate = 0;
+
+        if (!VerQueryValueW(buffer.data(), L"\\VarFileInfo\\Translation",
+                            reinterpret_cast<LPVOID*>(&lpTranslate), &cbTranslate))
+        {
+            return {};
+        }
+
+        // Just take the first translation entry
+        wchar_t subBlock[50];
+        swprintf_s(subBlock, L"\\StringFileInfo\\%04x%04x\\ProductName",
+                   lpTranslate[0].wLanguage, lpTranslate[0].wCodePage);
+
+        LPVOID lpBuffer = nullptr;
+        UINT dwBytes = 0;
+        if (VerQueryValueW(buffer.data(), subBlock, &lpBuffer, &dwBytes) && dwBytes > 0)
+        {
+            std::wstring ws(static_cast<wchar_t*>(lpBuffer), dwBytes);
+            return std::string(ws.begin(), ws.end());
+        }
+
+        return {};
+    }
+
 }

@@ -66,6 +66,9 @@ namespace Util
 
     bool IsProcessParent(const std::string& exeName);
 
+
+    std::string GetFileProductName(const std::filesystem::path& path);
+
 }
 
 

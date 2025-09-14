@@ -194,14 +194,16 @@ jobs:
             (github.event.head_commit && !startsWith(github.event.head_commit.message, 'Merge pull request'))
           }}
         run: |
-          echo '${{ toJson(github.event.commits) }}' > commits.json
+          cat > commits.json <<'EOF'
+          ${{ toJson(github.event.commits) }}
+          EOF
 
           lines=$(jq -r '
             .[0:5]
             | map("- [" + (.id[0:7]) + "](" + .url + ") " + (((.message // "(no commit message)") | split("\n")[0])))
             | join("\n")
-            | @json
           ' commits.json)
+
           count=$(jq 'length' commits.json)
           compare='${{ github.event.compare }}'
           authors=$(jq -r '[.[].author.username // .[].author.name // "unknown"] | unique | map("@" + .) | join(", ")' commits.json)
@@ -218,7 +220,7 @@ jobs:
 
           jq -n \
             --arg t "📡 Codec Update" \
-            --argjson lines "$lines" \
+            --arg lines "$lines" \
             --arg u "$compare" \
             --arg author_line "$author_line" \
             --arg actor "$actor" \

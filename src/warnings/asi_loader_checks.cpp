@@ -1,7 +1,158 @@
 #include "stdafx.h"
 #include "common.hpp"
 #include "asi_loader_checks.hpp"
+
+
 #include "logging.hpp"
+
+
+namespace
+{
+    std::time_t ToTimeTWithOffset(std::filesystem::file_time_type ftime, int offsetHours)
+    {
+        using namespace std::chrono;
+        auto sctp = time_point_cast<system_clock::duration>(
+            ftime - decltype(ftime)::clock::now() + system_clock::now()
+        );
+        std::time_t t = system_clock::to_time_t(sctp);
+        return t + (offsetHours * 60 * 60);
+    }
+
+    std::vector<std::filesystem::path> g_InstalledMods;
+
+    const std::unordered_set<std::string> g_BaseGameFiles =
+    {
+        "steam_api64.dll",
+        "sdkencryptedappticket64.dll",
+        "unityplayer.dll",
+        "engine.dll",
+        "mg1.dll",
+        "mg2.dll",
+        "renderer.dll",
+        "winhttp.dll",
+        "wininet.dll",
+        "mgshdfix.asi",
+    };
+
+    bool IsBlacklisted(const std::filesystem::path& file)
+    {
+        const std::string filename = file.filename().string();
+        return std::ranges::any_of(g_BaseGameFiles, [&](const std::string& banned) {
+                               return _stricmp(filename.c_str(), banned.c_str()) == 0;
+                           });
+    }
+
+    void GenerateInstalledModList(const std::filesystem::path& pathToCheck)
+    {
+        if (!std::filesystem::is_directory(pathToCheck))
+        {
+            return;
+        }
+
+        for (const auto& entry : std::filesystem::directory_iterator(pathToCheck, std::filesystem::directory_options::skip_permission_denied))
+        {
+            const auto path = entry.path();
+            const auto ext = path.extension().string();
+
+            if (_stricmp(ext.c_str(), ".asi") != 0 && _stricmp(ext.c_str(), ".dll") != 0)
+            {
+                continue;
+            }
+            if (IsBlacklisted(path))
+            {
+                continue;
+            }
+
+            auto rel = path.lexically_relative(sExePath);
+            g_InstalledMods.push_back(rel.empty() ? path.filename() : rel);
+        }
+    }
+
+    void CheckInstalledMods()
+    {
+        g_InstalledMods.clear();
+
+        GenerateInstalledModList(sExePath);
+        GenerateInstalledModList(sExePath / "plugins");
+        GenerateInstalledModList(sExePath / "scripts");
+        GenerateInstalledModList(sExePath / "update");
+
+        const bool texturePackDetected = std::filesystem::exists(sExePath / "textures/flatlist/ovr_stm/_win/w01a_stpt02.bmp.ctxr") ||
+                                  std::filesystem::exists(sExePath / "textures/flatlist/ovr_stm/_win/00d81b4d.ctxr");
+        if (texturePackDetected)
+        {
+            spdlog::info("---------- Installed Mods ----------");
+            spdlog::info("    Upscaled texture pack installed.");
+        }
+        if (g_InstalledMods.empty())
+        {
+            return;
+        }
+        if (!texturePackDetected)
+        {
+            spdlog::info("---------- Installed Mods ----------");
+        }
+
+        std::map<std::string, std::vector<std::filesystem::path>> grouped;
+        for (const auto& mod : g_InstalledMods)
+        {
+            std::string group = mod.has_parent_path() ? (*mod.begin()).string() : ".";
+            grouped[group].push_back(mod);
+        }
+
+        for (auto& [group, files] : grouped)
+        {
+            std::sort(files.begin(), files.end());
+        }
+
+        auto logGroup = [](const std::string& group, const std::vector<std::filesystem::path>& files)
+            {
+                if (group != ".")
+                {
+                    spdlog::info("=== {} ===", group);
+                }
+
+                for (const auto& mod : files)
+                {
+                    auto absPath = sExePath / mod;
+                    std::string productName = Util::GetFileProductName(absPath);
+
+                    auto ftime = std::filesystem::last_write_time(absPath);
+                    std::time_t mstTime = ToTimeTWithOffset(ftime, -7);
+
+                    std::tm tm {};
+                    localtime_s(&tm, &mstTime);
+
+                    char timeBuf[64];
+                    strftime(timeBuf, sizeof(timeBuf), "%Y-%m-%d %H:%M:%S (MST / GMT -7)", &tm);
+
+                    if (!productName.empty())
+                    {
+                        spdlog::info("    {}   |   {}   |   modified {}", mod.string(), productName, timeBuf);
+                    }
+                    else
+                    {
+                        spdlog::info("    {}   |   modified {}", mod.string(), timeBuf);
+                    }
+                }
+            };
+
+        if (grouped.contains("."))
+        {
+            logGroup(".", grouped["."]);
+        }
+        for (auto& [group, files] : grouped)
+        {
+            if (group == ".")
+            {
+                continue;
+            }
+            logGroup(group, files);
+        }
+    }
+}
+
+
 
 void ASILoaderCompatibility::Check()
 {
@@ -33,6 +184,9 @@ void ASILoaderCompatibility::Check()
     }
 
     spdlog::info("ASI Mod Compatibility Check: Checking for common mod installation issues.");
+
+    CheckInstalledMods();
+
     if (std::filesystem::exists(sExePath / "MGS2HFBladeMod.dll"))
     {
         spdlog::error("MOD COMPATIBILITY WARNING: MGS2HFBladeMod.dll has an incorrect extension!");

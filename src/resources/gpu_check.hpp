@@ -1,5 +1,4 @@
 #pragma once
-#include "common.hpp"
 
 /// Checks if the detected GPU meets the minimum requirements.
 /// Logs details about vendor, estimated performance, and warnings if below minimum.
