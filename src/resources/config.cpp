@@ -256,6 +256,9 @@ void Config::Read()
     ConfigHelper::getValue(ini, ConfigKeys::MuteWarning_Section, ConfigKeys::MuteWarning_Setting, g_MuteWarning.bEnabled);
     LOG_CONFIG(ConfigKeys::MuteWarning_Section, ConfigKeys::MuteWarning_Setting, g_MuteWarning.bEnabled);
 
+    ConfigHelper::getValue(ini, ConfigKeys::FSRWarning_Section, ConfigKeys::FSRWarning_Setting, g_MuteWarning.bEnableFSRWarning);
+    LOG_CONFIG(ConfigKeys::FSRWarning_Section, ConfigKeys::FSRWarning_Setting, g_MuteWarning.bEnableFSRWarning);
+
     ConfigHelper::getValue(ini, ConfigKeys::CheckForUpdates_Section, ConfigKeys::CheckForUpdates_Setting, bShouldCheckForUpdates);
     ConfigHelper::getValue(ini, ConfigKeys::UpdateConsoleNotifications_Section, ConfigKeys::UpdateConsoleNotifications_Setting, bConsoleUpdateNotifications);
     LOG_CONFIG(ConfigKeys::CheckForUpdates_Section, ConfigKeys::CheckForUpdates_Setting, bShouldCheckForUpdates);

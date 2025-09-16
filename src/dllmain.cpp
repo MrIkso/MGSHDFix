@@ -151,10 +151,28 @@ static void Init_CustomResolution()
                 FSRWarningMidHook = safetyhook::create_mid(MGS2_MGS3_FSR_Result,
                     [](SafetyHookContext& ctx)
                     {
+                        static bool bFSRWarningShown = false;
+                        if (!g_MuteWarning.bEnableFSRWarning || bFSRWarningShown)
+                        {
+                            return;
+                        }
+                        bFSRWarningShown = true;
                         spdlog::warn("----------");
-                        spdlog::warn("WARNING: Main launcher's AMD FSR Upscaling resolution/graphical options are enabled! Unintended side effects, ie pixelization, mipmap issues, and crashing, may occur!");
-                        spdlog::warn("WARNING: It's advised to set both Internal Resolution & Internal Upscaling graphical options in the game's main launcher to default/original unless ABSOLUTELY necessary!");
+                        spdlog::warn("WARNING: The game launcher's built-in AMD FSR Upscaling resolution/graphical options are enabled!");
+                        spdlog::warn("WARNING: MGSHDFix already handles increasing the game's resolution.");
+                        spdlog::warn("WARNING: Unintended side effects, e.g. pixelization, mipmap issues (oversharpening on textures), and crashing, may occur while the game's built-in settings are enabled!");
+                        spdlog::warn("WARNING: It's advised to set both Internal Resolution & Internal Upscaling graphical options in the game's main launcher to default/original unless ABSOLUTELY necessary! (such as some systems crashing during Stillman's tutorial)");
                         spdlog::warn("----------");
+                        Logging::ShowConsole();
+                        std::cout << "MGSHDFix WARNING\n"
+                                     "The game launcher's built-in AMD FSR Upscaling resolution/graphical options are enabled!\n"
+                                     "\n"
+                                     "MGSHDFix already handles increasing the game's resolution.\n"
+                                     "Unintended side effects, e.g. pixelization, mipmap issues (oversharpening on textures), and crashing, may occur while the game's built-in settings are enabled!\n"
+                                     "\n"
+                                     "It's advised to set both Internal Resolution & Internal Upscaling graphical options in the game's main launcher to default/original unless ABSOLUTELY necessary! (such as some systems crashing during Stillman's tutorial)\n"
+                                     "\n"
+                                     "This warning can be muted on the config tool's \"MGSHDfix / Internal\" settings page." << std::endl;
                     });
                 
             }

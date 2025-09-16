@@ -208,8 +208,133 @@ void SteamAPI::Setup() const
 
 }
 
+#if !defined(RELEASE_BUILD)
+#include <windows.h>
+#include <setupapi.h>
+#include <cfgmgr32.h>
+#include <spdlog/spdlog.h>
+#include <string>
+#include <map>
+#include <vector>
+#include <regex>
+#include <algorithm>
+
+#pragma comment(lib, "setupapi.lib")
+
+// Helper to query registry-based device properties
+std::string GetDeviceRegistryProperty(HDEVINFO hDevInfo, SP_DEVINFO_DATA& devInfoData, DWORD property)
+{
+    char buffer[512];
+    DWORD size = 0;
+    if (SetupDiGetDeviceRegistryPropertyA(hDevInfo, &devInfoData, property, nullptr,
+                                          (PBYTE)buffer, sizeof(buffer), &size))
+    {
+        return std::string(buffer);
+    }
+    return "unknown";
+}
+
+// Check if a device is enabled (driver started)
+bool IsDeviceEnabled(SP_DEVINFO_DATA& devInfoData)
+{
+    ULONG status = 0, problem = 0;
+    if (CM_Get_DevNode_Status(&status, &problem, devInfoData.DevInst, 0) == CR_SUCCESS)
+    {
+        return (status & DN_STARTED) != 0;
+    }
+    return false;
+}
+
+// Sanitize names like "BillyJoe's ..." -> "[CENSORED]'s ..."
+std::string SanitizeOwnerName(const std::string& input)
+{
+    static std::regex pattern(R"(([^']+)'s )");
+    return std::regex_replace(input, pattern, "[CENSORED]'s ");
+}
+
+bool IsValidProvider(const std::string& provider)
+{
+    if (provider.empty() || provider == "unknown")
+        return false;
+
+    std::string lower = provider;
+    std::transform(lower.begin(), lower.end(), lower.begin(), ::tolower);
+
+    // kill both "[Standard...]" and "(Standard...)"
+    if (lower.rfind("[standard", 0) == 0 || lower.rfind("(standard", 0) == 0)
+        return false;
+
+    return true;
+}
 
 
+void LogEnabledDevicesGrouped()
+{
+    HDEVINFO hDevInfo = SetupDiGetClassDevsA(nullptr, nullptr, nullptr, DIGCF_ALLCLASSES | DIGCF_PRESENT);
+    if (hDevInfo == INVALID_HANDLE_VALUE)
+    {
+        spdlog::error("SetupDiGetClassDevs failed.");
+        return;
+    }
+
+    SP_DEVINFO_DATA devInfoData;
+    devInfoData.cbSize = sizeof(SP_DEVINFO_DATA);
+
+    // Nested map: Class -> Bus -> Devices
+    std::map<std::string, std::map<std::string, std::vector<std::string>>> groups;
+
+    for (DWORD i = 0; SetupDiEnumDeviceInfo(hDevInfo, i, &devInfoData); ++i)
+    {
+        if (!IsDeviceEnabled(devInfoData))
+            continue; // skip disabled devices
+
+        std::string cls = GetDeviceRegistryProperty(hDevInfo, devInfoData, SPDRP_CLASS);
+        std::string bus = GetDeviceRegistryProperty(hDevInfo, devInfoData, SPDRP_ENUMERATOR_NAME);
+
+        std::string friendly = GetDeviceRegistryProperty(hDevInfo, devInfoData, SPDRP_FRIENDLYNAME);
+        if (friendly == "unknown")
+            friendly = GetDeviceRegistryProperty(hDevInfo, devInfoData, SPDRP_DEVICEDESC);
+
+        friendly = SanitizeOwnerName(friendly);
+
+        // Bus reported device description
+        std::string busReportedDesc = GetDeviceRegistryProperty(hDevInfo, devInfoData, SPDRP_DEVICEDESC);
+
+        // Manufacturer / provider
+        std::string provider = GetDeviceRegistryProperty(hDevInfo, devInfoData, SPDRP_MFG);
+
+        // Build final string
+        std::string formatted = friendly;
+        if (!busReportedDesc.empty() && busReportedDesc != "unknown" && busReportedDesc != friendly)
+        {
+            formatted += " - " + busReportedDesc;
+        }
+        if (IsValidProvider(provider))
+        {
+            formatted += " [" + provider + "]";
+        }
+
+        groups[cls][bus].push_back(formatted);
+    }
+
+    SetupDiDestroyDeviceInfoList(hDevInfo);
+
+    // Print grouped results (sorted, but no deduplication)
+    for (auto& [cls, busMap] : groups)
+    {
+        spdlog::info("[{}]", cls);
+
+        for (auto& [bus, devices] : busMap)
+        {
+            std::sort(devices.begin(), devices.end());
+            spdlog::info("\t[{}]", bus);
+
+            for (auto& dev : devices)
+                spdlog::info("\t\t- {}", dev);
+        }
+    }
+}
+#endif
 
 void SteamAPI::OnSteamInputLoaded()
 {
@@ -299,7 +424,7 @@ void SteamAPI::OnSteamInputLoaded()
             "ingame_cmn_pause_menu",    //0x10
         };
     }
-
+    bool errored = false;
     for (int i = 0; i < *g_SteamAPI.iNumberOfControllers; ++i)
     {
         InputHandle_t handle = controllerHandles[i];
@@ -339,6 +464,7 @@ void SteamAPI::OnSteamInputLoaded()
             spdlog::error("SteamInput: It's been reported that deleting the \"controller_base\" folder from your main Steam directory & then restarting Steam can also resolve this issue if you're having continued trouble.");
             spdlog::error("SteamInput: If you require further assistance, you can find our Discord support channel at the Metal Gear Network Discord - #HDFix: {}", DISCORD_URL);
             spdlog::error("-------------------    ERROR     ----------------------");
+            errored = true;
             continue;
         }
 
@@ -395,6 +521,16 @@ void SteamAPI::OnSteamInputLoaded()
 
         }
     }
+#if !defined(RELEASE_BUILD)
+    if (errored)
+    {
+        spdlog::error("-------------------    TROUBLESHOOTING LOGGING     ----------------------");
+        spdlog::error("SteamInput: One or more controllers had errors. Logging all currently enabled devices.");
+        LogEnabledDevicesGrouped();
+        spdlog::error("-------------------    TROUBLESHOOTING LOGGING     ----------------------");
+
+    }
+#endif
     spdlog::info("SteamInput: Initialization complete.");
     AfterSteamInputInitialized();
 }

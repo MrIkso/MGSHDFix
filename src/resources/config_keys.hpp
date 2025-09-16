@@ -256,10 +256,23 @@ namespace ConfigKeys
                                                      "Fix your audio device setup if possible.";
 
 
-    constexpr const char* MuteWarning_Section = "Mute Warning";
-    constexpr const char* MuteWarning_Setting = "Enabled";
+    constexpr const char* MuteWarning_Section = "Enable Game Warnings";
+    constexpr const char* MuteWarning_Setting = "Warn When Game is Muted";
     constexpr const char* MuteWarning_Help = "";
-    constexpr const char* MuteWarning_Tooltip = "When enabled, a visible warning will be displayed on startup if game audio is muted via the launcher's audio settings.";
+    constexpr const char* MuteWarning_Tooltip = "When enabled, a visible warning will be displayed on startup if game audio is muted via the launcher's audio settings.\n"
+                                                "\n"
+                                                "This is a very common troubleshooting problem.";
+
+    constexpr const char* FSRWarning_Section = "Enable Game Warnings";
+    constexpr const char* FSRWarning_Setting = "Warn When FSR Upscaling is Enabled";
+    constexpr const char* FSRWarning_Help = "";
+    constexpr const char* FSRWarning_Tooltip = "When enabled, a visible warning will be displayed on startup if FSR upscaling is enabled via the launcher's graphics settings.\n"
+                                               "\n"
+                                               "MGSHDFix already handles increasing the game's resolution.\n"
+                                               "\n"
+                                               "Unintended side effects, ie pixelization, mipmap issues (oversharpening on textures), and crashing, may occur while the game's built-in settings are enabled!\n"
+                                               "\n"
+                                               "It's advised to set both Internal Resolution & Internal Upscaling graphical options in the game's main launcher to default/original unless ABSOLUTELY necessary!";
 
     constexpr const char* DisableMouseCursor_Section = "Bugfixes";
     constexpr const char* DisableMouseCursor_Setting = "Fix Mouse Cursor Showing";
