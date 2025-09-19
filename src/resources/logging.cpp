@@ -81,6 +81,10 @@ void Logging::Initialize()
     GetModuleFileNameW(baseModule, exePath, MAX_PATH);
     sExePath = exePath;
     sExeName = sExePath.filename().string();
+    if (_stricmp(sExeName.c_str(), "launcher.exe") == 0)
+    {
+        bIsLauncher = true;
+    }
     sExePath = sExePath.remove_filename();
 
     // spdlog initialisation
@@ -93,7 +97,7 @@ void Logging::Initialize()
                 std::filesystem::create_directory(sExePath / "logs"); //create a "logs" subdirectory in the game folder to keep the main directory tidy.
             }
             // Create 10MB truncated logger
-            std::filesystem::path sLogFile = (sExePath / "logs" / (sFixName + ((sExeName == "launcher.exe") ? "_Launcher" : "_Game") + ".log"));
+            std::filesystem::path sLogFile = (sExePath / "logs" / (sFixName + (bIsLauncher ? "_Launcher" : "_Game") + ".log"));
             std::shared_ptr<spdlog::logger> logger = std::make_shared<spdlog::logger>(sLogFile.string(), std::make_shared<size_limited_sink<std::mutex>>(sLogFile.string(), 15 * 1024 * 1024));
             spdlog::set_default_logger(logger);
 
@@ -122,7 +126,8 @@ void Logging::Initialize()
             spdlog::info("Module Path: {0:s}", sExePath.string());
             spdlog::info("Module Address: 0x{0:X}", (uintptr_t)baseModule);
             spdlog::info("Module First Segment: 0x{0:X}", (uintptr_t)baseModule+0x1000);
-            spdlog::info("Module Version: {}", VersionCheck::GetModuleVersion(baseModule, VersionCheck::VersionType::File, (sExeName == "launcher.exe")));
+            spdlog::info("Module Version: {}", VersionCheck::GetModuleVersion(baseModule, VersionCheck::VersionType::File, bIsLauncher));
+            spdlog::info("Parent Process: {}", Util::GetParentProcessName(true));
             if (std::filesystem::exists(sExePath / "steamclient64.dll") || std::filesystem::exists(sExePath / "steamclient.dll") || std::filesystem::exists(sExePath / "GameOverlayRenderer64.dll") || std::filesystem::exists(sExePath / "GameOverlayRenderer.dll"))
             {
                 g_SteamAPI.bIsLegitCopy = false;

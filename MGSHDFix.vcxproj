@@ -30,6 +30,7 @@
     <ClCompile Include="src\fixes\cpu_core_limit.cpp" />
     <ClCompile Include="src\fixes\depth_of_field.cpp" />
     <ClCompile Include="src\fixes\mgs3_hud_fixes.cpp" />
+    <ClCompile Include="src\fixes\windows_fullscreen_optimization.cpp" />
     <ClCompile Include="src\resources\input_handler.cpp" />
     <ClCompile Include="src\fixes\fix_default_gpu.cpp" />
     <ClCompile Include="src\features\postfx.cpp" />
@@ -141,6 +142,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\fixes\cpu_core_limit.hpp" />
+    <ClInclude Include="src\fixes\windows_fullscreen_optimization.hpp" />
     <ClInclude Include="src\resources\config_keys.hpp" />
     <ClInclude Include="src\fixes\depth_of_field.hpp" />
     <ClInclude Include="src\fixes\mgs3_hud_fixes.hpp" />

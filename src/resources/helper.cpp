@@ -469,22 +469,21 @@ namespace Util
         return "UNKNOWN";
     }
 
-    bool IsSteamOS()
+    [[nodiscard]] bool IsSteamOS()
     {
-        if (g_Logging.bCheckedSteamDeck)
+        static bool bCheckedSteamDeck = false;
+        static bool bIsSteamDeck = false;
+        if (bCheckedSteamDeck)
         {
-            return g_Logging.bIsSteamDeck;
+            return bIsSteamDeck;
         }
-
-        g_Logging.bCheckedSteamDeck = true;
-
+        bCheckedSteamDeck = true;
         // Check for Proton/Steam Deck environment variables
         if (std::getenv("STEAM_COMPAT_CLIENT_INSTALL_PATH") || std::getenv("STEAM_COMPAT_DATA_PATH") || std::getenv("XDG_SESSION_TYPE"))
         {
-            g_Logging.bIsSteamDeck = true;
-            return true;
+            bIsSteamDeck = true;
         }
-        return false;
+        return bIsSteamDeck;
     }
 
     std::string StripQuotes(const std::string& value)
@@ -505,7 +504,7 @@ namespace Util
     }
 
 
-    std::string GetParentProcessName()
+    std::string GetParentProcessName(const bool returnFullPath = false)
     {
         DWORD currentPid = GetCurrentProcessId();
         DWORD parentPid = 0;
@@ -553,6 +552,10 @@ namespace Util
         CloseHandle(hParent);
 
         std::string name = exePath;
+        if (returnFullPath)
+        {
+            return name;
+        }
         size_t pos = name.find_last_of("\\/");
         if (pos != std::string::npos)
         {
@@ -566,7 +569,7 @@ namespace Util
 
     bool IsProcessParent(const std::string& exeName)
     {
-        std::string parent = GetParentProcessName();
+        std::string parent = GetParentProcessName(false);
         if (parent.empty())
         {
             return false;

@@ -13,8 +13,6 @@ public:
     static void LogSysInfo();
 
     std::chrono::time_point<std::chrono::high_resolution_clock> initStartTime;
-    bool bIsSteamDeck = false;
-    bool bCheckedSteamDeck = false;
     bool bVerboseLogging = true;
 };
 

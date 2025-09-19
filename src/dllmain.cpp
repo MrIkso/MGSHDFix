@@ -31,6 +31,7 @@
 #include "water_reflections.hpp"
 #include "mgs3_hud_fixes.hpp"
 #include "depth_of_field.hpp"
+#include "windows_fullscreen_optimization.hpp"
 
 //Warnings
 #include "asi_loader_checks.hpp"
@@ -1056,7 +1057,7 @@ static bool DetectGame()
 {
     eGameType = UNKNOWN;
     // Special handling for launcher.exe
-    if (sExeName == "launcher.exe")
+    if (bIsLauncher)
     {
         for (const auto& [type, info] : kGames)
         {
@@ -1192,7 +1193,9 @@ static void InitializeSubsystems()
     //INITIALIZE(g_ColorFilterFix.Initialize());
 
         //Warnings
-    INITIALIZE(g_MuteWarning.Setup()); 
+    INITIALIZE(g_MuteWarning.Setup());
+
+    INITIALIZE(FixFullscreenOptimization::Fix());
 
     if (!(eGameType & LAUNCHER))
     {

@@ -28,7 +28,7 @@ void MuteWarning::CheckStatus() const
     }
     else
     {
-        spdlog::info("MG-MG2 | MGS 2 | MGS3: Mute Warning: Game audio output is not muted.");
+        //spdlog::info("MG-MG2 | MGS 2 | MGS3: Mute Warning: Game audio output is not muted.");
     }
 }
 

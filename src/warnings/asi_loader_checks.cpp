@@ -29,8 +29,6 @@ namespace
         "mg1.dll",
         "mg2.dll",
         "renderer.dll",
-        "winhttp.dll",
-        "wininet.dll",
         "mgshdfix.asi",
     };
 

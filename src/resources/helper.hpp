@@ -58,11 +58,11 @@ namespace Util
 
     std::string GetUppercaseNameAtIndex(const std::initializer_list<std::string>& list, int index);
 
-    bool IsSteamOS();
+    bool IsSteamOS(); 
 
     std::string StripQuotes(const std::string& value);
 
-    std::string GetParentProcessName();
+    std::string GetParentProcessName(bool returnFullPath);
 
     bool IsProcessParent(const std::string& exeName);
 

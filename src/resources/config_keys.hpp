@@ -167,6 +167,20 @@ namespace ConfigKeys
                                                  "\n"
                                                  "This will impact performance, only enable if you're actively experiencing crashing in the middle of cutscenes.";
 
+    constexpr const char* DisableFullscreenOptimization_Section = "System Specific Fixes";
+    constexpr const char* DisableFullscreenOptimization_Setting = "Disable Windows Fullscreen Optimization";
+    constexpr const char* DisableFullscreenOptimization_Help =    "(Fixes brief freezes when alt-tabbing on some systems.)";
+    constexpr const char* DisableFullscreenOptimization_Tooltip = "Sets Windows compatibility settings to disable Fullscreen Optimization for the game process.\n"
+                                                                  "\n"
+                                                                  "Performance impact is unknown.\n"
+                                                                  "Leave this OFF unless you are experiencing framerate issues when alt-tabbing and want to experiment.\n"
+                                                                  "\n"
+                                                                  "This writes to:\n"
+                                                                  "HKEY_CURRENT_USER\\Software\\Microsoft\\Windows NT\\CurrentVersion\\AppCompatFlags\\Layers\n"
+                                                                  "\n"
+                                                                  "Equivalent to: Right-click the game's .exe -> Properties -> Compatibility -> check \"Disable Fullscreen Optimizations\"";
+
+
     // Gameplay
     constexpr const char* KeepAimingAfterFiring_Always_Section = "Keep Aiming After Firing";
     constexpr const char* KeepAimingAfterFiring_Always_Setting = "Always Keep Aiming";

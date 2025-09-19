@@ -23,6 +23,7 @@
 #include "keep_aiming_after_firing.hpp"
 #include "mgs2_sunglasses.hpp"
 #include "config_keys.hpp"
+#include "windows_fullscreen_optimization.hpp"
 
 // -----------------------------------------------------------------------------
 // ConfigHelper: A type-safe, case-insensitive, error-checked INI config reader.
@@ -393,7 +394,8 @@ void Config::Read()
         }
     }
 
-
+    ConfigHelper::getValue(ini, ConfigKeys::DisableFullscreenOptimization_Section, ConfigKeys::DisableFullscreenOptimization_Setting, g_FixFullscreenOptimization.enabled);
+    LOG_CONFIG(ConfigKeys::DisableFullscreenOptimization_Section, ConfigKeys::DisableFullscreenOptimization_Setting, g_FixFullscreenOptimization.enabled);
 
     ConfigLogger::Flush();
 }
