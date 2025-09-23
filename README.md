@@ -82,6 +82,7 @@ This is a fix that adds custom resolutions, ultrawide support and much more to t
 
        `WINEDLLOVERRIDES="wininet,winhttp=n,b" %command%` 
 	   
+- MGSHDFix's Config Tool requires **ProtonTricks** to be installed via Linux's **Discover** software store.
 - When opening the MGSHDFix Config Tool on Steam Deck/Linux, a Proton Tricks Wine Prefix window will pop up. Select any game and hit "OK" to open the MGSHDFix Config Tool.
    - If you do not have any games in the list, or the MGSHDFix Config Tool fails to launch, add it as a non-steam game and launch it once through Steam to generate a new Proton Tricks Wine Prefix entry.
    - You can remove the Config Tool from your Steam game list and launch it directly after generating this prefix.
