@@ -1192,6 +1192,7 @@ static void InitializeSubsystems()
     INITIALIZE(FixFullscreenOptimization::Fix());
 
 #if !defined(RELEASE_BUILD) //todo category
+    //todo: Make ultrawide reposition HUD elements correctly instead of stretching them
     //INITIALIZE(DepthOfFieldFixes.Initialize());
     //INITIALIZE(MGS2ColorFilterFix::Initialize());
     //INITIALIZE(GammaCorrection::Initialize());
@@ -1200,7 +1201,7 @@ static void InitializeSubsystems()
     //INITIALIZE(MG1CropBorders::Initialize());
     //INITIALIZE(SwapMenuButtons::Initialize());
     //INITIALIZE(MG1CustomLoadingScreens::Initialize());
-    //INITIALIZE(MultiSampleAntiAliasing::Initialize());
+    //INITIALIZE(AntiAliasing::Initialize());
 #endif
 
         //Warnings

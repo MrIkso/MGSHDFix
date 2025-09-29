@@ -141,11 +141,11 @@ This list will contain bugs which may or may not be fixed.
 - MGS3 - Fix Cutscene Camera Offset (2011 HDC)
 - MGS3 - Fix Angle of Attack Indicator in FPV with NVG & Thermals (2011 HDC)
 - MGS3 - Fix Weapons Not Appearing in Holster After Torture (2004 Snake Eater)
-- MGS2 / MGS3 - Swap X/O Buttons on Controller in Menus (2011 HDC)
-- MGS2 / MGS3 - Correct Display Gamma & RGB Levels (2011 HDC)
-- MGS2 / MGS3 - Fix Depth of Field Scaling Strength (2002 Xbox / 2011 HDC)
 - MGS2 / MGS3 - Add Custom Anti-Aliasing Solution (2023 MC)
+- MGS2 / MGS3 - Correct Display Gamma & RGB Levels (2011 HDC)
 - MGS2 / MGS3 - Correct More Sped Up Effects (2002 Xbox / 2011 HDC)
+- MGS2 / MGS3 - Fix Depth of Field Scaling Strength (2002 Xbox / 2011 HDC)
+- MGS2 / MGS3 - Swap X/O Buttons on Controller in Menus (2011 HDC)
 
 ## Building
 ```bash
