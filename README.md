@@ -53,6 +53,7 @@ This is a fix that adds custom resolutions, ultrawide support and much more to t
 - Fixes vector effects / line based rendering scaling (ie rain, lasers, bullet trails.) [PR #140](https://github.com/Lyall/MGSHDFix/pull/140)
 - Fixes UI scaling. [PR #181](github.com/Lyall/MGSHDFix/pull/181)
 - Fixes broken skybox initialization procs (MGS2). [PR#142](https://github.com/Lyall/MGSHDFix/pull/142)
+- Fixes typos in several Snake Tales missions, and in the in-game novel "In The Darkness of Shadow Moses". [PR#201](https://github.com/Lyall/MGSHDFix/pull/201)
 - Many more!
 
 ## Logging / Warnings for Common Configuration Issues
@@ -131,6 +132,20 @@ This list will contain bugs which may or may not be fixed.
 ![MGS3 - Wireframe mode visual](screenshots/after/mgs3%20-%20wireframe.png)
 ![MGS3 - Corrected Thermal vision UI](screenshots/after/mgs3%20-%20thermals.png)
 | Metal Gear Solid 3 |
+
+## Upcoming Fix/Feature Roadmap - (Version Problem Originated)
+- MG1 / MG2 - Add Custom Loading Screen Support (2023 MC)
+- MG1 / MG2 - Crop Screen Borders (2011 HDC)
+- MGS2 - Fix Broken Cutscene Color Filters (2002 Xbox)
+- MGS2 - Make the in-game Radar, Cutscene Letterboxing, and Previous Missions reading progress persistent across game sessions. (2001 SoL)
+- MGS3 - Fix Cutscene Camera Offset (2011 HDC)
+- MGS3 - Fix Angle of Attack Indicator in FPV with NVG & Thermals (2011 HDC)
+- MGS3 - Fix Weapons Not Appearing in Holster After Torture (2004 Snake Eater)
+- MGS2 / MGS3 - Swap X/O Buttons on Controller in Menus (2011 HDC)
+- MGS2 / MGS3 - Correct Display Gamma & RGB Levels (2011 HDC)
+- MGS2 / MGS3 - Fix Depth of Field Scaling Strength (2002 Xbox / 2011 HDC)
+- MGS2 / MGS3 - Add Custom Anti-Aliasing Solution (2023 MC)
+- MGS2 / MGS3 - Correct More Sped Up Effects (2002 Xbox / 2011 HDC)
 
 ## Building
 ```bash

@@ -40,13 +40,16 @@
 #include "reshade_compatibility_checks.hpp"
 
 ///WIP
-//#include "texture_buffer_size.hpp" //disabled for now, the vanilla limit was increased to 128MB/texture in 2.0.0,
-                                    //so there's no much need until 8k gaming is standard & there's a need for a 16k texture pack lol.
-
-
 #include "color_filters.hpp"
 #include "gamma_correction.hpp"
 #include "mg1_custom_loading_screens.hpp"
+#include "mgs3_fix_camera_offset.hpp"
+#include "mgs3_fix_holster_after_torture.hpp"
+#include "swap_menu_buttons.hpp"
+//#include "texture_buffer_size.hpp" //disabled for now, the vanilla limit was increased to 128MB/texture in 2.0.0, so there's no much need until 8k gaming is standard & there's a need for a 16k texture pack lol.
+
+
+
 
 #if !defined(RELEASE_BUILD)
 #include "unit_tests.hpp"
@@ -1159,6 +1162,7 @@ static void InitializeSubsystems()
     INITIALIZE(Init_LauncherConfigOverride());     //8
     INITIALIZE(Init_FixDPIScaling());              //9 Needs to be anywhere before the window is created in CustomResolution.
     INITIALIZE(Init_CustomResolution());           //10
+
     INITIALIZE(Init_ScaleEffects());               
     INITIALIZE(Init_AspectFOVFix());
     INITIALIZE(Init_HUDFix());
@@ -1173,36 +1177,43 @@ static void InitializeSubsystems()
 
 
     INITIALIZE(g_DistanceCulling.Initialize());
-    //INITIALIZE(g_MG1CustomLoadingScreens.Initialize());
-    //INITIALIZE(g_MultiSampleAntiAliasing.Initialize());
 
         //Fixes
     INITIALIZE(g_CPUCoreLimitFix.ApplyFix());
     INITIALIZE(g_VectorScalingFix.Initialize());
     INITIALIZE(g_WaterReflectionFix.Initialize());
     INITIALIZE(SkyboxFix::Initialize());
-    INITIALIZE(g_EffectSpeedFix.Initialize());
+    INITIALIZE(g_EffectSpeedFix.Initialize()); //todo - fix more effects, ie rain speed, bullet trails, helicopter rotors
     INITIALIZE(g_StereoAudioFix.Initialize());
     INITIALIZE(DamagedSaveFix::Initialize());
     INITIALIZE(g_FixAimAfterEquip.Initialize());
-    INITIALIZE(g_FixAimingFullTilt.Initialize());
-    INITIALIZE(g_MGS3HudFixes.Initialize());
-#if !defined(RELEASE_BUILD)
-    INITIALIZE(g_DepthOfFieldFixes.Initialize());
+    INITIALIZE(FixAimingFullTilt::Initialize());
+    INITIALIZE(MGS3HudFixes::Initialize());
+    INITIALIZE(FixFullscreenOptimization::Fix());
+
+#if !defined(RELEASE_BUILD) //todo category
+    //INITIALIZE(DepthOfFieldFixes.Initialize());
+    //INITIALIZE(MGS2ColorFilterFix::Initialize());
+    //INITIALIZE(GammaCorrection::Initialize());
+    //INITIALIZE(MGS3FixCameraOffsets::Initialize());
+    //INITIALIZE(MGS3FixHolster::Initialize());
+    //INITIALIZE(MG1CropBorders::Initialize());
+    //INITIALIZE(SwapMenuButtons::Initialize());
+    //INITIALIZE(MG1CustomLoadingScreens::Initialize());
+    //INITIALIZE(MultiSampleAntiAliasing::Initialize());
 #endif
-    //INITIALIZE(g_ColorFilterFix.Initialize());
 
         //Warnings
     INITIALIZE(g_MuteWarning.Setup());
 
-    INITIALIZE(FixFullscreenOptimization::Fix());
 
     if (!(eGameType & LAUNCHER))
     {
         INITIALIZE(g_SteamAPI.Setup());
         INITIALIZE(g_StatPersistence.Setup());
-        INITIALIZE(CheckForUpdates());
     }
+
+    INITIALIZE(CheckForUpdates());
 
 #if !defined(RELEASE_BUILD)
     INITIALIZE(UnitTests::runAllTests());

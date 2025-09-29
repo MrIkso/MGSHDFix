@@ -47,7 +47,6 @@ void ReshadeCompatibility::Check()
     {
         return;
     }
-    bOutdatedReshade = true;
 
     if (eGameType & LAUNCHER && !bLauncherConfigSkipLauncher)
     {

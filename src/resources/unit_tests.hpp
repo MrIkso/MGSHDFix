@@ -1,7 +1,6 @@
 #pragma once
 
-class UnitTests final
+namespace UnitTests
 {
-public:
-    static void runAllTests();
+    void runAllTests();
 };

@@ -4,6 +4,7 @@
 
 #include "logging.hpp"
 
+// todo: fix angle number in bottom right corner of nvg's & thermals
 void MGS3HudFixes::Initialize()
 {
     if (!(eGameType & MGS3))

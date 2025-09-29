@@ -8,7 +8,7 @@
 
 void FixAimingFullTilt::Initialize()
 {
-    if (!(eGameType & MGS2) || !g_FixAimingFullTilt.bEnabled)
+    if (!(eGameType & MGS2) || !bEnabled)
     {
         return;
     }

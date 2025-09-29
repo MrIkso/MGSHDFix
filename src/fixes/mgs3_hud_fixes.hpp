@@ -1,9 +1,6 @@
 #pragma once
 
-class MGS3HudFixes final
+namespace MGS3HudFixes
 {
-public:
-    static void Initialize();
+    void Initialize();
 };
-
-inline MGS3HudFixes g_MGS3HudFixes;

@@ -1,9 +1,8 @@
 #pragma once
 
-class ReshadeCompatibility final
+namespace ReshadeCompatibility
 {
-public:
-    static void Check();
+    void Check();
+
 };
 
-inline bool bOutdatedReshade;

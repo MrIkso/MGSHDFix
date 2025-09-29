@@ -5,12 +5,9 @@
 #include "isteaminput.h"
 #pragma warning(pop)
 
-class FixAimingFullTilt final
+namespace FixAimingFullTilt
 {
-public:
-    static void Initialize();
-    bool bEnabled = true;
-    
-};
+    void Initialize();
 
-inline FixAimingFullTilt g_FixAimingFullTilt;
+    inline bool bEnabled = true;
+};

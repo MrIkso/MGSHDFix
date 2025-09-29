@@ -27,6 +27,10 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="src\features\settings_pesistence.cpp" />
+    <ClCompile Include="src\features\mg1_crop_borders.cpp" />
+    <ClCompile Include="src\fixes\mgs3_fix_camera_offset.cpp" />
+    <ClCompile Include="src\fixes\mgs3_fix_holster_after_torture.cpp" />
     <ClCompile Include="src\fixes\cpu_core_limit.cpp" />
     <ClCompile Include="src\fixes\depth_of_field.cpp" />
     <ClCompile Include="src\fixes\mgs3_hud_fixes.cpp" />
@@ -139,8 +143,13 @@
     <ClCompile Include="src\resources\steamworks_api.cpp" />
     <ClCompile Include="src\features\stat_persistence.cpp" />
     <ClCompile Include="src\resources\unit_tests.cpp" />
+    <ClCompile Include="src\features\swap_menu_buttons.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\features\settings_pesistence.hpp" />
+    <ClInclude Include="src\features\mg1_crop_borders.hpp" />
+    <ClInclude Include="src\fixes\mgs3_fix_camera_offset.hpp" />
+    <ClInclude Include="src\fixes\mgs3_fix_holster_after_torture.hpp" />
     <ClInclude Include="src\fixes\cpu_core_limit.hpp" />
     <ClInclude Include="src\fixes\windows_fullscreen_optimization.hpp" />
     <ClInclude Include="src\resources\config_keys.hpp" />
@@ -184,6 +193,7 @@
     <ClInclude Include="src\resources\steam_achievements.hpp" />
     <ClInclude Include="src\features\stat_persistence.hpp" />
     <ClInclude Include="src\resources\unit_tests.hpp" />
+    <ClInclude Include="src\features\swap_menu_buttons.hpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="MGSHDFix.ini" />
