@@ -161,6 +161,7 @@
     <ClCompile Include="src\features\postfx.cpp">
       <Filter>WIP</Filter>
     </ClCompile>
+    <ClCompile Include="src\warnings\background_shuffle_warning.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\fixes\line_scaling.hpp">
@@ -307,6 +308,7 @@
     <ClInclude Include="src\features\postfx.hpp">
       <Filter>Features\Headers</Filter>
     </ClInclude>
+    <ClInclude Include="src\warnings\background_shuffle_warning.hpp" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="src\resources\mgshdfix.ico">
