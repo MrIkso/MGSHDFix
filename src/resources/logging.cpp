@@ -3,6 +3,7 @@
 #include "logging.hpp"
 
 #include "gpu_check.hpp"
+#include "spdlog/async.h"
 #include "spdlog/sinks/base_sink.h"
 
 #include "steamworks_api.hpp"
@@ -99,10 +100,20 @@ void Logging::Initialize()
             }
             // Create 10MB truncated logger
             std::filesystem::path sLogFile = (sExePath / "logs" / (sFixName + (bIsLauncher ? "_Launcher" : "_Game") + ".log"));
-            std::shared_ptr<spdlog::logger> logger = std::make_shared<spdlog::logger>(sLogFile.string(), std::make_shared<size_limited_sink<std::mutex>>(sLogFile.string(), 15 * 1024 * 1024));
+            spdlog::init_thread_pool(8192, 1); // queue size, worker threads
+
+            auto sink = std::make_shared<size_limited_sink<std::mutex>>(sLogFile.string(), 15 * 1024 * 1024);
+
+            // async_factory uses the global pool
+            auto logger = std::make_shared<spdlog::async_logger>(
+                sFixName,                                   // logger name
+                sink,                                       // sink
+                spdlog::thread_pool(),                      // global pool
+                spdlog::async_overflow_policy::block        // block if full
+            );
             spdlog::set_default_logger(logger);
 
-            spdlog::flush_on(spdlog::level::debug);
+
             spdlog::set_pattern("[%Y-%m-%d %H:%M:%S.%e] [%l] %v");
             spdlog::info("---------- Logging initialization started ----------");
             if (!logDirExists)

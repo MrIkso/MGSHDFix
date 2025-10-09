@@ -38,6 +38,7 @@
 #include "corrupt_save_message.hpp"
 #include "mute_warning.hpp"
 #include "reshade_compatibility_checks.hpp"
+#include "background_shuffle_warning.hpp"
 
 ///WIP
 #include "color_filters.hpp"
@@ -1206,6 +1207,7 @@ static void InitializeSubsystems()
 
         //Warnings
     INITIALIZE(g_MuteWarning.Setup());
+    INITIALIZE(BackgroundShuffleWarning::Check());
 
 
     if (!(eGameType & LAUNCHER))
@@ -1306,6 +1308,7 @@ BOOL APIENTRY DllMain(HMODULE hModule, DWORD ul_reason_for_call, LPVOID lpReserv
     {
         spdlog::info("DLL_PROCESS_DETACH called, shutting down MGSHDFix.");
         g_StatPersistence.SaveStats();
+        spdlog::shutdown();
     }
     return TRUE;
 }
