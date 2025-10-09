@@ -69,6 +69,8 @@ namespace Util
 
     std::string GetFileProductName(const std::filesystem::path& path);
 
+    bool CRC32Check(const std::filesystem::path& filePath, uint32_t expected);
+
 }
 
 

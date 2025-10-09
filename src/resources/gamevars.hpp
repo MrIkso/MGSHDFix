@@ -2,30 +2,20 @@
 
 class GameVars final
 {
-private:
-    static void OnLevelTransition();
-
-    uint64_t* aimingState = nullptr;
-    int* cutsceneFlag = nullptr;
-    int* scriptedSequenceFlag = nullptr;
-    double* actorWaitValue = nullptr;
-    const char* currentStage = nullptr;
-    uint32_t* heldTriggers = nullptr;
-
 public:
     void Initialize();
-    bool InCutscene() const; // If we're in a full demo cutscene.
-    bool InScriptedSequence() const; // If the game is in a scripted sequence (cutscene or pad demo).
-    double ActorWaitMultiplier() const;
+    [[nodiscard]] bool InCutscene() const; // If we're in a full demo cutscene.
+    [[nodiscard]] bool InScriptedSequence() const; // If the game is in a scripted sequence (cutscene or pad demo).
+    [[nodiscard]] double ActorWaitMultiplier() const;
 
-    std::string GetRichPresenceString() const;
-    std::string GetGameMode() const;
-    const char* GetCurrentStage() const;
-    bool IsStage(const char* stageConst) const;
-    bool IsAnyStage(std::initializer_list<const char*> stages) const;
+    [[nodiscard]] std::string GetRichPresenceString() const;
+    [[nodiscard]] std::string GetGameMode() const;
+    [[nodiscard]] const char* GetCurrentStage() const;
+    [[nodiscard]] bool IsStage(const char* stageConst) const;
+    [[nodiscard]] bool IsAnyStage(std::initializer_list<const char*> stages) const;
 
     void SetAimingState(uint64_t state) const;
-    uint64_t GetAimingState() const;
+    [[nodiscard]] uint64_t GetAimingState() const;
 
     enum HoldingTriggers : uint32_t
     {
@@ -42,14 +32,25 @@ public:
         MGS3_FirstPerson = 1u << 11   // 0x00000800
     };
 
-    bool MGS2IsHoldingWeaponMenu() const;
-    bool MGS2IsHoldingEquipmentMenu() const;
-    bool MGS2IsHoldingFirstPerson() const;
-    bool MGS2IsHoldingLockOn() const;
-    bool MGS3IsHoldingWeaponMenu() const;
-    bool MGS3IsHoldingEquipmentMenu() const;
-    bool MGS3IsHoldingFirstPerson() const;
-    bool MGS3IsHoldingLockOn() const;
+    [[nodiscard]] bool MGS2IsHoldingWeaponMenu() const;
+    [[nodiscard]] bool MGS2IsHoldingEquipmentMenu() const;
+    [[nodiscard]] bool MGS2IsHoldingFirstPerson() const;
+    [[nodiscard]] bool MGS2IsHoldingLockOn() const;
+    [[nodiscard]] bool MGS3IsHoldingWeaponMenu() const;
+    [[nodiscard]] bool MGS3IsHoldingEquipmentMenu() const;
+    [[nodiscard]] bool MGS3IsHoldingFirstPerson() const;
+    [[nodiscard]] bool MGS3IsHoldingLockOn() const;
+
+private:
+    static void OnLevelTransition();
+
+    uint64_t* aimingState = nullptr;
+    int* cutsceneFlag = nullptr;
+    int* scriptedSequenceFlag = nullptr;
+    double* actorWaitValue = nullptr;
+    const char* currentStage = nullptr;
+    uint32_t* heldTriggers = nullptr;
+
 };
 
 inline GameVars g_GameVars;

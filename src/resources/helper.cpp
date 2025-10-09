@@ -6,6 +6,60 @@
 
 #pragma comment(lib,"Version.lib")
 
+namespace
+{
+
+    constexpr std::array<uint32_t, 256> GenerateCRCTable()
+    {
+        std::array<uint32_t, 256> table {};
+        for (uint32_t i = 0; i < 256; i++)
+        {
+            uint32_t c = i;
+            for (int j = 0; j < 8; j++)
+            {
+                if (c & 1)
+                {
+                    c = 0xEDB88320U ^ (c >> 1);
+                }
+                else
+                {
+                    c >>= 1;
+                }
+            }
+            table[i] = c;
+        }
+        return table;
+    }
+
+    constexpr auto crcTable = GenerateCRCTable();
+
+
+    uint32_t CRC32File(const std::filesystem::path& filePath)
+    {
+        std::ifstream file(filePath, std::ios::binary);
+        if (!file)
+        {
+            return 0; // or throw if you want strict behavior
+        }
+
+        uint32_t crc = 0xFFFFFFFFU;
+        char buffer[4096];
+
+        while (file.read(buffer, sizeof(buffer)) || file.gcount() > 0)
+        {
+            const std::streamsize count = file.gcount();
+            for (std::streamsize i = 0; i < count; i++)
+            {
+                const uint8_t byte = static_cast<uint8_t>(buffer[i]);
+                crc = crcTable[(crc ^ byte) & 0xFF] ^ (crc >> 8);
+            }
+        }
+
+        return crc ^ 0xFFFFFFFFU;
+    }
+}
+
+
 namespace Memory
 {
 
@@ -623,6 +677,11 @@ namespace Util
         }
 
         return {};
+    }
+
+    bool CRC32Check(const std::filesystem::path& filePath, const uint32_t expected)
+    {
+        return CRC32File(filePath) == expected;
     }
 
 }

@@ -28,6 +28,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\warnings\background_shuffle_warning.cpp" />
+    <ClCompile Include="src\warnings\bugfix_mod_checks.cpp" />
     <ClCompile Include="src\features\settings_pesistence.cpp" />
     <ClCompile Include="src\features\mg1_crop_borders.cpp" />
     <ClCompile Include="src\fixes\mgs3_fix_camera_offset.cpp" />
@@ -148,6 +149,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\warnings\background_shuffle_warning.hpp" />
+    <ClInclude Include="src\warnings\bugfix_mod_checks.hpp" />
     <ClInclude Include="src\features\settings_pesistence.hpp" />
     <ClInclude Include="src\features\mg1_crop_borders.hpp" />
     <ClInclude Include="src\fixes\mgs3_fix_camera_offset.hpp" />

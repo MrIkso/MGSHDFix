@@ -41,6 +41,7 @@
 #include "background_shuffle_warning.hpp"
 
 ///WIP
+#include "bugfix_mod_checks.hpp"
 #include "color_filters.hpp"
 #include "gamma_correction.hpp"
 #include "mg1_custom_loading_screens.hpp"
@@ -1163,6 +1164,7 @@ static void InitializeSubsystems()
     INITIALIZE(Init_LauncherConfigOverride());     //8
     INITIALIZE(Init_FixDPIScaling());              //9 Needs to be anywhere before the window is created in CustomResolution.
     INITIALIZE(Init_CustomResolution());           //10
+    INITIALIZE(BugfixMods::Check());
 
     INITIALIZE(Init_ScaleEffects());               
     INITIALIZE(Init_AspectFOVFix());
