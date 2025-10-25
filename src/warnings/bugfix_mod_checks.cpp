@@ -17,6 +17,8 @@ void BugfixMods::Check()
     {
         if (!Util::CRC32Check(sExePath / "us" / "demo" / "_bp" / "p070_01_p01.sdt", 0xAE678CBD)) //emma crash-fix from mgs2 better audio mod.
         {
+            //MessageBoxA(g_D3D11Hooks.MainHwnd, "fuck", "fuck", MB_ICONWARNING);
+            //ExitProcess(1);
         }
 
 
