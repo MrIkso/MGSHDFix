@@ -41,3 +41,6 @@
 #include <optional>
 #include <array>
 #include <unordered_set>
+
+
+#include <bcrypt.h> //sha256

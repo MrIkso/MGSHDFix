@@ -125,6 +125,7 @@
     </ClCompile>
     <ClCompile Include="src\resources\submodule_initiailization.hpp" />
     <ClCompile Include="src\resources\version_checking.cpp" />
+    <ClCompile Include="src\warnings\check_gamesave_folder.cpp" />
     <ClCompile Include="src\warnings\corrupt_save_message.cpp" />
     <ClCompile Include="src\warnings\asi_loader_checks.cpp" />
     <ClCompile Include="src\warnings\reshade_compatibility_checks.cpp" />
@@ -174,6 +175,7 @@
     <ClInclude Include="src\resources\RegStateHelpers.hpp" />
     <ClInclude Include="src\resources\version_checking.hpp" />
     <ClInclude Include="src\resources\version.h" />
+    <ClInclude Include="src\warnings\check_gamesave_folder.hpp" />
     <ClInclude Include="src\warnings\corrupt_save_message.hpp" />
     <ClInclude Include="src\warnings\mute_warning.hpp" />
     <ClInclude Include="src\features\mg1_custom_loading_screens.hpp" />

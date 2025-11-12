@@ -167,6 +167,9 @@
     <ClCompile Include="src\warnings\background_shuffle_warning.cpp">
       <Filter>Warnings</Filter>
     </ClCompile>
+    <ClCompile Include="src\warnings\check_gamesave_folder.cpp">
+      <Filter>Warnings</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\fixes\line_scaling.hpp">
@@ -318,6 +321,9 @@
     </ClInclude>
     <ClInclude Include="src\warnings\background_shuffle_warning.hpp">
       <Filter>Warnings</Filter>
+    </ClInclude>
+    <ClInclude Include="src\warnings\check_gamesave_folder.hpp">
+      <Filter>Warnings\Headers</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

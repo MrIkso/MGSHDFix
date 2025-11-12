@@ -39,6 +39,7 @@
 #include "mute_warning.hpp"
 #include "reshade_compatibility_checks.hpp"
 #include "background_shuffle_warning.hpp"
+#include "check_gamesave_folder.hpp"
 
 ///WIP
 #include "bugfix_mod_checks.hpp"
@@ -1210,6 +1211,7 @@ static void InitializeSubsystems()
         //Warnings
     INITIALIZE(g_MuteWarning.Setup());
     INITIALIZE(BackgroundShuffleWarning::Check());
+    INITIALIZE(CheckGamesaveFolderWritable::CheckStatus());
 
 
     if (!(eGameType & LAUNCHER))

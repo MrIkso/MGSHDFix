@@ -6,59 +6,8 @@
 
 #pragma comment(lib,"Version.lib")
 
-namespace
-{
 
-    constexpr std::array<uint32_t, 256> GenerateCRCTable()
-    {
-        std::array<uint32_t, 256> table {};
-        for (uint32_t i = 0; i < 256; i++)
-        {
-            uint32_t c = i;
-            for (int j = 0; j < 8; j++)
-            {
-                if (c & 1)
-                {
-                    c = 0xEDB88320U ^ (c >> 1);
-                }
-                else
-                {
-                    c >>= 1;
-                }
-            }
-            table[i] = c;
-        }
-        return table;
-    }
-
-    constexpr auto crcTable = GenerateCRCTable();
-
-
-    uint32_t CRC32File(const std::filesystem::path& filePath)
-    {
-        std::ifstream file(filePath, std::ios::binary);
-        if (!file)
-        {
-            return 0; // or throw if you want strict behavior
-        }
-
-        uint32_t crc = 0xFFFFFFFFU;
-        char buffer[4096];
-
-        while (file.read(buffer, sizeof(buffer)) || file.gcount() > 0)
-        {
-            const std::streamsize count = file.gcount();
-            for (std::streamsize i = 0; i < count; i++)
-            {
-                const uint8_t byte = static_cast<uint8_t>(buffer[i]);
-                crc = crcTable[(crc ^ byte) & 0xFF] ^ (crc >> 8);
-            }
-        }
-
-        return crc ^ 0xFFFFFFFFU;
-    }
-}
-
+#pragma comment(lib, "bcrypt.lib")
 
 namespace Memory
 {
@@ -679,9 +628,53 @@ namespace Util
         return {};
     }
 
-    bool CRC32Check(const std::filesystem::path& filePath, const uint32_t expected)
+    std::string sha1_win(const std::filesystem::path& path)
     {
-        return CRC32File(filePath) == expected;
+        BCRYPT_ALG_HANDLE hAlg = nullptr;
+        BCRYPT_HASH_HANDLE hHash = nullptr;
+        DWORD hashObjectSize = 0, cbData = 0;
+        BYTE* hashObject = nullptr;
+        BYTE hash[20]; // SHA-1 = 20 bytes
+
+        if (BCryptOpenAlgorithmProvider(&hAlg, BCRYPT_SHA1_ALGORITHM, nullptr, 0))
+            throw std::runtime_error("BCryptOpenAlgorithmProvider failed.");
+
+        BCryptGetProperty(hAlg, BCRYPT_OBJECT_LENGTH, (PUCHAR)&hashObjectSize, sizeof(DWORD), &cbData, 0);
+        hashObject = new BYTE[hashObjectSize];
+        BCryptCreateHash(hAlg, &hHash, hashObject, hashObjectSize, nullptr, 0, 0);
+
+        std::ifstream file(path, std::ios::binary);
+        std::vector<char> buffer(1 << 16);
+        while (file.good())
+        {
+            file.read(buffer.data(), buffer.size());
+            BCryptHashData(hHash, (PUCHAR)buffer.data(), static_cast<ULONG>(file.gcount()), 0);
+        }
+
+        BCryptFinishHash(hHash, hash, sizeof(hash), 0);
+
+        std::ostringstream oss;
+        for (auto b : hash)
+            oss << std::hex << std::setw(2) << std::setfill('0') << static_cast<int>(b);
+
+        delete[] hashObject;
+        BCryptDestroyHash(hHash);
+        BCryptCloseAlgorithmProvider(hAlg, 0);
+
+        return oss.str();
+    }
+
+    bool IsFileReadOnly(const std::filesystem::path& path)
+    {
+        DWORD attrs = GetFileAttributesW(path.wstring().c_str());
+        if (attrs == INVALID_FILE_ATTRIBUTES)
+        {
+            std::wcerr << L"[ERROR] Failed to get attributes for: " << path << std::endl;
+            spdlog::error("Failed to get attributes for file: {}", path.string());
+            return false;
+        }
+
+        return (attrs & FILE_ATTRIBUTE_READONLY) != 0;
     }
 
 }

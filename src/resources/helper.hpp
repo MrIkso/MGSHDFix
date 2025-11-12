@@ -71,6 +71,9 @@ namespace Util
 
     bool CRC32Check(const std::filesystem::path& filePath, uint32_t expected);
 
+
+    bool IsFileReadOnly(const std::filesystem::path& path);
+
 }
 
 
