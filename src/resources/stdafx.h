@@ -26,7 +26,6 @@
 #include <iomanip>
 #include <algorithm>
 #include <regex>
-#include <windows.h>
 #include <tlhelp32.h>
 #include <psapi.h>
 #include <map>
@@ -41,6 +40,7 @@
 #include <optional>
 #include <array>
 #include <unordered_set>
+#include <unordered_map>
 
 
 #include <bcrypt.h> //sha256
