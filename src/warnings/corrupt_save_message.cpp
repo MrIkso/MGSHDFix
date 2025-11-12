@@ -34,19 +34,32 @@ void DamagedSaveFix::Initialize()
             int fileCount = 0;
             for (const auto& fileEntry : std::filesystem::directory_iterator(secondLevelEntry))
             {
-                if (fileEntry.is_regular_file())
+                if (!fileEntry.is_regular_file())
                 {
-                    ++fileCount;
-                    if (fileCount > 2)
-                    {
-                        break;
-                    }
+                    continue;
+                }
+
+                std::string name = fileEntry.path().filename().string();
+                std::transform(name.begin(), name.end(), name.begin(), [](unsigned char c) { return static_cast<char>(std::tolower(c)); });
+
+                if (name == "write_test.tmp")
+                {
+                    continue;
+                }
+
+                ++fileCount;
+
+                if (fileCount > 2)
+                {
+                    break;
                 }
             }
+
             if (fileCount <= 2)
             {
                 continue;
             }
+
 
             if (!bWarnedOnce)
             {
@@ -68,11 +81,17 @@ void DamagedSaveFix::Initialize()
                     continue;
                 }
                 std::string fileName = fileEntry.path().filename().string();
+                std::string lowerName = fileName;
+                std::transform(lowerName.begin(), lowerName.end(), lowerName.begin(), [](unsigned char c) { return static_cast<char>(std::tolower(c)); });
+                if (lowerName == "write_test.tmp")
+                {
+                    continue;
+                }
                 if (fileName == dirName)
                 {
                     continue;
                 }
-                // Get last write time (portable conversion)
+                // Get last write time
                 auto ftime = std::filesystem::last_write_time(fileEntry);
                 auto sctp = std::chrono::time_point_cast<std::chrono::system_clock::duration>(
                     ftime - std::filesystem::file_time_type::clock::now()
@@ -80,11 +99,11 @@ void DamagedSaveFix::Initialize()
                 );
                 std::time_t cftime = std::chrono::system_clock::to_time_t(sctp);
                 std::tm tm_buf;
-                #ifdef _WIN32
+#ifdef _WIN32
                 localtime_s(&tm_buf, &cftime);
-                #else
+#else
                 localtime_r(&cftime, &tm_buf);
-                #endif
+#endif
                 std::ostringstream timeStream;
                 timeStream << std::put_time(&tm_buf, "%Y-%m-%d %H:%M:%S");
                 std::cout << "  " << fileName << " (Date Created: " << timeStream.str() << ")" << std::endl;
