@@ -69,8 +69,7 @@ namespace Util
 
     std::string GetFileProductName(const std::filesystem::path& path);
 
-    bool CRC32Check(const std::filesystem::path& filePath, uint32_t expected);
-
+    bool SHA1Check(const std::filesystem::path& filePath, const std::string& expected);
 
     bool IsFileReadOnly(const std::filesystem::path& path);
 
