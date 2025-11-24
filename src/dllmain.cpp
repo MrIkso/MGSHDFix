@@ -1165,7 +1165,6 @@ static void InitializeSubsystems()
     INITIALIZE(Init_LauncherConfigOverride());     //8
     INITIALIZE(Init_FixDPIScaling());              //9 Needs to be anywhere before the window is created in CustomResolution.
     INITIALIZE(Init_CustomResolution());           //10
-    INITIALIZE(BugfixMods::Check());
 
     INITIALIZE(Init_ScaleEffects());               
     INITIALIZE(Init_AspectFOVFix());
@@ -1178,9 +1177,9 @@ static void InitializeSubsystems()
     INITIALIZE(g_IntroSkip.Initialize());
     INITIALIZE(g_KeepAimingAfterFiring.Initialize());
     INITIALIZE(g_MGS2Sunglasses.Initialize());
-
-
     INITIALIZE(g_DistanceCulling.Initialize());
+
+
 
         //Fixes
     INITIALIZE(g_CPUCoreLimitFix.ApplyFix());
@@ -1212,6 +1211,7 @@ static void InitializeSubsystems()
     INITIALIZE(g_MuteWarning.Setup());
     INITIALIZE(BackgroundShuffleWarning::Check());
     INITIALIZE(CheckGamesaveFolderWritable::CheckStatus());
+    INITIALIZE(BugfixMods::Check());
 
 
     if (!(eGameType & LAUNCHER))

@@ -32,7 +32,7 @@ jobs:
             --arg num "${{ github.event.issue.number }}" \
             --arg title "${{ github.event.issue.title }}" \
             --arg url "${{ github.event.issue.html_url }}" \
-            --arg body "${{ github.event.issue.body }}" \
+            --argjson body '${{ toJson(github.event.issue.body || '') }}' \
             '{
               embeds:[{
                 title:$t,
@@ -54,29 +54,30 @@ jobs:
           closer='${{ github.actor }}'
           closed_at='${{ github.event.issue.closed_at }}'
 
+          # Try GNU date, fallback to BSD date (macOS style)
           closed_epoch=$(date -d "$closed_at" +%s 2>/dev/null || date -j -f "%Y-%m-%dT%H:%M:%SZ" "$closed_at" +%s)
 
           comments_url='${{ github.event.issue.comments_url }}'
-          last_comment=$(curl -s -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" "$comments_url" \
-            | jq -r --arg closer "$closer" --argjson closed_epoch "$closed_epoch" '
-                [ .[]
-                  | select(.user.login == $closer)
-                  | .created_at as $c
-                  | ($c | sub("Z$"; "") | strptime("%Y-%m-%dT%H:%M:%S") | mktime) as $comment_epoch
-                  | select(($closed_epoch - $comment_epoch) <= 300)  # within 5 minutes
-                ][-1].body
-              ')
 
-          if [ -z "$last_comment" ] || [ "$last_comment" == "null" ]; then
-            last_comment=""
-          fi
+          # Get the last comment body by the closer within 5 minutes of close time, as JSON string
+          last_comment_json=$(
+            curl -s -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" "$comments_url" \
+              | jq -c --arg closer "$closer" --argjson closed_epoch "$closed_epoch" '
+                  [ .[]
+                    | select(.user.login == $closer)
+                    | .created_at as $c
+                    | ($c | sub("Z$"; "") | strptime("%Y-%m-%dT%H:%M:%S") | mktime) as $comment_epoch
+                    | select(($closed_epoch - $comment_epoch) <= 300)
+                  ][-1].body // ""
+                '
+          )
 
           jq -n \
             --arg t "🗂️ Mission Resolved by @$closer" \
             --arg num "${{ github.event.issue.number }}" \
             --arg title "${{ github.event.issue.title }}" \
             --arg url "${{ github.event.issue.html_url }}" \
-            --arg body "$last_comment" \
+            --argjson body "$last_comment_json" \
             '{
               embeds:[{
                 title:$t,
@@ -102,7 +103,15 @@ jobs:
             --arg user_url "https://github.com/${{ github.event.pull_request.user.login }}" \
             --arg avatar "${{ github.event.pull_request.user.avatar_url }}" \
             --arg url "${{ github.event.pull_request.html_url }}" \
-            '{embeds:[{title:$t,description:( "**[#" + $num + "](" + $url + ") " + $title + "**" ),url:$url,color:3447003,author:{name:("@" + $user),url:$user_url,icon_url:$avatar}}]}' \
+            '{
+              embeds:[{
+                title:$t,
+                description:( "**[#" + $num + "](" + $url + ") " + $title + "**" ),
+                url:$url,
+                color:3447003,
+                author:{name:("@" + $user),url:$user_url,icon_url:$avatar}
+              }]
+            }' \
           | curl -s -H "Content-Type: application/json" -d @- "$DISCORD_WEBHOOK"
 
       # ✅ Extraction Complete / ❌ Request Denied (PR closed/merged)
@@ -150,7 +159,11 @@ jobs:
       - name: Release published
         if: ${{ github.event_name == 'release' && github.event.action == 'published' }}
         run: |
-          echo "${{ github.event.release.body }}" > release_body.txt
+          RELEASE_BODY="${{ toJson(github.event.release.body) }}"
+      
+          # Write the raw text into the file safely
+          printf "%s" "$RELEASE_BODY" | jq -r . > release_body.txt
+      
           jq -n \
             --rawfile body release_body.txt \
             --arg title   "🧰 MGSHDFix Update Released! ${{ github.event.release.tag_name }}" \
@@ -195,10 +208,12 @@ jobs:
             (github.event.head_commit && !startsWith(github.event.head_commit.message, 'Merge pull request'))
           }}
         run: |
-          cat > commits.json <<'EOF'
-          ${{ toJson(github.event.commits) }}
-          EOF
-          
+          # Get commits as a JSON string, safely escaped
+          COMMITS_JSON='${{ toJson(github.event.commits) }}'
+
+          # Strip JSON quoting into a real JSON file
+          printf "%s" "$COMMITS_JSON" | jq -r . > commits.json
+
           if ! jq type commits.json | grep -q array; then
             echo "No commits found, skipping notification."
             exit 0
@@ -206,18 +221,20 @@ jobs:
 
           lines=$(jq -r '
             .[0:5]
-            | map("- [" + (.id[0:7]) + "](" + .url + ") " + (((.message // "(no commit message)") | split("\n")[0])))
+            | map("- [" + (.id[0:7]) + "](" + .url + ") " +
+                  (((.message // "(no commit message)") | split("\n")[0])))
             | join("\n")
           ' commits.json)
 
           count=$(jq 'length' commits.json)
           compare='${{ github.event.compare }}'
-          authors=$(jq -r '[.[].author.username // .[].author.name // "unknown"] | unique | map("@" + .) | join(", ")' commits.json)
+          authors=$(jq -r '[.[].author.username // .[].author.name // "unknown"]
+                           | unique | map("@" + .) | join(", ")' commits.json)
 
           if [ "$count" -eq 1 ]; then
-            author_line="$authors — 1 commit"
+            author_line="$authors - 1 commit"
           else
-            author_line="$authors — $count commits"
+            author_line="$authors - $count commits"
           fi
 
           actor='${{ github.actor }}'
