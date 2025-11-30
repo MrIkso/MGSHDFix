@@ -38,7 +38,7 @@ jobs:
         echo "version=$version" >> $GITHUB_OUTPUT
 
     - name: Setup MSBuild
-      uses: microsoft/setup-msbuild@v1.1
+      uses: microsoft/setup-msbuild@v2
       
     - name: Get wxWidgets submodule hash
       id: wxhash
@@ -80,7 +80,7 @@ jobs:
     # Build
     # -------------------------
     - name: Build
-      run: msbuild "${{ github.event.repository.name }}.sln" /m -t:rebuild -verbosity:minimal -property:Configuration=Release -property:Platform=x64
+      run: msbuild "${{ github.event.repository.name }}.sln" /m -t:rebuild -verbosity:minimal -property:Configuration=Release -property:Platform=x64 -property:PlatformToolset=v143
 
     # Copy built binaries into plugins
     - run: Copy-Item "x64\Release\${{ github.event.repository.name }}.asi" "dist/plugins/${{ github.event.repository.name }}.asi"
