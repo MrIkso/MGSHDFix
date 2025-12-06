@@ -273,7 +273,91 @@ static int GetBannerResourceID()
         iTargetGame = TARGET_GAME_MGS3; 
         return IDB_BANNER_MGS3;
     }
+
     wxLogError("Unable to find any known Master Collection games in %s", exePath.string());
+    
+    std::filesystem::path exeParentPath = exePath.parent_path();
+
+    // Try to find the real game root by walking upwards and looking for a directory named "MG and MG2", "MGS2", or "MGS3" that ALSO has one of the game EXEs inside it.
+    std::filesystem::path detectedGameRoot;
+    bool hasValidGameExe = false;
+
+    static const std::vector<std::wstring> GAME_ROOT_NAMES = {
+        L"MG and MG2",
+        L"MGS2",
+        L"MGS3"
+    };
+
+    for (auto cur = exeParentPath; cur.has_parent_path(); cur = cur.parent_path())
+    {
+        const std::wstring dirName = cur.filename().wstring();
+
+        bool nameMatches = false;
+        for (const auto& candidate : GAME_ROOT_NAMES)
+        {
+            if (_wcsicmp(dirName.c_str(), candidate.c_str()) == 0)
+            {
+                nameMatches = true;
+                break;
+            }
+        }
+
+        if (!nameMatches)
+        {
+            continue;
+        }
+
+        // We found a correctly named game folder. Check if any of the expected EXEs are here.
+        bool exeFound =
+            std::filesystem::exists(cur / "METAL GEAR.exe") ||
+            std::filesystem::exists(cur / "METAL GEAR SOLID2.exe") ||
+            std::filesystem::exists(cur / "METAL GEAR SOLID3.exe");
+
+        if (exeFound)
+        {
+            detectedGameRoot = cur;
+            hasValidGameExe = true;
+            break;
+        }
+    }
+
+    std::string message;
+
+    if (hasValidGameExe) // We found a valid game folder somewhere above us
+    {
+        wxLogError("MGSHDFix has been extracted to the wrong folder!");
+        wxLogError("Detected game folder: %s", detectedGameRoot.string().c_str());
+        wxLogError("Current MGSHDFix location: %s", exePath.string().c_str());
+        wxLogError("Please move all files from the current folder into the detected game folder.");
+
+        message =
+            "MGSHDFix has been extracted to the wrong folder!\n"
+            "Please move all files from:\n\n" + exePath.string() +
+            "\n\nto the detected game folder:\n\n" + detectedGameRoot.string();
+    }
+    else // No clue where we got extracted...
+    {
+        message =
+            "MGSHDFix has been extracted to the wrong folder!\n"
+            "This is typically caused by incorrectly extracting the MGSHDFix zip file into a NEW FOLDER inside the game's directory.\n"
+            "\n"
+            "Current Location:\n\n" + exePath.string() + "\n"
+            "\n"
+            "All files must be extracted EXACTLY as they were packed into your game's main folder.";
+
+        wxLogError("MGSHDFix has been extracted to the wrong folder!");
+        wxLogError("This is typically caused by incorrectly extracting the MGSHDFix zip file into a NEW FOLDER inside the game's directory.");
+        wxLogError("Current Location: %s", exePath.string().c_str());
+        wxLogError("All files must be extracted EXACTLY as they were packed into your game's main folder.");
+    }
+
+    int result = MessageBoxA(
+        nullptr,
+        message.c_str(),
+        "MGSHDFix Installation Error",
+        MB_ICONERROR | MB_OK
+    );
+
 
     return IDB_BANNER_MG1;
 }
