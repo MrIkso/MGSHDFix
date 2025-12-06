@@ -472,7 +472,7 @@ namespace Util
         return "UNKNOWN";
     }
 
-    [[nodiscard]] bool IsSteamOS()
+    bool IsSteamOS()
     {
         static bool bCheckedSteamDeck = false;
         static bool bIsSteamDeck = false;

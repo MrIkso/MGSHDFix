@@ -58,7 +58,7 @@ namespace Util
 
     std::string GetUppercaseNameAtIndex(const std::initializer_list<std::string>& list, int index);
 
-    bool IsSteamOS(); 
+    [[nodiscard]] bool IsSteamOS();
 
     std::string StripQuotes(const std::string& value);
 

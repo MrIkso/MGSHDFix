@@ -237,6 +237,27 @@ static int GetBannerResourceID()
 {
     std::filesystem::path exePath = wxGetCwd().ToStdString();
     exePath = exePath.parent_path(); 
+
+#pragma region CrashWarnings
+    //These crash warnings are also in src\warnings\asi_loader_checks.cpp, make sure to keep them in sync.
+    if (std::filesystem::exists(exePath / "d3d11.dll") && (Helper::GetFileDescription((exePath / "d3d11.dll").string()) == Helper::GetFileDescription((exePath / "winhttp.dll").string())))
+    {
+        wxLogError("DUPLICATE MOD LOADER ERROR: Multiple ASI Loader .dll installations detected! This can cause inconsistent bugs and crashes.");
+        wxLogError("DUPLICATE MOD LOADER ERROR: Please delete d3d11.dll, it has been replaced by winhttp.dll & wininit.dll.");
+        if (Helper::IsSteamOS())
+        {
+            wxLogError("DUPLICATE MOD LOADER ERROR: Steam Deck / Linux users must also replace their Steam game launch paramaters with the following command:");
+            wxLogError("WINEDLLOVERRIDES=\"wininet,winhttp=n,b\" % command %");
+        }
+    }
+
+    if (std::filesystem::exists(exePath / "dxgi.dll") && Helper::GetFileDescription((exePath / "dxgi.dll").string()) == "File description not found.")
+    {
+        wxLogError("DUPLICATE MOD LOADER ERROR: Multiple ASI Loader .dll installations detected! This can cause inconsistent bugs and crashes.");
+        wxLogError("DUPLICATE MOD LOADER ERROR: Please delete dxgi.dll, it has been replaced by winhttp.dll & wininit.dll.");
+    }
+#pragma endregion
+
     if (std::filesystem::exists(exePath / "METAL GEAR.exe"))
     {
         iTargetGame = TARGET_GAME_MG1;

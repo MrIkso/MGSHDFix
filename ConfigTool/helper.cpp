@@ -89,4 +89,54 @@ namespace Helper
         return VersionCompareResult::Equal;
     }
 
+    std::string GetFileDescription(const std::string& filePath)
+    {
+        DWORD handle = 0;
+        DWORD size = GetFileVersionInfoSizeA(filePath.c_str(), &handle);
+        if (size > 0)
+        {
+            std::vector<BYTE> versionInfo(size);
+            if (GetFileVersionInfoA(filePath.c_str(), handle, size, versionInfo.data()))
+            {
+                void* buffer = nullptr;
+                UINT sizeBuffer = 0;
+                if (VerQueryValueA(versionInfo.data(), R"(\VarFileInfo\Translation)", &buffer, &sizeBuffer))
+                {
+                    auto translations = static_cast<WORD*>(buffer);
+                    size_t translationCount = sizeBuffer / sizeof(WORD) / 2; // Each translation is two WORDs (language and code page)
+                    for (size_t i = 0; i < translationCount; ++i)
+                    {
+                        WORD language = translations[i * 2];
+                        WORD codePage = translations[i * 2 + 1];
+                        // Construct the query string for the file description
+                        std::ostringstream subBlock;
+                        subBlock << R"(\StringFileInfo\)" << std::hex << std::setw(4) << std::setfill('0') << language
+                            << std::setw(4) << std::setfill('0') << codePage << R"(\ProductName)";
+                        if (VerQueryValueA(versionInfo.data(), subBlock.str().c_str(), &buffer, &sizeBuffer))
+                        {
+                            return std::string(static_cast<char*>(buffer), sizeBuffer - 1);
+                        }
+                    }
+                }
+            }
+        }
+        return "File description not found.";
+    }
+
+    bool IsSteamOS()
+    {
+        static bool bCheckedSteamDeck = false;
+        static bool bIsSteamDeck = false;
+        if (bCheckedSteamDeck)
+        {
+            return bIsSteamDeck;
+        }
+        bCheckedSteamDeck = true;
+        // Check for Proton/Steam Deck environment variables
+        if (std::getenv("STEAM_COMPAT_CLIENT_INSTALL_PATH") || std::getenv("STEAM_COMPAT_DATA_PATH") || std::getenv("XDG_SESSION_TYPE"))
+        {
+            bIsSteamDeck = true;
+        }
+        return bIsSteamDeck;
+    }
 }
