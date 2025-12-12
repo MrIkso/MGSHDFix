@@ -27,12 +27,14 @@ jobs:
       - name: Issue opened
         if: ${{ github.event_name == 'issues' && github.event.action == 'opened' }}
         run: |
+          BODY_JSON=$(printf "%s" "${{ github.event.issue.body || '' }}" | jq -Rs .)
+
           jq -n \
             --arg t "🆕 New Mission by @${{ github.event.issue.user.login }}" \
             --arg num "${{ github.event.issue.number }}" \
             --arg title "${{ github.event.issue.title }}" \
             --arg url "${{ github.event.issue.html_url }}" \
-            --argjson body '${{ toJson(github.event.issue.body || '') }}' \
+            --argjson body "$BODY_JSON" \
             '{
               embeds:[{
                 title:$t,
