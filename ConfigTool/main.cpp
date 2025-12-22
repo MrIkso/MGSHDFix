@@ -276,6 +276,7 @@ static int GetBannerResourceID()
 
     wxLogError("Unable to find any known Master Collection games in %s", exePath.string());
     
+#pragma region FindGameRoot
     std::filesystem::path exeParentPath = exePath.parent_path();
 
     // Try to find the real game root by walking upwards and looking for a directory named "MG and MG2", "MGS2", or "MGS3" that ALSO has one of the game EXEs inside it.
@@ -357,7 +358,7 @@ static int GetBannerResourceID()
         "MGSHDFix Installation Error",
         MB_ICONERROR | MB_OK
     );
-
+#pragma endregion 
 
     return IDB_BANNER_MG1;
 }

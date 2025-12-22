@@ -6,6 +6,7 @@
 #include "logging.hpp"
 #include "version.h"
 
+#include "shellapi.h"
 
 namespace
 {
@@ -154,34 +155,51 @@ void BugfixMods::Check()
         cache.fixVersion = curVersion;
     }
 
-    // ------------------------------------------------------
-    // MGS2: Better Audio Mod Crash Fix Check
-    // ------------------------------------------------------
     if (eGameType & MGS2)
     {
+        // ------------------------------------------------------
+        // MGS2: Better Audio Mod Crash Fix Check
+        // ------------------------------------------------------
+
         if (const auto sdtPath = sExePath / "us" / "demo" / "_bp" / "p070_01_p01.sdt";  std::filesystem::exists(sdtPath) && Util::SHA1Check(sdtPath, "ae7497c2a59bc0c1597f49b3e4a26543eb4888a3"))
         {
-            const uint32_t maxWarnings = 3;
-            const std::string modKey = "MGS2_BetterAudioMod";
-
             spdlog::warn("------------------- ! Better Audio Mod Missing ! -------------------");
             spdlog::warn("MGS2 Better Audio mod is not currently installed.");
             spdlog::warn("The Better Audio mod fixes a hang/crash which occurs very late into the game.");
             spdlog::warn("It is HIGHLY recommended to install the mod, otherwise you will most likely be unable to finish the game.");
-
-            if (ShouldWarn(cache, modKey, maxWarnings))
+            if (constexpr uint32_t maxWarnings = 3; ShouldWarn(cache, "MGS2_BetterAudioMod", maxWarnings))
             {
+                spdlog::warn("This warning will be hidden after {} launches.", maxWarnings);
                 spdlog::warn("------------------- ! Better Audio Mod Missing ! -------------------");
-                MessageBoxA(
-                    g_D3D11Hooks.MainHwnd,
-                    "Warning: MGS2 Better Audio mod is not currently installed.\n"
+
+                std::string message =
+                    "Warning: The MGS2 Better Audio mod is not currently installed.\n"
                     "\n"
-                    "The Better Audio mod fixes a hang/crash which occurs very late into the game.\n\n"
-                    "It is HIGHLY recommended to install the mod, otherwise you will most likely be unable to finish the game.",
-                    "MGSHDFix - Crash Warning",
-                    MB_ICONWARNING | MB_OK
-                );
-                RecordWarning(cache, cacheFile, modKey);
+                    "The Better Audio mod fixes a critical hang/crash that occurs very late into the game.\n"
+                    "It is HIGHLY recommended to install the mod, otherwise you will most likely be unable to finish the game.\n"
+                    "\n"
+                    "Would you like to open the mod page now?\n"
+                    "\n"
+                    "(This warning will be hidden after " + std::to_string(maxWarnings) + " launches of the game.)";
+
+                if (int result = MessageBoxA(
+                    g_D3D11Hooks.MainHwnd,
+                    message.c_str(),
+                    "MGSHDFix - Bugfix Warning",
+                    MB_ICONWARNING | MB_YESNO);
+                    result == IDYES)
+                {
+                    ShellExecuteA(
+                        nullptr,
+                        "open",
+                        "https://www.nexusmods.com/metalgearsolid2mc/mods/3",
+                        nullptr,
+                        nullptr,
+                        SW_SHOWNORMAL
+                    );
+                }
+
+                RecordWarning(cache, cacheFile, "MGS2_BetterAudioMod");
             }
             else
             {
@@ -189,6 +207,60 @@ void BugfixMods::Check()
                 spdlog::warn("------------------- ! Better Audio Mod Missing ! -------------------");
             }
         }
+
+        // ------------------------------------------------------
+        // MGS2: Afevis's Bugfix Compilation
+        // ------------------------------------------------------
+        {
+
+            if (!std::filesystem::exists(sExePath / "plugins" / "Afevis-MGS2-Bugfix-Compilation.asi"))
+            {
+                spdlog::warn("------------------- ! Afevis Bugfix Compilation (Base) Missing ! -------------------");
+                spdlog::warn("Afevis's MGS2 Bugfix Compilation (Base) is not currently installed.");
+                spdlog::warn("The MGS2 bugfix compilation mod fixes nearly 14,000 texture quality bugs, hundreds of transparency/invisible model bugs caused by the 2011 HD remaster, as well as countless typos across all game languages.");
+                spdlog::warn("It is HIGHLY recommended to install the mod for the best experience possible.");
+                spdlog::warn("The mod is available at both NexusMods.com & Github.com");
+                
+                if (constexpr uint32_t maxWarnings = 3; ShouldWarn(cache, "MGS2_AfevisBugFixCompilation", maxWarnings))
+                {
+                    spdlog::warn("This warning will be hidden after {} launches.", maxWarnings);
+                    spdlog::warn("------------------- !  Afevis Bugfix Compilation (Base) Missing ! -------------------");
+
+                    std::string message =
+                        "Warning: Afevis's MGS2 Bugfix Compilation is not currently installed.\n"
+                        "\n"
+                        "The MGS2 bugfix compilation mod fixes nearly 14,000 texture quality bugs, hundreds of transparency and invisible model bugs caused by the 2011 HD remaster, as well as countless typos across all game languages.\n"
+                        "\n"
+                        "It is HIGHLY recommended to install the mod for the best experience possible.\n"
+                        "\n"
+                        "The mod is available at both NexusMods.com and GitHub.com.\n"
+                        "\n"
+                        "Would you like to open the mod page now?\n"
+                        "\n"
+                        "(This warning will be hidden after " + std::to_string(maxWarnings) +" launches of the game.)";
+
+                    
+                    if (int result = MessageBoxA(g_D3D11Hooks.MainHwnd, message.c_str(), "MGSHDFix - Bugfix Warning", MB_ICONWARNING | MB_YESNO);  result == IDYES)
+                    {
+                        ShellExecuteA(
+                            nullptr,
+                            "open",
+                            "https://www.nexusmods.com/metalgearsolid2mc/mods/52",
+                            nullptr,
+                            nullptr,
+                            SW_SHOWNORMAL
+                        );
+                    }
+                    RecordWarning(cache, cacheFile, "MGS2_AfevisBugFixCompilation");
+                }
+                else
+                {
+                    spdlog::warn("Skipped Afevis's MGS2 Bugfix Compilation pop-up warning (already shown {} times)", maxWarnings);
+                    spdlog::warn("------------------- ! Afevis Bugfix Compilation (Base) Missing ! -------------------");
+                }
+            }
+        }
+
     }
 
 
