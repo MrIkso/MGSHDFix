@@ -288,8 +288,7 @@ void BugfixMods::Check()
             const std::string key = "MGS2_BetterAudioMod";
             const auto sdtPath = sExePath / "us" / "demo" / "_bp" / "p070_01_p01.sdt";
 
-            if (std::filesystem::exists(sdtPath) &&
-                Util::SHA1Check(sdtPath, "ae7497c2a59bc0c1597f49b3e4a26543eb4888a3"))
+            if (std::filesystem::exists(sdtPath) && Util::SHA1Check(sdtPath, "ae7497c2a59bc0c1597f49b3e4a26543eb4888a3"))
             {
                 const uint32_t remaining = GetWarningsRemaining(cache, key, policy);
 
@@ -307,8 +306,8 @@ void BugfixMods::Check()
                             "The Better Audio mod fixes a critical hang/crash that occurs very late into the game.\n"
                             "It is HIGHLY recommended to install the mod, otherwise you will most likely be unable to finish the game.\n"
                             "\n"
-                            "Would you like to open the mod page now?\n\
-n" +
+                            "Would you like to open the mod page now?\n" +  
+                            "\n" +
                             BuildInitialPhaseTail(remainingAfterThis);
                     }
                     else
@@ -324,6 +323,7 @@ n" +
                             BuildCooldownTail(policy.cooldownDays);
                     }
 
+                    spdlog::warn(message);
                     if (int result = MessageBoxA(
                         g_D3D11Hooks.MainHwnd,
                         message.c_str(),
@@ -378,12 +378,14 @@ n" +
                         message =
                             "Reminder: Afevis's MGS2 Bugfix Compilation is not currently installed.\n"
                             "\n"
-                            "This mod fixes nearly 14,000 texture issues, hundreds of transparency bugs, and countless localization errors introduced by the 2011 Bluepoint HD remaster.\n"
+                            "This mod fixes nearly 14,000 texture issues, hundreds of transparent textures/models, and countless localization errors introduced by the 2011 Bluepoint HD remaster.\n"
                             "\n"
                             "Would you like to open the mod page now?\n"
                             "\n" +
                             BuildCooldownTail(policy.cooldownDays);
                     }
+
+                    spdlog::warn(message);
 
                     if (int result = MessageBoxA(
                         g_D3D11Hooks.MainHwnd,
