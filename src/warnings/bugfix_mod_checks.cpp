@@ -260,7 +260,7 @@ namespace
             return;
         }
 
-        spdlog::debug("Resetting mod warning cache (environment changed)");
+        spdlog::info("Resetting mod warning cache (environment changed)");
 
         cache.warn.clear();
         cache.installPath = curPath;
@@ -306,7 +306,7 @@ void BugfixMods::Check()
                             "The Better Audio mod fixes a critical hang/crash that occurs very late into the game.\n"
                             "It is HIGHLY recommended to install the mod, otherwise you will most likely be unable to finish the game.\n"
                             "\n"
-                            "Would you like to open the mod page now?\n" +  
+                            "Would you like to open the mod page now?\n"
                             "\n" +
                             BuildInitialPhaseTail(remainingAfterThis);
                     }

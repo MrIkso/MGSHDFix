@@ -10,18 +10,45 @@ if not exist "%WX_BUILD_DIR%" (
     exit /b 1
 )
 
-REM --- Resolve wxWidgets .sln dynamically ---
+REM --- Resolve latest wxWidgets .sln dynamically (highest vcXX) ---
 set "WX_SLN="
+set "WX_MAX_VER=0"
+
 for %%F in ("%WX_BUILD_DIR%\wx_vc*.sln") do (
-    set "WX_SLN=%%F"
-    goto :found_sln
+    REM Get file name without extension, for example: wx_vc17
+    set "FILE=%%~nF"
+
+    REM Strip prefix "wx_vc" leaving just the version, for example: 17
+    set "WX_VER=!FILE:wx_vc=!"
+
+    REM Ensure WX_VER is numeric. If non numeric chars appear, clear it.
+    for /f "delims=0123456789" %%X in ("!WX_VER!") do (
+        if not "%%X"=="" (
+            set "WX_VER="
+        )
+    )
+
+    if defined WX_VER (
+        if !WX_VER! GTR !WX_MAX_VER! (
+            set "WX_MAX_VER=!WX_VER!"
+            set "WX_SLN=%%F"
+        )
+    )
 )
 
-:found_sln
-if "%WX_SLN%"=="" (
+if not defined WX_SLN (
     echo ERROR: Could not find wxWidgets Visual Studio solution in %WX_BUILD_DIR%
     exit /b 1
 )
+
+REM --- Pick PlatformToolset based on vc version, future proof ---
+REM Known mapping pattern: 14 -> 140, 17 -> 143, etc.
+REM So toolset_suffix = vc_version + 126, giving v140, v141, v142, v143, v144, v145...
+set /a WX_TOOLSET_NUM=WX_MAX_VER+126
+set "WX_TOOLSET=v!WX_TOOLSET_NUM!"
+
+echo [wxWidgets] Using solution: %WX_SLN%
+echo [wxWidgets] Using PlatformToolset: %WX_TOOLSET%
 
 REM --- Get current submodule commit hash ---
 pushd "%~dp0external\wxWidgets" >nul
@@ -74,7 +101,7 @@ if "%NEED_RELEASE_BUILD%"=="1" (
 REM --- Build Release ---
 if "%NEED_RELEASE_BUILD%"=="1" (
     echo [wxWidgets] Building Release...
-    msbuild "%WX_SLN%" /p:Configuration=Release /p:Platform=x64 /m /t:Rebuild
+    msbuild "%WX_SLN%" /p:Configuration=Release /p:Platform=x64 /m /t:Rebuild /p:PlatformToolset=%WX_TOOLSET%
     if errorlevel 1 (
         echo ERROR: Release build failed.
         exit /b 1
@@ -88,7 +115,7 @@ REM --- Build Debug (only if not CI) ---
 if /i not "%CI%"=="true" (
     if "%NEED_DEBUG_BUILD%"=="1" (
         echo [wxWidgets] Building Debug...
-        msbuild "%WX_SLN%" /p:Configuration=Debug /p:Platform=x64 /m /t:Rebuild
+        msbuild "%WX_SLN%" /p:Configuration=Debug /p:Platform=x64 /m /t:Rebuild /p:PlatformToolset=%WX_TOOLSET%
         if errorlevel 1 (
             echo ERROR: Debug build failed.
             exit /b 1
