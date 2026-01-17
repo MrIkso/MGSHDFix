@@ -1,7 +1,9 @@
 #pragma once
 
-class SkyboxFix final
+namespace SkyboxFix
 {
-public:
-    static void Initialize();
+    void Initialize();
+
+    inline bool isEnabled = true;
+
 };

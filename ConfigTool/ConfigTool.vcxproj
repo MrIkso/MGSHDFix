@@ -180,6 +180,9 @@
     <PreBuildEvent>
       <Command>call "$(SolutionDir)build_wx.cmd"</Command>
     </PreBuildEvent>
+    <PostBuildEvent>
+      <Command>call "..\update_local_game_files.py"</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="helper.cpp" />

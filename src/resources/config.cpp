@@ -23,6 +23,8 @@
 #include "keep_aiming_after_firing.hpp"
 #include "mgs2_sunglasses.hpp"
 #include "config_keys.hpp"
+#include "effect_speeds.hpp"
+#include "skyboxes.hpp"
 #include "windows_fullscreen_optimization.hpp"
 
 // -----------------------------------------------------------------------------
@@ -396,6 +398,15 @@ void Config::Read()
 
     ConfigHelper::getValue(ini, ConfigKeys::DisableFullscreenOptimization_Section, ConfigKeys::DisableFullscreenOptimization_Setting, g_FixFullscreenOptimization.enabled);
     LOG_CONFIG(ConfigKeys::DisableFullscreenOptimization_Section, ConfigKeys::DisableFullscreenOptimization_Setting, g_FixFullscreenOptimization.enabled);
+
+    ConfigHelper::getValue(ini, ConfigKeys::EffectSpeedFixes_Section, ConfigKeys::EffectSpeedFixes_Setting, g_EffectSpeedFix.isEnabled);
+    LOG_CONFIG(ConfigKeys::EffectSpeedFixes_Section, ConfigKeys::EffectSpeedFixes_Setting, g_EffectSpeedFix.isEnabled);
+
+    ConfigHelper::getValue(ini, ConfigKeys::FixSkyboxes_Section, ConfigKeys::FixSkyboxes_Setting, SkyboxFix::isEnabled);
+    LOG_CONFIG(ConfigKeys::FixSkyboxes_Section, ConfigKeys::FixSkyboxes_Setting, SkyboxFix::isEnabled);
+
+
+
 
     ConfigLogger::Flush();
 }

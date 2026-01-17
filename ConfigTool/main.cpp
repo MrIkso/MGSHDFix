@@ -48,6 +48,40 @@ constexpr bool bFullLengthFields = false; //if you want the boxes to span half t
 #define NEXUS_MGS2_URL "https://www.nexusmods.com/metalgearsolid2mc/mods/49"
 #define NEXUS_MGS3_URL "https://www.nexusmods.com/metalgearsolid3mc/mods/139"
 
+
+#include <wx/log.h>
+#include <wx/msgdlg.h>
+
+class wxLogErrorsOnlyGui final : public wxLog
+{
+public:
+    explicit wxLogErrorsOnlyGui(wxWindow* parent = nullptr)
+        : m_parent(parent)
+    {
+    }
+
+protected:
+    void DoLogTextAtLevel(wxLogLevel level, const wxString& msg) override
+    {
+        // ONLY errors (and fatal errors if wxWidgets uses them)
+        if (level != wxLOG_Error && level != wxLOG_FatalError)
+        {
+            return;
+        }
+
+        wxMessageBox(
+            msg,
+            "MGSHDFix Error",
+            wxOK | wxICON_ERROR,
+            m_parent
+        );
+    }
+
+private:
+    wxWindow* m_parent = nullptr;
+};
+
+
 // ---------------------------------------------------------------------------
 // Quote/unquote helpers for INI-safe string persistence
 // ---------------------------------------------------------------------------
@@ -236,28 +270,35 @@ static size_t FindResourceSize(int resID, const wchar_t* resType)
 static int GetBannerResourceID()
 {
     std::filesystem::path exePath = wxGetCwd().ToStdString();
-    exePath = exePath.parent_path(); 
+    exePath = exePath.parent_path();
 
 #pragma region CrashWarnings
     //These crash warnings are also in src\warnings\asi_loader_checks.cpp, make sure to keep them in sync.
-    if (std::filesystem::exists(exePath / "d3d11.dll") && (Helper::GetFileDescription((exePath / "d3d11.dll").string()) == Helper::GetFileDescription((exePath / "winhttp.dll").string())))
+    if (std::filesystem::exists(exePath / "d3d11.dll") &&
+        (Helper::GetFileDescription((exePath / "d3d11.dll").string()) ==
+         Helper::GetFileDescription((exePath / "winhttp.dll").string())))
     {
-        wxLogError("DUPLICATE MOD LOADER ERROR: Multiple ASI Loader .dll installations detected! This can cause inconsistent bugs and crashes.");
-        wxLogError("DUPLICATE MOD LOADER ERROR: Please delete d3d11.dll, it has been replaced by winhttp.dll & wininit.dll.");
+        wxLogError("DUPLICATE MOD LOADER ERROR: Multiple ASI Loader .dll installations detected! This can cause inconsistent bugs and crashes.\n"
+                   "\n"
+                   "Please delete d3d11.dll, it has been replaced by winhttp.dll & wininit.dll.");
         if (Helper::IsSteamOS())
         {
-            wxLogError("DUPLICATE MOD LOADER ERROR: Steam Deck / Linux users must also replace their Steam game launch paramaters with the following command:");
-            wxLogError("WINEDLLOVERRIDES=\"wininet,winhttp=n,b\" % command %");
+            wxLogError("\nSteam Deck / Linux users must also replace their Steam game launch paramaters with the following command:\n"
+                       "\n"
+                       "WINEDLLOVERRIDES=\"wininet,winhttp=n,b\" % command %");
         }
     }
 
-    if (std::filesystem::exists(exePath / "dxgi.dll") && Helper::GetFileDescription((exePath / "dxgi.dll").string()) == "File description not found.")
+    if (std::filesystem::exists(exePath / "dxgi.dll") &&
+        Helper::GetFileDescription((exePath / "dxgi.dll").string()) == "File description not found.")
     {
-        wxLogError("DUPLICATE MOD LOADER ERROR: Multiple ASI Loader .dll installations detected! This can cause inconsistent bugs and crashes.");
-        wxLogError("DUPLICATE MOD LOADER ERROR: Please delete dxgi.dll, it has been replaced by winhttp.dll & wininit.dll.");
+        wxLogError("DUPLICATE MOD LOADER ERROR: Multiple ASI Loader .dll installations detected! This can cause inconsistent bugs and crashes.\n"
+                   "\n"
+                   "Please delete dxgi.dll, it has been replaced by winhttp.dll & wininit.dll.");
     }
 #pragma endregion
 
+    // Normal expected install locations (MGSHDFix sitting next to the game exe)
     if (std::filesystem::exists(exePath / "METAL GEAR.exe"))
     {
         iTargetGame = TARGET_GAME_MG1;
@@ -270,16 +311,15 @@ static int GetBannerResourceID()
     }
     if (std::filesystem::exists(exePath / "METAL GEAR SOLID3.exe"))
     {
-        iTargetGame = TARGET_GAME_MGS3; 
+        iTargetGame = TARGET_GAME_MGS3;
         return IDB_BANNER_MGS3;
     }
 
-    wxLogError("Unable to find any known Master Collection games in %s", exePath.string());
-    
 #pragma region FindGameRoot
     std::filesystem::path exeParentPath = exePath.parent_path();
 
-    // Try to find the real game root by walking upwards and looking for a directory named "MG and MG2", "MGS2", or "MGS3" that ALSO has one of the game EXEs inside it.
+    // Try to find the real game root by walking upwards and looking for a directory named
+    // "MG and MG2", "MGS2", or "MGS3" that ALSO has one of the game EXEs inside it.
     std::filesystem::path detectedGameRoot;
     bool hasValidGameExe = false;
 
@@ -289,7 +329,10 @@ static int GetBannerResourceID()
         L"MGS3"
     };
 
-    for (auto cur = exeParentPath; cur.has_parent_path(); cur = cur.parent_path())
+    // Normalize so ".." and oddities don't mess with comparisons.
+    std::filesystem::path start = std::filesystem::weakly_canonical(exeParentPath);
+
+    for (std::filesystem::path cur = start; ; cur = cur.parent_path())
     {
         const std::wstring dirName = cur.filename().wstring();
 
@@ -303,21 +346,25 @@ static int GetBannerResourceID()
             }
         }
 
-        if (!nameMatches)
+        if (nameMatches)
         {
-            continue;
+            const bool exeFound =
+                std::filesystem::exists(cur / "METAL GEAR.exe") ||
+                std::filesystem::exists(cur / "METAL GEAR SOLID2.exe") ||
+                std::filesystem::exists(cur / "METAL GEAR SOLID3.exe");
+
+            if (exeFound)
+            {
+                detectedGameRoot = cur;
+                hasValidGameExe = true;
+                break;
+            }
         }
 
-        // We found a correctly named game folder. Check if any of the expected EXEs are here.
-        bool exeFound =
-            std::filesystem::exists(cur / "METAL GEAR.exe") ||
-            std::filesystem::exists(cur / "METAL GEAR SOLID2.exe") ||
-            std::filesystem::exists(cur / "METAL GEAR SOLID3.exe");
-
-        if (exeFound)
+        // Hard stop at filesystem root (or any case where parent_path() stops changing).
+        const std::filesystem::path parent = cur.parent_path();
+        if (parent.empty() || parent == cur)
         {
-            detectedGameRoot = cur;
-            hasValidGameExe = true;
             break;
         }
     }
@@ -326,10 +373,6 @@ static int GetBannerResourceID()
 
     if (hasValidGameExe) // We found a valid game folder somewhere above us
     {
-        wxLogError("MGSHDFix has been extracted to the wrong folder!");
-        wxLogError("Detected game folder: %s", detectedGameRoot.string().c_str());
-        wxLogError("Current MGSHDFix location: %s", exePath.string().c_str());
-        wxLogError("Please move all files from the current folder into the detected game folder.");
 
         message =
             "MGSHDFix has been extracted to the wrong folder!\n"
@@ -340,28 +383,25 @@ static int GetBannerResourceID()
     {
         message =
             "MGSHDFix has been extracted to the wrong folder!\n"
+            "\n"
             "This is typically caused by incorrectly extracting the MGSHDFix zip file into a NEW FOLDER inside the game's directory.\n"
             "\n"
             "Current Location:\n\n" + exePath.string() + "\n"
             "\n"
             "All files must be extracted EXACTLY as they were packed into your game's main folder.";
 
-        wxLogError("MGSHDFix has been extracted to the wrong folder!");
-        wxLogError("This is typically caused by incorrectly extracting the MGSHDFix zip file into a NEW FOLDER inside the game's directory.");
-        wxLogError("Current Location: %s", exePath.string().c_str());
-        wxLogError("All files must be extracted EXACTLY as they were packed into your game's main folder.");
+
     }
+    wxLogError(message);
 
-    int result = MessageBoxA(
-        nullptr,
-        message.c_str(),
-        "MGSHDFix Installation Error",
-        MB_ICONERROR | MB_OK
-    );
-#pragma endregion 
 
+    ExitProcess(1);
+#pragma endregion
+
+    // Fallback
     return IDB_BANNER_MG1;
 }
+
 
 // Custom fixed-size banner panel
 class BannerPanel : public wxPanel
@@ -1249,11 +1289,16 @@ class MyApp : public wxApp
 public:
     bool OnInit() override
     {
+        // Install logger BEFORE any wxLogError can fire (ConfigFrame ctor calls GetBannerResourceID)
+        wxLog::SetActiveTarget(new wxLogErrorsOnlyGui(nullptr));
+        wxLog::SetLogLevel(wxLOG_Error);
+
         wxImage::AddHandler(new wxPNGHandler);
         ConfigFrame* frame = new ConfigFrame();
         frame->Show();
         return true;
     }
+
 };
 
 wxIMPLEMENT_APP(MyApp);

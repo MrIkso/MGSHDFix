@@ -365,7 +365,7 @@ void BugfixMods::Check()
                     {
                         const uint32_t remainingAfterThis = (remaining > 0) ? (remaining - 1) : 0;
                         message =
-                            "Warning: Afevis's MGS2 Bugfix Compilation is not currently installed.\n"
+                            "Warning: MGS2 Community Bugfix Compilation is not currently installed.\n"
                             "\n"
                             "This mod fixes nearly 14,000 texture issues, hundreds of transparent textures/models, and countless localization errors introduced by the 2011 Bluepoint HD remaster.\n"
                             "\n"
@@ -376,7 +376,7 @@ void BugfixMods::Check()
                     else
                     {
                         message =
-                            "Reminder: Afevis's MGS2 Bugfix Compilation is not currently installed.\n"
+                            "Reminder: MGS2 Community Bugfix Compilation is not currently installed.\n"
                             "\n"
                             "This mod fixes nearly 14,000 texture issues, hundreds of transparent textures/models, and countless localization errors introduced by the 2011 Bluepoint HD remaster.\n"
                             "\n"

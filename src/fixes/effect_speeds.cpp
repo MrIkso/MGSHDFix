@@ -95,6 +95,12 @@ void EffectSpeedFix::Initialize()
     {
         return;
     }
+
+    if (!g_EffectSpeedFix.isEnabled)
+    {
+        SPDLOG_INFO("MGS 2: Effect Speed Fix: Config disabled. Skipping");
+        return;
+    }
     
 #ifdef _MGSDEBUGGING
     /*
