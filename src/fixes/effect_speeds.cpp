@@ -193,7 +193,7 @@ void EffectSpeedFix::Initialize()
         LOG_HOOK(splashPartsSlow_hook, "MGS 2: Effect Speed Fix: demo_effect\\d_splash_parts_slow.c")
     }
     */
-#endif  
+#endif
 
     
     if (uint8_t* MGS2_flyingSmokeSlowScanResult = Memory::PatternScan(baseModule, "E8 ?? ?? ?? ?? FF 4B ?? 83 7B ?? ?? 7D", "MGS 2: Effect Speed Fix : effect3\\flying_smoke_slow.c"))

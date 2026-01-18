@@ -39,6 +39,8 @@ namespace Util
 
     void DumpBytes(uint64_t address);
 #endif
+    
+    std::string GetCommandLineArgs();
 
     bool IsProcessRunning(const std::filesystem::path& fullPath);
 

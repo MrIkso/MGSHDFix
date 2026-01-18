@@ -79,29 +79,40 @@ def terminate_config_tool_if_running() -> None:
     If MGSHDFix Config Tool.exe is running, terminate it.
     Best-effort; logs outcome but does not fail the script.
     """
-    exe_name = "MGSHDFix Config Tool.exe"
 
-    try:
-        result = subprocess.run(
-            ["taskkill", "/IM", exe_name, "/F"],
-            stdout=subprocess.PIPE,
-            stderr=subprocess.STDOUT,
-            text=True,
-            check=False,
-        )
-        out = (result.stdout or "").strip()
+    exe_names = [
+        "MGSHDFix Config Tool.exe",
+        "METAL GEAR SOLID2.exe",
+        "METAL GEAR SOLID3.exe",
+        "METAL GEAR.exe",
+        "launcher.exe",
+    ]
 
-        if result.returncode == 0:
-            log(f"[OK] Terminated running process: {exe_name}")
-        else:
-            if out:
-                log(f"[INFO] taskkill returned {result.returncode} for {exe_name}: {out}")
+    for exe_name in exe_names:
+        try:
+            result = subprocess.run(
+                ["taskkill", "/IM", exe_name, "/F"],
+                stdout=subprocess.PIPE,
+                stderr=subprocess.STDOUT,
+                text=True,
+                check=False,
+            )
+
+            out = (result.stdout or "").strip()
+
+            if result.returncode == 0:
+                log(f"[OK] Terminated: {exe_name}")
             else:
-                log(f"[INFO] taskkill returned {result.returncode} for {exe_name} (no output)")
-    except FileNotFoundError:
-        log("[WARN] taskkill not found (unexpected on Windows). Skipping termination step.")
-    except Exception as exc:
-        log(f"[WARN] Failed trying to terminate {exe_name}: {type(exc).__name__}: {exc}")
+                if out:
+                    log(f"[INFO] {exe_name}: {out}")
+                else:
+                    log(f"[INFO] {exe_name}: not running")
+
+        except FileNotFoundError:
+            log("[WARN] taskkill not found. Skipping process termination.")
+            return
+        except Exception as exc:
+            log(f"[WARN] Failed terminating {exe_name}: {type(exc).__name__}: {exc}")
 
 
 # ==========================================================
@@ -382,6 +393,7 @@ def main() -> int:
 
     log("Checking for running MGSHDFix Config Tool.exe...")
     terminate_config_tool_if_running()
+
 
     log(f"Checking build outputs:\n  ASI: {SRC_ASI}\n  CFG: {SRC_CFG}")
     if not SRC_ASI.exists() or not SRC_CFG.exists():

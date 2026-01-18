@@ -268,6 +268,18 @@ namespace Util
 #endif
 
 
+
+    std::string GetCommandLineArgs()
+    {
+        const wchar_t* cmdLineW = ::GetCommandLineW();
+        if (!cmdLineW)
+        {
+            return {};
+        }
+
+        return WideToUTF8(cmdLineW);
+    }
+
     bool IsProcessRunning(const std::filesystem::path& fullPath)
     {
         HANDLE snapshot = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);

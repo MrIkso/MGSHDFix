@@ -868,6 +868,7 @@ static void Init_LauncherConfigOverride()
 
         if (bLauncherConfigSkipLauncher)
         {
+
             if (!hasJumpstart || Util::IsProcessParent("steam.exe"))
             {
                 auto gameExePath = sExePath.parent_path() / game->ExeName;
@@ -900,6 +901,88 @@ static void Init_LauncherConfigOverride()
                         L"R");
                 }
 
+                else if (game->ExeName == kGames.at(MGS2).ExeName)
+                {
+                    const std::string langUpperUtf8 = Util::GetUppercaseNameAtIndex(kLauncherConfigLanguages, iLauncherConfigLanguage);
+                    const std::wstring langUpper = Util::UTF8toWide(langUpperUtf8);
+                    spdlog::info("MGS 2: Launcher Config: MGS 2 language selected: {}", langUpperUtf8);
+
+                    const bool jpSelected = (langUpperUtf8 == "JAPANESE");
+
+                    const bool usDatExists = std::filesystem::exists(sExePath / "Misc" / "us" / "BP_SE.DAT");
+                    const bool jpDatExists = std::filesystem::exists(sExePath / "Misc" / "jp" / "BP_SE.DAT");
+
+                    spdlog::info("MGS 2: Launcher Config: MGS 2 DAT file check - US DAT exists: {}, JP DAT exists: {}", usDatExists ? "yes" : "no", jpDatExists ? "yes" : "no");
+
+                    if (!usDatExists || (jpSelected && jpDatExists))
+                    {
+                        if (!usDatExists)
+                        {
+                            spdlog::error("MGS 2: Launcher Config: US DAT file not present, launching JP region.");
+                        }
+                        else
+                        {
+                            spdlog::info("MGS 2: Launcher Config: MGS 2 Japanese language selected, launching JP region.");
+                        }
+                        commandLine += L" -region jp -lan jp ";
+                        
+                    }
+                    else if (jpSelected)
+                    {
+                        spdlog::error("MGS 2: Launcher Config: MGS 2 Japanese language selected but JP DAT file not present, defaulting to English.");
+                        commandLine += L" -region eu  -lan en ";
+                    }
+                    else
+                    {
+                        spdlog::info("MGS 2: Launcher Config: Launching EU region.");
+                        commandLine += L" -region eu ";
+
+                        struct LangPair
+                        {
+                            const wchar_t* name;
+                            const wchar_t* code;
+                        };
+
+                        static constexpr LangPair kLangTable[] =
+                        {
+                            {L"ENGLISH", L"en"},
+                            {L"FRENCH",  L"fr"},
+                            {L"ITALIAN", L"it"},
+                            {L"GERMAN",  L"gr"},
+                            {L"SPANISH", L"sp"},
+                        };
+
+                        bool matched = false;
+
+                        spdlog::info("MGS 2: Launcher Config: Checking language against EU list.");
+                        for (const auto& entry : kLangTable)
+                        {
+                            if (langUpper == entry.name)
+                            {
+                                commandLine += L" -lan ";
+                                commandLine += entry.code;
+                                commandLine += L" ";
+                                matched = true;
+                                spdlog::info("MGS 2: Launcher Config: Language matched in EU list: {}", Util::WideToUTF8(entry.name));
+                                break;
+                            }
+     
+                            spdlog::info("MGS 2: Launcher Config: Language {} did not match EU list entry: {}", langUpperUtf8, Util::WideToUTF8(entry.name));
+                            
+                        }
+
+                        if (!matched)
+                        {
+                            spdlog::warn("MGS 2: Launcher Config: Language: {}, not a valid EU language. Defaulting to English.", langUpperUtf8);
+                            commandLine += L" -lan en ";
+                        }
+                    }
+
+                    commandLine += L" -selfregion EU ";
+                }
+
+
+                
                 commandLine += L" -launcherpath launcher.exe ";
 
                 std::string sCommandLine = Util::WideToUTF8(commandLine);
@@ -913,6 +996,7 @@ static void Init_LauncherConfigOverride()
                     CloseHandle(processInfo.hThread);
 
                     // Force launcher to exit
+                    spdlog::shutdown();
                     ExitProcess(0);
                 }
                 else
@@ -930,6 +1014,7 @@ static void Init_LauncherConfigOverride()
                     std::this_thread::sleep_for(std::chrono::milliseconds(100));
                 }
                 spdlog::info("MG/MG2 | MGS 2 | MGS 3: Companion game exited, exiting launcher.");
+                spdlog::shutdown();
                 ExitProcess(0);
             }
         }
@@ -953,6 +1038,7 @@ static void Init_LauncherConfigOverride()
                     CloseHandle(processInfo.hThread);
 
                     // Force launcher to exit
+                    spdlog::shutdown();
                     ExitProcess(0);
                 }
                 spdlog::error("MG/MG2 | MGS 2 | MGS 3: Launcher Config: Failed to restart launcher with jumpstart.");

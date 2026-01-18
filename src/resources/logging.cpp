@@ -135,6 +135,7 @@ void Logging::Initialize()
 
             // Log module details
             spdlog::info("Module Name: {0:s}", sExeName.c_str());
+            spdlog::info("Module Launch Arguments: {}", Util::GetCommandLineArgs());
             spdlog::info("Module Path: {0:s}", sExePath.string());
             spdlog::info("Module Address: 0x{0:X}", (uintptr_t)baseModule);
             spdlog::info("Module First Segment: 0x{0:X}", (uintptr_t)baseModule+0x1000);
