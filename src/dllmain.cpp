@@ -1160,6 +1160,7 @@ static bool DetectGame()
                 eGameType = LAUNCHER;
                 unityPlayer = GetModuleHandleA("UnityPlayer.dll");
                 game = &info;
+                sGameSavePath = sExePath / ((game->ExeName == kGames.at(MG).ExeName) ? "mg12_savedata_win" : (game->ExeName == kGames.at(MGS2).ExeName) ? "mgs2_savedata_win" : "mgs3_savedata_win");
                 return true;
             }
         }

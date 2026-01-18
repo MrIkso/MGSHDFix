@@ -7,6 +7,7 @@
 
 void CheckGamesaveFolderWritable::CheckStatus()
 {
+
     spdlog::info("Verifying gamesave directory is writeable: {}", sGameSavePath.string());
 
 
