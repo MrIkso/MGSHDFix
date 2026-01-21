@@ -170,6 +170,9 @@
     <ClCompile Include="src\warnings\check_gamesave_folder.cpp">
       <Filter>Warnings</Filter>
     </ClCompile>
+    <ClCompile Include="src\features\mgs2_restore_dogtags.cpp">
+      <Filter>Features</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\fixes\line_scaling.hpp">
@@ -324,6 +327,9 @@
     </ClInclude>
     <ClInclude Include="src\warnings\check_gamesave_folder.hpp">
       <Filter>Warnings\Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="src\features\mgs2_restore_dogtags.hpp">
+      <Filter>Features\Headers</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

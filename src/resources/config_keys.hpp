@@ -299,6 +299,7 @@ namespace ConfigKeys
     constexpr const char* FixSkyboxes_Help = "";
     constexpr const char* FixSkyboxes_Tooltip = "Fixes multiple invisible skyboxes in MGS2's cutscenes that were broken by a code refactor in 2002 PS2 Substance.";
 
+
     constexpr const char* OverrideMouseSensitivity_Section = "Mouse Sensitivity";
     constexpr const char* OverrideMouseSensitivity_Setting = "Override Mouse Sensitivity";
     constexpr const char* OverrideMouseSensitivity_Help = "";
@@ -331,6 +332,12 @@ namespace ConfigKeys
     constexpr const char* MGS2Sunglasses_Option_Normal = "Normal";
     constexpr const char* MGS2Sunglasses_Option_Always = "Always";
     constexpr const char* MGS2Sunglasses_Option_Never = "Never";
+
+    constexpr const char* RestoreDogtagNames_Section = "Various";
+    constexpr const char* RestoreDogtagNames_Setting = "MGS2 - Restore Original Dogtag Names";
+    constexpr const char* RestoreDogtagNames_Help = "";
+    constexpr const char* RestoreDogtagNames_Tooltip = "Restores the names of dogtags that were edited for copyright/legal reasons (ie Gackt -> Gekko.)";
+
 
 
     // Hotkeys

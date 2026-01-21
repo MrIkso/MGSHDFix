@@ -91,7 +91,7 @@ safetyhook::MidHook debrisVelocityHook;
 
 void EffectSpeedFix::Initialize()
 {
-    if (!(eGameType & MGS2))
+    if (!(eGameType & MGS2)) //current limited to MGS2 in initsubsys.
     {
         return;
     }

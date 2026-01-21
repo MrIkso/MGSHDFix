@@ -60,15 +60,6 @@ const std::vector<std::pair<wxString, std::vector<Field>>> kTabs = {
         { ConfigKeys::DisableFullscreenOptimization_Section, ConfigKeys::DisableFullscreenOptimization_Setting, ConfigKeys::DisableFullscreenOptimization_Help, ConfigKeys::DisableFullscreenOptimization_Tooltip,
           std::nullopt, false, Field::Bool, false },
 
-        { ConfigKeys::KeepAimingAfterFiring_InFirstPerson_Section, ConfigKeys::KeepAimingAfterFiring_InFirstPerson_Setting, ConfigKeys::KeepAimingAfterFiring_InFirstPerson_Help, ConfigKeys::KeepAimingAfterFiring_InFirstPerson_Tooltip,
-          std::make_pair(ConfigKeys::KeepAimingAfterFiring_Always_Section, ConfigKeys::KeepAimingAfterFiring_Always_Setting), true, Field::Bool, true },
-
-        { ConfigKeys::KeepAimingAfterFiring_Always_Section, ConfigKeys::KeepAimingAfterFiring_Always_Setting, ConfigKeys::KeepAimingAfterFiring_Always_Help, ConfigKeys::KeepAimingAfterFiring_Always_Tooltip,
-          std::nullopt, false, Field::Bool, false },
-
-        { ConfigKeys::KeepAimingAfterFiring_OnLockOn_Section, ConfigKeys::KeepAimingAfterFiring_OnLockOn_Setting, ConfigKeys::KeepAimingAfterFiring_OnLockOn_Help, ConfigKeys::KeepAimingAfterFiring_OnLockOn_Tooltip,
-          std::make_pair(ConfigKeys::KeepAimingAfterFiring_Always_Section, ConfigKeys::KeepAimingAfterFiring_Always_Setting), true, Field::Bool, true },
-
         { ConfigKeys::Region_Section, ConfigKeys::Region_Setting, ConfigKeys::Region_Help, ConfigKeys::Region_Tooltip,
           std::nullopt, false, Field::Choice, 0, 0, 0, *std::next(kLauncherConfigRegions.begin(), 0),
           { std::begin(kLauncherConfigRegions), std::end(kLauncherConfigRegions) } },
@@ -156,9 +147,11 @@ const std::vector<std::pair<wxString, std::vector<Field>>> kTabs = {
         { ConfigKeys::EnablePauseOnFocusLoss_Section, ConfigKeys::EnablePauseOnFocusLoss_Setting, ConfigKeys::EnablePauseOnFocusLoss_Help, ConfigKeys::EnablePauseOnFocusLoss_Tooltip,
           std::nullopt, false, Field::Bool, false },
 
-
         { ConfigKeys::MGS2Sunglasses_Section, ConfigKeys::MGS2Sunglasses_Setting, ConfigKeys::MGS2Sunglasses_Help, ConfigKeys::MGS2Sunglasses_Tooltip,
           std::nullopt, false, Field::Choice, 0, 0, 0, ConfigKeys::MGS2Sunglasses_Option_Normal, {ConfigKeys::MGS2Sunglasses_Option_Normal,ConfigKeys::MGS2Sunglasses_Option_Always, ConfigKeys::MGS2Sunglasses_Option_Never } },
+
+        { ConfigKeys::RestoreDogtagNames_Section, ConfigKeys::RestoreDogtagNames_Setting, ConfigKeys::RestoreDogtagNames_Help, ConfigKeys::RestoreDogtagNames_Tooltip,
+          std::nullopt, false, Field::Bool, true },
 
         { ConfigKeys::DistanceCullingGrassAlways_Section, ConfigKeys::DistanceCullingGrassAlways_Setting, ConfigKeys::DistanceCullingGrassAlways_Help, ConfigKeys::DistanceCullingGrassAlways_Tooltip,
           std::nullopt, false, Field::Bool, true },
@@ -196,7 +189,20 @@ const std::vector<std::pair<wxString, std::vector<Field>>> kTabs = {
 
         { ConfigKeys::MouseSensitivity_YMultiplier_Section, ConfigKeys::MouseSensitivity_YMultiplier_Setting, ConfigKeys::MouseSensitivity_YMultiplier_Help, ConfigKeys::MouseSensitivity_YMultiplier_Tooltip,
           std::make_pair(ConfigKeys::OverrideMouseSensitivity_Section, ConfigKeys::OverrideMouseSensitivity_Setting), false,
-          Field::Int, 1, 1, 100 }
+          Field::Int, 1, 1, 100 },
+
+
+        {
+         ConfigKeys::KeepAimingAfterFiring_InFirstPerson_Section, ConfigKeys::KeepAimingAfterFiring_InFirstPerson_Setting, ConfigKeys::KeepAimingAfterFiring_InFirstPerson_Help, ConfigKeys::KeepAimingAfterFiring_InFirstPerson_Tooltip,
+        std::make_pair(ConfigKeys::KeepAimingAfterFiring_Always_Section, ConfigKeys::KeepAimingAfterFiring_Always_Setting), true, Field::Bool, true
+           },
+
+        { ConfigKeys::KeepAimingAfterFiring_Always_Section, ConfigKeys::KeepAimingAfterFiring_Always_Setting, ConfigKeys::KeepAimingAfterFiring_Always_Help, ConfigKeys::KeepAimingAfterFiring_Always_Tooltip,
+          std::nullopt, false, Field::Bool, false },
+
+        { ConfigKeys::KeepAimingAfterFiring_OnLockOn_Section, ConfigKeys::KeepAimingAfterFiring_OnLockOn_Setting, ConfigKeys::KeepAimingAfterFiring_OnLockOn_Help, ConfigKeys::KeepAimingAfterFiring_OnLockOn_Tooltip,
+          std::make_pair(ConfigKeys::KeepAimingAfterFiring_Always_Section, ConfigKeys::KeepAimingAfterFiring_Always_Setting), true, Field::Bool, true },
+
     }},
     { wxString("Achievements"), {
         { ConfigKeys::AchievementPersistence_Section, ConfigKeys::AchievementPersistence_Setting, ConfigKeys::AchievementPersistence_Help, ConfigKeys::AchievementPersistence_Tooltip,

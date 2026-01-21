@@ -20,6 +20,7 @@
 #include "pause_on_focus_loss.hpp"
 #include "stat_persistence.hpp"
 #include "mgs2_sunglasses.hpp"
+#include "mgs2_restore_dogtags.hpp"
 
 ///Fixes
 #include "aiming_full_tilt.hpp"
@@ -40,9 +41,9 @@
 #include "reshade_compatibility_checks.hpp"
 #include "background_shuffle_warning.hpp"
 #include "check_gamesave_folder.hpp"
+#include "bugfix_mod_checks.hpp"
 
 ///WIP
-#include "bugfix_mod_checks.hpp"
 #include "color_filters.hpp"
 #include "gamma_correction.hpp"
 #include "mg1_custom_loading_screens.hpp"
@@ -1265,6 +1266,7 @@ static void InitializeSubsystems()
     INITIALIZE(g_KeepAimingAfterFiring.Initialize());
     INITIALIZE(g_MGS2Sunglasses.Initialize());
     INITIALIZE(g_DistanceCulling.Initialize());
+    INITIALIZE(MGS2_RestoreDogtags::Initialize());
 
 
 

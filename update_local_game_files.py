@@ -2,10 +2,7 @@ from __future__ import annotations
 
 import ctypes
 import os
-import shutil
-import subprocess
 import sys
-import zlib
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime
 from pathlib import Path
@@ -71,51 +68,6 @@ def ensure_admin() -> None:
 
 
 # ==========================================================
-# PROCESS TERMINATION
-# ==========================================================
-
-def terminate_config_tool_if_running() -> None:
-    """
-    If MGSHDFix Config Tool.exe is running, terminate it.
-    Best-effort; logs outcome but does not fail the script.
-    """
-
-    exe_names = [
-        "MGSHDFix Config Tool.exe",
-        "METAL GEAR SOLID2.exe",
-        "METAL GEAR SOLID3.exe",
-        "METAL GEAR.exe",
-        "launcher.exe",
-    ]
-
-    for exe_name in exe_names:
-        try:
-            result = subprocess.run(
-                ["taskkill", "/IM", exe_name, "/F"],
-                stdout=subprocess.PIPE,
-                stderr=subprocess.STDOUT,
-                text=True,
-                check=False,
-            )
-
-            out = (result.stdout or "").strip()
-
-            if result.returncode == 0:
-                log(f"[OK] Terminated: {exe_name}")
-            else:
-                if out:
-                    log(f"[INFO] {exe_name}: {out}")
-                else:
-                    log(f"[INFO] {exe_name}: not running")
-
-        except FileNotFoundError:
-            log("[WARN] taskkill not found. Skipping process termination.")
-            return
-        except Exception as exc:
-            log(f"[WARN] Failed terminating {exe_name}: {type(exc).__name__}: {exc}")
-
-
-# ==========================================================
 # CONFIG
 # ==========================================================
 
@@ -128,9 +80,10 @@ ROOTS = [ROOT_MGS2, ROOT_MG_MG2, ROOT_MGS3]
 SRC_ASI = Path(r"C:\Development\Git\MGSHDFix\x64\Release\MGSHDFix.asi")
 SRC_CFG = Path(r"C:\Development\Git\MGSHDFix\x64\Release\MGSHDFix Config Tool.exe")
 
-TARGETS = [
-    ("MGSHDFix.asi", SRC_ASI),
-    ("MGSHDFix Config Tool.exe", SRC_CFG),
+# These will be placed under each mod root at: <mod>\plugins\<name>
+DEPLOY_LINKS: List[Tuple[Path, str]] = [
+    (SRC_ASI, "MGSHDFix.asi"),
+    (SRC_CFG, "MGSHDFix Config Tool.exe"),
 ]
 
 SETTINGS_SOURCE = Path(r"G:\Steam\steamapps\common\MGS2\plugins\MGSHDFix.settings")
@@ -143,55 +96,6 @@ LOG_FILES = [
     "MGSHDFix_Game.log",
     "MGSHDFix_Launcher.log",
 ]
-
-
-# ==========================================================
-# CRC32 + DEPLOY
-# ==========================================================
-
-def crc32_file(path: Path, chunk_size: int = 1024 * 1024) -> int:
-    crc = 0
-    with path.open("rb") as f:
-        while True:
-            data = f.read(chunk_size)
-            if not data:
-                break
-            crc = zlib.crc32(data, crc)
-    return crc & 0xFFFFFFFF
-
-
-def iter_two_levels(root: Path) -> Iterable[Path]:
-    if not root.exists():
-        return
-    for level1 in root.iterdir():
-        if level1.is_dir():
-            for level2 in level1.iterdir():
-                if level2.is_dir():
-                    yield level2
-
-
-def build_jobs() -> List[Tuple[Path, Path]]:
-    jobs: List[Tuple[Path, Path]] = []
-    for root in ROOTS:
-        for folder in iter_two_levels(root):
-            for dst_name, src in TARGETS:
-                dst = folder / dst_name
-                if dst.exists():
-                    jobs.append((src, dst))
-    return jobs
-
-
-def maybe_copy_crc32(src: Path, dst: Path, src_crc: int) -> str:
-    try:
-        dst_crc = crc32_file(dst)
-    except FileNotFoundError:
-        return f"[SKIP] Missing destination: {dst}"
-
-    if dst_crc == src_crc:
-        return f"[OK] {dst}"
-
-    shutil.copy2(src, dst)
-    return f"[UPD] {dst} ({dst_crc:08X} -> {src_crc:08X})"
 
 
 # ==========================================================
@@ -227,40 +131,6 @@ def can_create_symlink_in_dir(dir_path: Path) -> bool:
         return False
 
 
-def ensure_settings_link_or_copy(src: Path, dst: Path) -> str:
-    if not src.exists():
-        return f"[ERROR] Source settings missing: {src}"
-
-    dst.parent.mkdir(parents=True, exist_ok=True)
-
-    try:
-        if dst.is_symlink():
-            current = Path(os.readlink(dst)).resolve()
-            if current == src.resolve():
-                return f"[OK] Link correct: {dst}"
-    except OSError:
-        pass
-
-    can_link = can_create_symlink_in_dir(dst.parent)
-
-    if not can_link:
-        if dst.exists() or dst.is_symlink():
-            return f"[SKIP] No symlink privilege, leaving existing: {dst}"
-        try:
-            shutil.copy2(src, dst)
-            return f"[COPY] No symlink privilege, copied: {dst}"
-        except OSError as exc:
-            return f"[ERROR] Copy fallback failed: {dst} ({exc})"
-
-    try:
-        if dst.exists() or dst.is_symlink():
-            dst.unlink()
-        dst.symlink_to(src)
-        return f"[LINK] {dst} -> {src}"
-    except OSError as exc:
-        return f"[ERROR] Failed to create symlink: {dst} -> {src} ({exc})"
-
-
 def resolve_symlink_target(path: Path) -> Optional[Path]:
     try:
         if not path.is_symlink():
@@ -272,7 +142,7 @@ def resolve_symlink_target(path: Path) -> Optional[Path]:
 
 def ensure_file_symlink(src_file: Path, dst_file: Path) -> str:
     if not src_file.exists():
-        return f"[ERROR] Source log missing: {src_file}"
+        return f"[ERROR] Source missing: {src_file}"
 
     dst_file.parent.mkdir(parents=True, exist_ok=True)
 
@@ -293,9 +163,54 @@ def ensure_file_symlink(src_file: Path, dst_file: Path) -> str:
         return f"[ERROR] Failed to create symlink: {dst_file} -> {src_file} ({exc})"
 
 
+def ensure_settings_link_or_copy(src: Path, dst: Path) -> str:
+    if not src.exists():
+        return f"[ERROR] Source settings missing: {src}"
+
+    dst.parent.mkdir(parents=True, exist_ok=True)
+
+    try:
+        if dst.is_symlink():
+            current = Path(os.readlink(dst)).resolve()
+            if current == src.resolve():
+                return f"[OK] Link correct: {dst}"
+    except OSError:
+        pass
+
+    can_link = can_create_symlink_in_dir(dst.parent)
+
+    if not can_link:
+        if dst.exists() or dst.is_symlink():
+            return f"[SKIP] No symlink privilege, leaving existing: {dst}"
+        try:
+            import shutil
+            shutil.copy2(src, dst)
+            return f"[COPY] No symlink privilege, copied: {dst}"
+        except OSError as exc:
+            return f"[ERROR] Copy fallback failed: {dst} ({exc})"
+
+    try:
+        if dst.exists() or dst.is_symlink():
+            dst.unlink()
+        dst.symlink_to(src)
+        return f"[LINK] {dst} -> {src}"
+    except OSError as exc:
+        return f"[ERROR] Failed to create symlink: {dst} -> {src} ({exc})"
+
+
 # ==========================================================
 # VORTEX MOD PACKAGE DISCOVERY (by presence of plugins\MGSHDFix.asi)
 # ==========================================================
+
+def iter_two_levels(root: Path) -> Iterable[Path]:
+    if not root.exists():
+        return
+    for level1 in root.iterdir():
+        if level1.is_dir():
+            for level2 in level1.iterdir():
+                if level2.is_dir():
+                    yield level2
+
 
 def find_mod_packages(root: Path) -> List[Path]:
     r"""
@@ -316,34 +231,60 @@ def find_mod_packages(root: Path) -> List[Path]:
     return sorted(out.values(), key=lambda p: p.name.lower())
 
 
-def pick_mgs2_source_mod(mgs2_mods: List[Path], desired_asi_crc: int) -> Optional[Path]:
-    if not mgs2_mods:
-        return None
+# ==========================================================
+# DEPLOY: LINK MGSHDFix.asi + Config Tool into every mod package
+# ==========================================================
 
-    for mod_root in mgs2_mods:
-        asi_path = mod_root / "plugins" / "MGSHDFix.asi"
-        if not asi_path.exists():
-            continue
-        try:
-            if crc32_file(asi_path) == desired_asi_crc:
-                return mod_root
-        except OSError:
-            continue
+def deploy_symlinks_to_all_mods() -> None:
+    all_targets: List[Tuple[Path, Path]] = []  # (src, dst)
 
-    return mgs2_mods[0]
+    for root in ROOTS:
+        mods = find_mod_packages(root)
+        log(f"[DEPLOY] Mod packages found: {len(mods)} (root: {root})")
+        for mod_root in mods:
+            plugins_dir = mod_root / "plugins"
+            for src, dst_name in DEPLOY_LINKS:
+                dst = plugins_dir / dst_name
+                all_targets.append((src, dst))
+
+    if not all_targets:
+        log("[DEPLOY] No targets found (no matching files at expected depth).")
+        return
+
+    max_workers = min(32, (os.cpu_count() or 8) * 2)
+    log(f"[DEPLOY] Linking {len(all_targets)} files with {max_workers} workers...")
+
+    with ThreadPoolExecutor(max_workers=max_workers) as ex:
+        futures = [ex.submit(ensure_file_symlink, src, dst) for (src, dst) in all_targets]
+        for fut in as_completed(futures):
+            log(fut.result())
 
 
 # ==========================================================
 # LOG SYMLINKS (MGS2 chosen mod is source; link into all others)
 # ==========================================================
 
-def link_logs_from_mgs2_source(desired_asi_crc: int) -> None:
+def pick_mgs2_source_mod(mgs2_mods: List[Path]) -> Optional[Path]:
+    if not mgs2_mods:
+        return None
+
+    src_asi_resolved = SRC_ASI.resolve()
+    for mod_root in mgs2_mods:
+        asi_path = mod_root / "plugins" / "MGSHDFix.asi"
+        tgt = resolve_symlink_target(asi_path)
+        if tgt is not None and tgt == src_asi_resolved:
+            return mod_root
+
+    return mgs2_mods[0]
+
+
+def link_logs_from_mgs2_source() -> None:
     mgs2_mods = find_mod_packages(ROOT_MGS2)
     log(f"[LOG] MGS2 mod packages found: {len(mgs2_mods)} (root: {ROOT_MGS2})")
     if not mgs2_mods:
         return
 
-    src_mod_root = pick_mgs2_source_mod(mgs2_mods, desired_asi_crc)
+    src_mod_root = pick_mgs2_source_mod(mgs2_mods)
     if src_mod_root is None:
         return
 
@@ -391,45 +332,20 @@ def main() -> int:
     ensure_admin()
     log("Admin OK.")
 
-    log("Checking for running MGSHDFix Config Tool.exe...")
-    terminate_config_tool_if_running()
-
-
     log(f"Checking build outputs:\n  ASI: {SRC_ASI}\n  CFG: {SRC_CFG}")
     if not SRC_ASI.exists() or not SRC_CFG.exists():
         log("ERROR: Source build outputs missing.")
         return 1
 
-    log("Precomputing source CRC32...")
-    src_crc_map = {
-        SRC_ASI: crc32_file(SRC_ASI),
-        SRC_CFG: crc32_file(SRC_CFG),
-    }
-    log(f"SRC CRC32 ASI: {src_crc_map[SRC_ASI]:08X}")
-    log(f"SRC CRC32 CFG: {src_crc_map[SRC_CFG]:08X}")
-
-    jobs = build_jobs()
-    log(f"Vortex deploy targets found: {len(jobs)}")
-    if jobs:
-        max_workers = min(32, (os.cpu_count() or 8) * 2)
-        log(f"Processing {len(jobs)} targets with {max_workers} workers...")
-
-        with ThreadPoolExecutor(max_workers=max_workers) as ex:
-            futures = [
-                ex.submit(maybe_copy_crc32, src, dst, src_crc_map[src])
-                for (src, dst) in jobs
-            ]
-            for fut in as_completed(futures):
-                log(fut.result())
-    else:
-        log("No targets found for Vortex mods (no matching files at expected depth).")
+    log("Deploying symlinks into Vortex mods...")
+    deploy_symlinks_to_all_mods()
 
     log("Ensuring MGSHDFix.settings linkage...")
     for dst in SETTINGS_TARGETS:
         log(ensure_settings_link_or_copy(SETTINGS_SOURCE, dst))
 
     log("Linking MGSHDFix log files (MGS2 is source)...")
-    link_logs_from_mgs2_source(src_crc_map[SRC_ASI])
+    link_logs_from_mgs2_source()
 
     log("Done.")
     return 0
