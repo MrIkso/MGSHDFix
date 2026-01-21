@@ -345,10 +345,11 @@ void BugfixMods::Check()
                 }
             }
         }
-
+        
         // ------------------------------------------------------
-        // MGS2: Afevis's Bugfix Compilation
+        // MGS2: MGS2 Community Bugfix Compilation
         // ------------------------------------------------------
+        /*
         {
             const std::string key = "MGS2_AfevisBugFixCompilation";
 
@@ -408,5 +409,6 @@ void BugfixMods::Check()
                 }
             }
         }
+        */
     }
 }
