@@ -144,8 +144,6 @@ This list will contain bugs which may or may not be fixed.
 ![MGS3 - Correctly scaled rain on bridge scene](screenshots/after/mgs3%20-%20bridge%20rain.png)
 ![MGS3 - Correctly scaled rain in The Sorrow's river](screenshots/after/mgs3%20-%20sorrow%20rain%202.png)
 ![MGS3 - Wireframe mode visual](screenshots/after/mgs3%20-%20wireframe.png)
-![MGS3 - Corrected Thermal vision UI](screenshots/after/mgs3%20-%20thermals.png)
-| Metal Gear Solid 3 |
 
 ## Upcoming Fix/Feature Roadmap - (Version Problem Originated)
 - MG1 / MG2 - Add Custom Loading Screen Support (2023 MC)
