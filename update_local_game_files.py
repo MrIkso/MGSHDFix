@@ -86,11 +86,6 @@ DEPLOY_LINKS: List[Tuple[Path, str]] = [
     (SRC_CFG, "MGSHDFix Config Tool.exe"),
 ]
 
-SETTINGS_SOURCE = Path(r"G:\Steam\steamapps\common\MGS2\plugins\MGSHDFix.settings")
-SETTINGS_TARGETS = [
-    Path(r"G:\Steam\steamapps\common\MGS3\plugins\MGSHDFix.settings"),
-    Path(r"G:\Steam\steamapps\common\MG and MG2\plugins\MGSHDFix.settings"),
-]
 
 LOG_FILES = [
     "MGSHDFix_Game.log",
@@ -339,10 +334,6 @@ def main() -> int:
 
     log("Deploying symlinks into Vortex mods...")
     deploy_symlinks_to_all_mods()
-
-    log("Ensuring MGSHDFix.settings linkage...")
-    for dst in SETTINGS_TARGETS:
-        log(ensure_settings_link_or_copy(SETTINGS_SOURCE, dst))
 
     log("Linking MGSHDFix log files (MGS2 is source)...")
     link_logs_from_mgs2_source()

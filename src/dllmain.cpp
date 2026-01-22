@@ -882,16 +882,26 @@ static void Init_LauncherConfigOverride()
 
                 std::wstring commandLine = L"\"" + gameExePath.wstring() + L"\"";
 
+                const bool bIsMGLauncher = (game->ExeName == kGames.at(MG).ExeName);
+                const bool bIsMGS2Launcher = (game->ExeName == kGames.at(MGS2).ExeName);
+                const bool bIsMGS3Launcher = (game->ExeName == kGames.at(MGS3).ExeName);
 
-                if (game->ExeName == kGames.at(MG).ExeName)
+
+                bool usDatExists;
+                bool jpDatExists;
+
+                if (bIsMGLauncher)
                 {
+                    usDatExists = true;
+                    jpDatExists = true;
+
                     // Add launch parameters for MG MSX
                     auto transformString = [](const std::string& input, int (*transformation)(int)) -> std::wstring
-                    {
-                        std::string transformedString = input;
-                        std::transform(transformedString.begin(), transformedString.end(), transformedString.begin(), transformation);
-                        return Util::UTF8toWide(transformedString);
-                    };
+                        {
+                            std::string transformedString = input;
+                            std::transform(transformedString.begin(), transformedString.end(), transformedString.begin(), transformation);
+                            return Util::UTF8toWide(transformedString);
+                        };
 
                     commandLine += L" -mgst " + std::wstring(sLauncherConfigMSXGame == ConfigKeys::SkipLauncherMSX_Option_MG1 ? L"mg1" : L"mg2"); // -mgst must be lowercase
                     commandLine += L" -walltype " + std::to_wstring(iLauncherConfigMSXWallType);
@@ -901,91 +911,77 @@ static void Init_LauncherConfigOverride()
                         sLauncherConfigMSXWallAlign == ConfigKeys::MSXWallAlign_Option_Left ? L"L" :
                         L"R");
                 }
-
-                else if (game->ExeName == kGames.at(MGS2).ExeName)
+                else 
                 {
-                    const std::string langUpperUtf8 = Util::GetUppercaseNameAtIndex(kLauncherConfigLanguages, iLauncherConfigLanguage);
-                    const std::wstring langUpper = Util::UTF8toWide(langUpperUtf8);
-                    spdlog::info("MGS 2: Launcher Config: MGS 2 language selected: {}", langUpperUtf8);
-
-                    const bool jpSelected = (langUpperUtf8 == "JAPANESE");
-
-                    const bool usDatExists = std::filesystem::exists(sExePath / "Misc" / "us" / "BP_SE.DAT");
-                    const bool jpDatExists = std::filesystem::exists(sExePath / "Misc" / "jp" / "BP_SE.DAT");
-
-                    spdlog::info("MGS 2: Launcher Config: MGS 2 DAT file check - US DAT exists: {}, JP DAT exists: {}", usDatExists ? "yes" : "no", jpDatExists ? "yes" : "no");
-
-                    if (!usDatExists || (jpSelected && jpDatExists))
-                    {
-                        if (!usDatExists)
-                        {
-                            spdlog::error("MGS 2: Launcher Config: US DAT file not present, launching JP region.");
-                        }
-                        else
-                        {
-                            spdlog::info("MGS 2: Launcher Config: MGS 2 Japanese language selected, launching JP region.");
-                        }
-                        commandLine += L" -region jp -lan jp ";
-                        
-                    }
-                    else if (jpSelected)
-                    {
-                        spdlog::error("MGS 2: Launcher Config: MGS 2 Japanese language selected but JP DAT file not present, defaulting to English.");
-                        commandLine += L" -region eu  -lan en ";
-                    }
-                    else
-                    {
-                        spdlog::info("MGS 2: Launcher Config: Launching EU region.");
-                        commandLine += L" -region eu ";
-
-                        struct LangPair
-                        {
-                            const wchar_t* name;
-                            const wchar_t* code;
-                        };
-
-                        static constexpr LangPair kLangTable[] =
-                        {
-                            {L"ENGLISH", L"en"},
-                            {L"FRENCH",  L"fr"},
-                            {L"ITALIAN", L"it"},
-                            {L"GERMAN",  L"gr"},
-                            {L"SPANISH", L"sp"},
-                        };
-
-                        bool matched = false;
-
-                        spdlog::info("MGS 2: Launcher Config: Checking language against EU list.");
-                        for (const auto& entry : kLangTable)
-                        {
-                            if (langUpper == entry.name)
-                            {
-                                commandLine += L" -lan ";
-                                commandLine += entry.code;
-                                commandLine += L" ";
-                                matched = true;
-                                spdlog::info("MGS 2: Launcher Config: Language matched in EU list: {}", Util::WideToUTF8(entry.name));
-                                break;
-                            }
-     
-                            spdlog::info("MGS 2: Launcher Config: Language {} did not match EU list entry: {}", langUpperUtf8, Util::WideToUTF8(entry.name));
-                            
-                        }
-
-                        if (!matched)
-                        {
-                            spdlog::warn("MGS 2: Launcher Config: Language: {}, not a valid EU language. Defaulting to English.", langUpperUtf8);
-                            commandLine += L" -lan en ";
-                        }
-                    }
-
-                    commandLine += L" -selfregion EU ";
+                    usDatExists = bIsMGS2Launcher ? std::filesystem::exists(sExePath / "Misc" / "us" / "BP_SE.DAT") : std::filesystem::exists(sExePath / "fr" / "stage" / "mg2" / "cache" / "english.raw");
+                    jpDatExists = bIsMGS2Launcher ? std::filesystem::exists(sExePath / "Misc" / "jp" / "BP_SE.DAT") : std::filesystem::exists(sExePath / "jp" / "stage" / "mg2" / "cache" / "japanese.raw");
+                    spdlog::info("MGS 2 | MGS 3: Launcher Config: US/EU language pack installed: {}\t|\tJP language pack installed: {}", usDatExists ? "YES" : "NO", jpDatExists ? "YES" : "NO");
                 }
 
 
-                
-                commandLine += L" -launcherpath launcher.exe ";
+                if (iSkipLauncherLanguage == "jp")
+                {
+                    if (!jpDatExists)
+                    {
+                        std::string fallbackText = bIsMGS3Launcher ? "Region: North America & Language: English" : "Region: US/EU & Language: English";
 
+                        std::string msg = "Japanese language pack not installed (selected region: " + iSkipLauncherRegion + ", language: " + iSkipLauncherLanguage + "), defaulting to " + fallbackText + ".";
+                        spdlog::error("MGS 2 | MGS 3: Launcher Config: {}", msg);
+
+                        MessageBoxA(nullptr, msg.c_str(), "MGSHDFix Config Error", MB_OK | MB_ICONWARNING);
+
+                        iSkipLauncherRegion = bIsMGS3Launcher ? "us" : "eu";
+                        iSkipLauncherLanguage = "en";
+                    }
+                    else if (iSkipLauncherRegion != "jp")
+                    {
+                        spdlog::warn("MGS 2 | MGS 3: Launcher Config: Japanese language selected but region is set to {}, forcing region to Japan.", iSkipLauncherRegion);
+                        iSkipLauncherRegion = "jp";
+                    }
+                }
+                else //iSkipLauncherLanguage != "jp"
+                {
+                    if (!usDatExists)
+                    {
+                        std::string errorMessage = "US / EU DAT language pack not installed (selected region: " + iSkipLauncherRegion + ", language: " + iSkipLauncherLanguage + "). Defaulting to Japanese.";
+
+                        spdlog::error("MGS 2 | MGS 3: Launcher Config: {}", errorMessage);
+                        MessageBoxA(nullptr, errorMessage.c_str(), "MGSHDFix Config Warning", MB_OK | MB_ICONWARNING);
+                        iSkipLauncherRegion = "jp";
+                        iSkipLauncherLanguage = "jp";
+                    }
+                    else
+                    {
+                        spdlog::info("MG | MG2 | MGS 2 | MGS 3: Launcher Config: Validating selected region/language pair (region: {}, language: {})", iSkipLauncherRegion, iSkipLauncherLanguage);
+                        if (!(bIsMGS3Launcher ? IsValidRegionLanguagePair(MGS3_LanguagePairs, iSkipLauncherRegion, iSkipLauncherLanguage) : IsValidRegionLanguagePair(MG1_MG2_MGS2_LanguagePairs, iSkipLauncherRegion, iSkipLauncherLanguage)))
+                        {
+                            std::string errorMessage = "Invalid region/language pair selected (region: " + iSkipLauncherRegion + ", language: " + iSkipLauncherLanguage + ").";
+
+                            if (bIsMGS3Launcher)
+                            {
+                                spdlog::error("MGS 3: Config Error: {}", errorMessage + " Defaulting to Region: North America & Language: English.");
+                                //MessageBoxA(nullptr, errorMessage.append(" Defaulting to Region: North America & Language: English.").c_str(), "MGSHDFix Config Error", MB_OK | MB_ICONWARNING);
+                                iSkipLauncherRegion = "us";
+                                iSkipLauncherLanguage = "en";
+                            }
+                            else
+                            {
+                                spdlog::error("MG | MG2 | MGS2: Config Error: {}", errorMessage + " Defaulting to Region: US/EU & Language: English.");
+                                //MessageBoxA(nullptr, errorMessage.append(" Defaulting to Region: US/EU & Language: English.").c_str(), "MGSHDFix Config Error", MB_OK | MB_ICONWARNING);
+                                iSkipLauncherRegion = "eu";
+                                iSkipLauncherLanguage = "en";
+                            }
+
+                        }
+                        else
+                        {
+                            spdlog::info("MG | MG2 | MGS 2 | MGS 3: Launcher Config: Valid region/language pair selected (region: {}, language: {})", iSkipLauncherRegion, iSkipLauncherLanguage);
+                        }
+                    }
+                    
+                }
+
+                commandLine += L" -region " + Util::UTF8toWide(iSkipLauncherRegion) + L" -lan " + Util::UTF8toWide(iSkipLauncherLanguage) + L" -selfregion EU -launcherpath launcher.exe ";
                 std::string sCommandLine = Util::WideToUTF8(commandLine);
                 spdlog::info("MG/MG2 | MGS 2 | MGS 3: Launcher Config: Launch command line: {}", sCommandLine);
 

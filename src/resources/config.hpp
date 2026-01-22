@@ -36,6 +36,9 @@ inline bool bLauncherConfigSkipLauncher = false;
 inline int iLauncherConfigCtrlType = 5;
 inline int iLauncherConfigRegion = 0;
 inline int iLauncherConfigLanguage = 0;
+
+inline std::string iSkipLauncherRegion = "us";
+inline std::string iSkipLauncherLanguage = "en";
 inline std::string sLauncherConfigMSXGame = ConfigKeys::SkipLauncherMSX_Option_MG1;
 inline int iLauncherConfigMSXWallType = 0;
 inline std::string sLauncherConfigMSXWallAlign = ConfigKeys::MSXWallAlign_Option_Center;

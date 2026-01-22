@@ -429,42 +429,51 @@ inline const std::initializer_list<std::string> kLauncherConfigLanguages = {
     "Russian"
 };
 
-struct Game_Language_Pair
+
+struct Game_Language_Pair_View
 {
-    std::string Region_Name;
-    std::string Language_Name;
-    std::string Language_Fancy;
-    std::string Game_Region;
-    std::string Game_Language;
+    std::string_view Region_Name;
+    std::string_view Language_Name;
+    std::string_view Game_Region;
+    std::string_view Game_Language;
 };
 
 //Config Tool -> iTargetGame = TARGET_GAME_MGS3;
-inline const std::vector<Game_Language_Pair> MGS3_LanguagePairs =
-{
-    { "North America", "English",  "English",               "us", "en" },
-    { "North America", "French",   "French (Français)",    "us", "fr" },
-    { "North America", "Spanish",  "Spanish (Español)",    "us", "sp" },
 
-    { "Europe",        "English",  "English",               "eu", "en" },
-    { "Europe",        "French",   "French (Français)",    "eu", "fr" },
-    { "Europe",        "Italian",  "Italian (Italiano)",   "eu", "it" },
-    { "Europe",        "German",   "German (Deutsch)",     "eu", "gr" },
-    { "Europe",        "Spanish",  "Spanish (Español)",    "eu", "sp" },
-
-    { "Japan",         "Japanese", "Japanese (Nihongo)",     "jp", "jp" }
-};
+inline constexpr std::array<Game_Language_Pair_View, 9> MGS3_LanguagePairs =
+{ {
+    { "North America", "English",   "us", "en" },
+    { "North America", "French",    "us", "fr" },
+    { "North America", "Spanish",   "us", "sp" },
+    { "Europe",        "English",   "eu", "en" },
+    { "Europe",        "French",    "eu", "fr" },
+    { "Europe",        "Italian",   "eu", "it" },
+    { "Europe",        "German",    "eu", "gr" },
+    { "Europe",        "Spanish",   "eu", "sp" },
+    { "Japan",         "Japanese",  "jp", "jp" }
+} };
 
 //Config Tool -> iTargetGame = TARGET_GAME_MG1 
 //Config Tool -> iTargetGame = TARGET_GAME_MGS2
-inline const std::vector<Game_Language_Pair> MG1_MG2_MGS2_LanguagePairs =
+inline constexpr std::array<Game_Language_Pair_View, 6> MG1_MG2_MGS2_LanguagePairs =
+{ {
+    { "US / EU", "English",  "eu", "en" },
+    { "US / EU", "French",   "eu", "fr" },
+    { "US / EU", "Italian",  "eu", "it" },
+    { "US / EU", "German",   "eu", "gr" },
+    { "US / EU", "Spanish",  "eu", "sp" },
+    { "Japan",   "Japanese", "jp", "jp" }
+} };
+
+template <size_t N>
+static bool IsValidRegionLanguagePair(const std::array<Game_Language_Pair_View, N>& pairs, std::string_view region, std::string_view language)
 {
-    { "US / EU",        "English",  "English",               "eu", "en" },
-    { "US / EU",        "French",   "French (Français)",    "eu", "fr" },
-    { "US / EU",        "Italian",  "Italian (Italiano)",   "eu", "it" },
-    { "US / EU",        "German",   "German (Deutsch)",     "eu", "gr" },
-    { "US / EU",        "Spanish",  "Spanish (Español)",    "eu", "sp" },
-    { "Japan",         "Japanese", "Japanese (Nihongo)",     "jp", "jp" }
-};
+    for (const auto& p : pairs)
+    {
+        if (p.Game_Region == region && p.Game_Language == language) return true;
+    }
+    return false;
+}
 
 inline const std::initializer_list<std::string> kLauncherConfigRegions = {
     "United States",
