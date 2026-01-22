@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #if !defined(_CRT_SECURE_NO_WARNINGS)
 #define _CRT_SECURE_NO_WARNINGS
 #endif
@@ -427,6 +427,43 @@ inline const std::initializer_list<std::string> kLauncherConfigLanguages = {
     "Spanish",
     "Dutch",
     "Russian"
+};
+
+struct Game_Language_Pair
+{
+    std::string Region_Name;
+    std::string Language_Name;
+    std::string Language_Fancy;
+    std::string Game_Region;
+    std::string Game_Language;
+};
+
+//Config Tool -> iTargetGame = TARGET_GAME_MGS3;
+inline const std::vector<Game_Language_Pair> MGS3_LanguagePairs =
+{
+    { "North America", "English",  "English",               "us", "en" },
+    { "North America", "French",   "French (Français)",    "us", "fr" },
+    { "North America", "Spanish",  "Spanish (Español)",    "us", "sp" },
+
+    { "Europe",        "English",  "English",               "eu", "en" },
+    { "Europe",        "French",   "French (Français)",    "eu", "fr" },
+    { "Europe",        "Italian",  "Italian (Italiano)",   "eu", "it" },
+    { "Europe",        "German",   "German (Deutsch)",     "eu", "gr" },
+    { "Europe",        "Spanish",  "Spanish (Español)",    "eu", "sp" },
+
+    { "Japan",         "Japanese", "Japanese (Nihongo)",     "jp", "jp" }
+};
+
+//Config Tool -> iTargetGame = TARGET_GAME_MG1 
+//Config Tool -> iTargetGame = TARGET_GAME_MGS2
+inline const std::vector<Game_Language_Pair> MG1_MG2_MGS2_LanguagePairs =
+{
+    { "US / EU",        "English",  "English",               "eu", "en" },
+    { "US / EU",        "French",   "French (Français)",    "eu", "fr" },
+    { "US / EU",        "Italian",  "Italian (Italiano)",   "eu", "it" },
+    { "US / EU",        "German",   "German (Deutsch)",     "eu", "gr" },
+    { "US / EU",        "Spanish",  "Spanish (Español)",    "eu", "sp" },
+    { "Japan",         "Japanese", "Japanese (Nihongo)",     "jp", "jp" }
 };
 
 inline const std::initializer_list<std::string> kLauncherConfigRegions = {
