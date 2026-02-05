@@ -1,6 +1,11 @@
 #include "stdafx.h"
 
-/*#if !defined(RELEASE_BUILD)
+
+#if !defined(RELEASE_BUILD)
+#include "common.hpp"
+#include "logging.hpp"
+
+
 struct SkyboxPattern
 {
     const char* pattern;
@@ -42,6 +47,7 @@ std::string GenerateNops(size_t count)
 int count;
 void ScanAndPatchSkybox()
 {
+    return;
     const size_t numPatterns = sizeof(testPatterns) / sizeof(testPatterns[0]);
     uintptr_t result = 0;
 
@@ -73,9 +79,6 @@ void ScanAndPatchSkybox()
 }
 #endif
 
-#if !defined(RELEASE_BUILD)
-ScanAndPatchSkybox();
-#endif
 
 /*
 if (!(eGameType & MGS2))

@@ -144,6 +144,110 @@ namespace ConfigHelper
 }
 
 
+namespace
+{
+
+    std::string sReadableRegionName;
+    std::string sReadableLanguageName;
+
+    void ValidateLauncherRegionOptions()
+    {
+        const bool bIsMGLauncher = (game->ExeName == kGames.at(MG).ExeName);
+        const bool bIsMGS2Launcher = (game->ExeName == kGames.at(MGS2).ExeName);
+        const bool bIsMGS3Launcher = (game->ExeName == kGames.at(MGS3).ExeName);
+
+
+        bool usDatExists;
+        bool jpDatExists;
+
+        if (bIsMGLauncher)
+        {
+            usDatExists = true;
+            jpDatExists = true;
+
+        }
+        else
+        {
+            usDatExists = bIsMGS2Launcher ? std::filesystem::exists(sExePath / "Misc" / "us" / "BP_SE.DAT") : std::filesystem::exists(sExePath / "fr" / "stage" / "mg2" / "cache" / "english.raw");
+            jpDatExists = bIsMGS2Launcher ? std::filesystem::exists(sExePath / "Misc" / "jp" / "BP_SE.DAT") : std::filesystem::exists(sExePath / "jp" / "stage" / "mg2" / "cache" / "japanese.raw");
+            spdlog::info("MGS 2 | MGS 3: Launcher Config: US/EU language pack installed: {}\t|\tJP language pack installed: {}", usDatExists ? "YES" : "NO", jpDatExists ? "YES" : "NO");
+        }
+
+
+        if (sSkipLauncherLanguage == "jp")
+        {
+            if (!jpDatExists)
+            {
+                std::string fallbackText = bIsMGS3Launcher ? "Region: North America & Language: English" : "Region: US/EU & Language: English";
+
+                std::string msg = "Japanese language pack not installed (selected region: " + sSkipLauncherRegion + ", language: " + sSkipLauncherLanguage + "), defaulting to " + fallbackText + ".";
+                spdlog::error("MGS 2 | MGS 3: Launcher Config: {}", msg);
+
+                MessageBoxA(nullptr, msg.c_str(), "MGSHDFix Config Error", MB_OK | MB_ICONWARNING);
+
+                sSkipLauncherRegion = bIsMGS3Launcher ? "us" : "eu";
+                sSkipLauncherLanguage = "en";
+            }
+            else if (sSkipLauncherRegion != "jp")
+            {
+                spdlog::warn("MGS 2 | MGS 3: Launcher Config: Japanese language selected but region is set to {}, forcing region to Japan.", sSkipLauncherRegion);
+                sSkipLauncherRegion = "jp";
+            }
+        }
+        else //sSkipLauncherLanguage != "jp"
+        {
+            if (!usDatExists)
+            {
+                std::string errorMessage = "US / EU DAT language pack not installed (selected region: " + sSkipLauncherRegion + ", language: " + sSkipLauncherLanguage + "). Defaulting to Japanese.";
+
+                spdlog::error("MGS 2 | MGS 3: Launcher Config: {}", errorMessage);
+                MessageBoxA(nullptr, errorMessage.c_str(), "MGSHDFix Config Warning", MB_OK | MB_ICONWARNING);
+                sSkipLauncherRegion = "jp";
+                sSkipLauncherLanguage = "jp";
+            }
+            else
+            {
+                spdlog::info("MG | MG2 | MGS 2 | MGS 3: Launcher Config: Validating selected region/language pair (region: {}, language: {})", sSkipLauncherRegion, sSkipLauncherLanguage);
+                if (!(bIsMGS3Launcher ? IsValidRegionLanguagePair(MGS3_LanguagePairs, sSkipLauncherRegion, sSkipLauncherLanguage) : IsValidRegionLanguagePair(MG1_MG2_MGS2_LanguagePairs, sSkipLauncherRegion, sSkipLauncherLanguage)))
+                {
+                    std::string errorMessage = "Invalid region/language pair selected (region: " + sSkipLauncherRegion + ", language: " + sSkipLauncherLanguage + ").";
+
+                    if (bIsMGS3Launcher)
+                    {
+                        spdlog::error("MGS 3: Config Error: {}", errorMessage + " Defaulting to Region: North America & Language: English.");
+                        //MessageBoxA(nullptr, errorMessage.append(" Defaulting to Region: North America & Language: English.").c_str(), "MGSHDFix Config Error", MB_OK | MB_ICONWARNING);
+                        sSkipLauncherRegion = "us";
+                        sSkipLauncherLanguage = "en";
+                    }
+                    else
+                    {
+                        spdlog::error("MG | MG2 | MGS2: Config Error: {}", errorMessage + " Defaulting to Region: US/EU & Language: English.");
+                        //MessageBoxA(nullptr, errorMessage.append(" Defaulting to Region: US/EU & Language: English.").c_str(), "MGSHDFix Config Error", MB_OK | MB_ICONWARNING);
+                        sSkipLauncherRegion = "eu";
+                        sSkipLauncherLanguage = "en";
+                    }
+
+                }
+                else
+                {
+                    spdlog::info("MG | MG2 | MGS 2 | MGS 3: Launcher Config: Valid region/language pair selected (region: {}, language: {})", sSkipLauncherRegion, sSkipLauncherLanguage);
+                }
+            }
+        }
+
+
+        if (bIsMGS3Launcher)
+        {
+            ResolveRegionLanguageNames(MGS3_LanguagePairs, sSkipLauncherRegion, sSkipLauncherLanguage, sReadableRegionName, sReadableLanguageName);
+        }
+        else
+        {
+            ResolveRegionLanguageNames(MG1_MG2_MGS2_LanguagePairs, sSkipLauncherRegion, sSkipLauncherLanguage, sReadableRegionName, sReadableLanguageName);
+
+        }
+    }
+}
+
 void Config::Read()
 {
     std::filesystem::path sConfigFile = sFixName + ".settings";
@@ -339,21 +443,25 @@ void Config::Read()
     ConfigHelper::getValue(ini, ConfigKeys::DistanceCullingGrassScalar_Section, ConfigKeys::DistanceCullingGrassScalar_Setting, g_DistanceCulling.fGrassDistanceScalar);
     LOG_CONFIG(ConfigKeys::DistanceCullingGrassScalar_Section, ConfigKeys::DistanceCullingGrassScalar_Setting, g_DistanceCulling.fGrassDistanceScalar);
 
+
+
+    ConfigHelper::getValue(ini, ConfigKeys::Region_Section, ConfigKeys::Region_Setting, sSkipLauncherRegion);
+    ConfigHelper::getValue(ini, ConfigKeys::Language_Section, ConfigKeys::Language_Setting, sSkipLauncherLanguage);
+    ValidateLauncherRegionOptions();
+
+    LOG_CONFIG(ConfigKeys::Region_Section, ConfigKeys::Region_Setting, sReadableRegionName);
+    LOG_CONFIG(ConfigKeys::Language_Section, ConfigKeys::Language_Setting, sReadableLanguageName);
+
     // Launcher settings
     std::string sLauncherConfigCtrlType = *std::next(kLauncherConfigCtrlTypes.begin(), 5);
-    std::string sLauncherConfigRegion = *std::next(kLauncherConfigRegions.begin(), 0);
-    std::string sLauncherConfigLanguage = *std::next(kLauncherConfigLanguages.begin(), 0);
+
 
     ConfigHelper::getValue(ini, ConfigKeys::CtrlType_Section, ConfigKeys::CtrlType_Setting, sLauncherConfigCtrlType);
-    ConfigHelper::getValue(ini, ConfigKeys::Region_Section, ConfigKeys::Region_Setting, sLauncherConfigRegion);
-    ConfigHelper::getValue(ini, ConfigKeys::Language_Section, ConfigKeys::Language_Setting, sLauncherConfigLanguage);
+    iLauncherConfigCtrlType = Util::findStringInVector(sLauncherConfigCtrlType, kLauncherConfigCtrlTypes);
+
     ConfigHelper::getValue(ini, ConfigKeys::SkipLauncherMSXGame_Section, ConfigKeys::SkipLauncherMSXGame_Setting, sLauncherConfigMSXGame);
     ConfigHelper::getValue(ini, ConfigKeys::MSXWallType_Section, ConfigKeys::MSXWallType_Setting, iLauncherConfigMSXWallType);
     ConfigHelper::getValue(ini, ConfigKeys::MSXWallAlign_Section, ConfigKeys::MSXWallAlign_Setting, sLauncherConfigMSXWallAlign);
-
-    iLauncherConfigCtrlType = Util::findStringInVector(sLauncherConfigCtrlType, kLauncherConfigCtrlTypes);
-    iLauncherConfigRegion = Util::findStringInVector(sLauncherConfigRegion, kLauncherConfigRegions);
-    iLauncherConfigLanguage = Util::findStringInVector(sLauncherConfigLanguage, kLauncherConfigLanguages);
 
     std::string ps2Type(ConfigKeys::ControllerType_PS2);
     if (iLauncherConfigCtrlType == Util::findStringInVector(ps2Type, kLauncherConfigCtrlTypes))
@@ -366,8 +474,7 @@ void Config::Read()
     }
 
     LOG_CONFIG(ConfigKeys::CtrlType_Section, ConfigKeys::CtrlType_Setting, Util::GetNameAtIndex(kLauncherConfigCtrlTypes, iLauncherConfigCtrlType));
-    LOG_CONFIG(ConfigKeys::Region_Section, ConfigKeys::Region_Setting, Util::GetNameAtIndex(kLauncherConfigRegions, iLauncherConfigRegion));
-    LOG_CONFIG(ConfigKeys::Language_Section, ConfigKeys::Language_Setting, Util::GetNameAtIndex(kLauncherConfigLanguages, iLauncherConfigLanguage));
+
     LOG_CONFIG(ConfigKeys::SkipLauncherMSXGame_Section, ConfigKeys::SkipLauncherMSXGame_Setting, sLauncherConfigMSXGame);
     LOG_CONFIG(ConfigKeys::MSXWallType_Section, ConfigKeys::MSXWallType_Setting, iLauncherConfigMSXWallType);
     LOG_CONFIG(ConfigKeys::MSXWallAlign_Section, ConfigKeys::MSXWallAlign_Setting, sLauncherConfigMSXWallAlign);

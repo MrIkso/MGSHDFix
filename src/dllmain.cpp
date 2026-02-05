@@ -811,22 +811,6 @@ void NHT_COsContext_SetControllerID_Hook(int controllerType)
     NHT_COsContext_SetControllerID(iLauncherConfigCtrlType);
 }
 
-using MGS3_COsContext_InitializeSKUandLang_Fn = void(__fastcall*)(void*, int, int);
-MGS3_COsContext_InitializeSKUandLang_Fn MGS3_COsContext_InitializeSKUandLang = nullptr;
-void __fastcall MGS3_COsContext_InitializeSKUandLang_Hook(void* thisptr, int lang, int sku)
-{
-    spdlog::info("MGS3_COsContext_InitializeSKUandLang: lang {} -> {}, sku {} -> {}", Util::GetUppercaseNameAtIndex(kLauncherConfigLanguages, lang), Util::GetUppercaseNameAtIndex(kLauncherConfigLanguages, iLauncherConfigLanguage), sku, iLauncherConfigRegion);
-    MGS3_COsContext_InitializeSKUandLang(thisptr, iLauncherConfigLanguage, iLauncherConfigRegion);
-}
-
-using MGS2_COsContext_InitializeSKUandLang_Fn = void(__fastcall*)(void*, int);
-MGS2_COsContext_InitializeSKUandLang_Fn MGS2_COsContext_InitializeSKUandLang = nullptr;
-void __fastcall MGS2_COsContext_InitializeSKUandLang_Hook(void* thisptr, int lang)
-{
-    spdlog::info("MGS2_COsContext_InitializeSKUandLang: lang {} -> {}", Util::GetUppercaseNameAtIndex(kLauncherConfigLanguages, lang), Util::GetUppercaseNameAtIndex(kLauncherConfigLanguages, iLauncherConfigLanguage));
-    MGS2_COsContext_InitializeSKUandLang(thisptr, iLauncherConfigLanguage);
-}
-
 static void Init_LauncherConfigOverride()
 {
     // If we know games steam appid, try creating steam_appid.txt file, so that game EXE can be launched directly in future runs
@@ -882,19 +866,8 @@ static void Init_LauncherConfigOverride()
 
                 std::wstring commandLine = L"\"" + gameExePath.wstring() + L"\"";
 
-                const bool bIsMGLauncher = (game->ExeName == kGames.at(MG).ExeName);
-                const bool bIsMGS2Launcher = (game->ExeName == kGames.at(MGS2).ExeName);
-                const bool bIsMGS3Launcher = (game->ExeName == kGames.at(MGS3).ExeName);
-
-
-                bool usDatExists;
-                bool jpDatExists;
-
-                if (bIsMGLauncher)
+                if (game->ExeName == kGames.at(MG).ExeName)
                 {
-                    usDatExists = true;
-                    jpDatExists = true;
-
                     // Add launch parameters for MG MSX
                     auto transformString = [](const std::string& input, int (*transformation)(int)) -> std::wstring
                         {
@@ -911,77 +884,8 @@ static void Init_LauncherConfigOverride()
                         sLauncherConfigMSXWallAlign == ConfigKeys::MSXWallAlign_Option_Left ? L"L" :
                         L"R");
                 }
-                else 
-                {
-                    usDatExists = bIsMGS2Launcher ? std::filesystem::exists(sExePath / "Misc" / "us" / "BP_SE.DAT") : std::filesystem::exists(sExePath / "fr" / "stage" / "mg2" / "cache" / "english.raw");
-                    jpDatExists = bIsMGS2Launcher ? std::filesystem::exists(sExePath / "Misc" / "jp" / "BP_SE.DAT") : std::filesystem::exists(sExePath / "jp" / "stage" / "mg2" / "cache" / "japanese.raw");
-                    spdlog::info("MGS 2 | MGS 3: Launcher Config: US/EU language pack installed: {}\t|\tJP language pack installed: {}", usDatExists ? "YES" : "NO", jpDatExists ? "YES" : "NO");
-                }
 
-
-                if (iSkipLauncherLanguage == "jp")
-                {
-                    if (!jpDatExists)
-                    {
-                        std::string fallbackText = bIsMGS3Launcher ? "Region: North America & Language: English" : "Region: US/EU & Language: English";
-
-                        std::string msg = "Japanese language pack not installed (selected region: " + iSkipLauncherRegion + ", language: " + iSkipLauncherLanguage + "), defaulting to " + fallbackText + ".";
-                        spdlog::error("MGS 2 | MGS 3: Launcher Config: {}", msg);
-
-                        MessageBoxA(nullptr, msg.c_str(), "MGSHDFix Config Error", MB_OK | MB_ICONWARNING);
-
-                        iSkipLauncherRegion = bIsMGS3Launcher ? "us" : "eu";
-                        iSkipLauncherLanguage = "en";
-                    }
-                    else if (iSkipLauncherRegion != "jp")
-                    {
-                        spdlog::warn("MGS 2 | MGS 3: Launcher Config: Japanese language selected but region is set to {}, forcing region to Japan.", iSkipLauncherRegion);
-                        iSkipLauncherRegion = "jp";
-                    }
-                }
-                else //iSkipLauncherLanguage != "jp"
-                {
-                    if (!usDatExists)
-                    {
-                        std::string errorMessage = "US / EU DAT language pack not installed (selected region: " + iSkipLauncherRegion + ", language: " + iSkipLauncherLanguage + "). Defaulting to Japanese.";
-
-                        spdlog::error("MGS 2 | MGS 3: Launcher Config: {}", errorMessage);
-                        MessageBoxA(nullptr, errorMessage.c_str(), "MGSHDFix Config Warning", MB_OK | MB_ICONWARNING);
-                        iSkipLauncherRegion = "jp";
-                        iSkipLauncherLanguage = "jp";
-                    }
-                    else
-                    {
-                        spdlog::info("MG | MG2 | MGS 2 | MGS 3: Launcher Config: Validating selected region/language pair (region: {}, language: {})", iSkipLauncherRegion, iSkipLauncherLanguage);
-                        if (!(bIsMGS3Launcher ? IsValidRegionLanguagePair(MGS3_LanguagePairs, iSkipLauncherRegion, iSkipLauncherLanguage) : IsValidRegionLanguagePair(MG1_MG2_MGS2_LanguagePairs, iSkipLauncherRegion, iSkipLauncherLanguage)))
-                        {
-                            std::string errorMessage = "Invalid region/language pair selected (region: " + iSkipLauncherRegion + ", language: " + iSkipLauncherLanguage + ").";
-
-                            if (bIsMGS3Launcher)
-                            {
-                                spdlog::error("MGS 3: Config Error: {}", errorMessage + " Defaulting to Region: North America & Language: English.");
-                                //MessageBoxA(nullptr, errorMessage.append(" Defaulting to Region: North America & Language: English.").c_str(), "MGSHDFix Config Error", MB_OK | MB_ICONWARNING);
-                                iSkipLauncherRegion = "us";
-                                iSkipLauncherLanguage = "en";
-                            }
-                            else
-                            {
-                                spdlog::error("MG | MG2 | MGS2: Config Error: {}", errorMessage + " Defaulting to Region: US/EU & Language: English.");
-                                //MessageBoxA(nullptr, errorMessage.append(" Defaulting to Region: US/EU & Language: English.").c_str(), "MGSHDFix Config Error", MB_OK | MB_ICONWARNING);
-                                iSkipLauncherRegion = "eu";
-                                iSkipLauncherLanguage = "en";
-                            }
-
-                        }
-                        else
-                        {
-                            spdlog::info("MG | MG2 | MGS 2 | MGS 3: Launcher Config: Valid region/language pair selected (region: {}, language: {})", iSkipLauncherRegion, iSkipLauncherLanguage);
-                        }
-                    }
-                    
-                }
-
-                commandLine += L" -region " + Util::UTF8toWide(iSkipLauncherRegion) + L" -lan " + Util::UTF8toWide(iSkipLauncherLanguage) + L" -selfregion EU -launcherpath launcher.exe ";
+                commandLine += L" -region " + Util::UTF8toWide(sSkipLauncherRegion) + L" -lan " + Util::UTF8toWide(sSkipLauncherLanguage) + L" -selfregion EU -launcherpath launcher.exe ";
                 std::string sCommandLine = Util::WideToUTF8(commandLine);
                 spdlog::info("MG/MG2 | MGS 2 | MGS 3: Launcher Config: Launch command line: {}", sCommandLine);
 
@@ -1060,51 +964,6 @@ static void Init_LauncherConfigOverride()
     if (!engineModule)
     {
         spdlog::error("MG/MG2 | MGS 2 | MGS 3: Launcher Config: engineModule is null, cannot apply INI overrides for Region/Language/ControllerType");
-    }
-    if (!hasRegion && !hasLang)
-    {
-        if (game->ExeName == kGames.at(MGS3).ExeName || game->ExeName == kGames.at(MG).ExeName)
-        {
-            MGS3_COsContext_InitializeSKUandLang = decltype(MGS3_COsContext_InitializeSKUandLang)(GetProcAddress(engineModule, "?InitializeSKUandLang@COsContext@@QEAAXHH@Z"));
-            if (MGS3_COsContext_InitializeSKUandLang)
-            {
-                if (Memory::HookIAT(baseModule, "Engine.dll", MGS3_COsContext_InitializeSKUandLang, MGS3_COsContext_InitializeSKUandLang_Hook))
-                {
-                    spdlog::info("MG/MG2 | MGS 3: Launcher Config: Overriding Region/Language with: {} / {}", Util::GetUppercaseNameAtIndex(kLauncherConfigRegions, iLauncherConfigRegion), Util::GetUppercaseNameAtIndex(kLauncherConfigLanguages, iLauncherConfigLanguage));
-                }
-                else
-                {
-                    spdlog::error("MG/MG2 | MGS 3: Launcher Config: Failed to apply COsContext::InitializeSKUandLang IAT hook");
-                }
-            }
-            else
-            {
-                spdlog::error("MG/MG2 | MGS 3: Launcher Config: Failed to locate COsContext::InitializeSKUandLang export");
-            }
-        }
-        else
-        {
-            MGS2_COsContext_InitializeSKUandLang = decltype(MGS2_COsContext_InitializeSKUandLang)(GetProcAddress(engineModule, "?InitializeSKUandLang@COsContext@@QEAAXH@Z"));
-            if (MGS2_COsContext_InitializeSKUandLang)
-            {
-                if (Memory::HookIAT(baseModule, "Engine.dll", MGS2_COsContext_InitializeSKUandLang, MGS2_COsContext_InitializeSKUandLang_Hook))
-                {
-                    spdlog::info("MGS 2: Launcher Config: Overriding game Region/Language with: {} / {}", Util::GetUppercaseNameAtIndex(kLauncherConfigRegions, iLauncherConfigRegion), Util::GetUppercaseNameAtIndex(kLauncherConfigLanguages, iLauncherConfigLanguage));
-                }
-                else
-                {
-                    spdlog::error("MGS 2: Launcher Config: Failed to apply COsContext::InitializeSKUandLang IAT hook");
-                }
-            }
-            else
-            {
-                spdlog::error("MGS 2: Launcher Config: Failed to locate COsContext::InitializeSKUandLang export");
-            }
-        }
-    }
-    else
-    {
-        spdlog::info("MG/MG2 | MGS 2 | MGS 3: Launcher Config: -region/-lan specified on command-line, skipping INI override");
     }
 
     if (!hasCtrltype || bIsPS2controltype)
@@ -1235,6 +1094,12 @@ void afterPresent()
     spdlog::info("afterPresent() completed");
 }
 
+#if !defined(RELEASE_BUILD)
+
+void ScanAndPatchSkybox();
+#endif
+
+
 static void InitializeSubsystems()
 {
     //Initialization order (these systems initialize vars used by following ones.)
@@ -1309,6 +1174,8 @@ static void InitializeSubsystems()
 
 #if !defined(RELEASE_BUILD)
     INITIALIZE(UnitTests::runAllTests());
+    ScanAndPatchSkybox();
+
 #endif
 }
 

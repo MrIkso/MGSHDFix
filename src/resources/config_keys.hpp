@@ -228,12 +228,14 @@ namespace ConfigKeys
     constexpr const char* Language_Section = "Language Settings";
     constexpr const char* Language_Setting = "Game Language";
     constexpr const char* Language_Help = "";
-    constexpr const char* Language_Tooltip = "Selects in-game language. Availability may depend on region.";
+    constexpr const char* Language_Tooltip = "Selects in-game language.";
 
     constexpr const char* Region_Section = "Language Settings";
     constexpr const char* Region_Setting = "Game Region";
     constexpr const char* Region_Help = "";
-    constexpr const char* Region_Tooltip = "(MGS3 Only)";
+    constexpr const char* Region_Tooltip = "Selects game region.\n"
+                                           "\n"
+                                           "For MGS3: Europe has additional censorship VS North America.";
 
     constexpr const char* SkipLauncherMSXGame_Section = "Launcher Config";
     constexpr const char* SkipLauncherMSXGame_Setting = "MSX Skip Launcher Game";
@@ -417,19 +419,6 @@ inline const std::initializer_list<std::string> kLauncherConfigCtrlTypes = { //T
     ConfigKeys::ControllerType_PS2,             //6
 };
 
-inline const std::initializer_list<std::string> kLauncherConfigLanguages = {
-    "English",
-    "Japanese",
-    "French",
-    "German",
-    "Italian",
-    "Portuguese",
-    "Spanish",
-    "Dutch",
-    "Russian"
-};
-
-
 struct Game_Language_Pair_View
 {
     std::string_view Region_Name;
@@ -439,7 +428,6 @@ struct Game_Language_Pair_View
 };
 
 //Config Tool -> iTargetGame = TARGET_GAME_MGS3;
-
 inline constexpr std::array<Game_Language_Pair_View, 9> MGS3_LanguagePairs =
 { {
     { "North America", "English",   "us", "en" },
@@ -475,8 +463,25 @@ static bool IsValidRegionLanguagePair(const std::array<Game_Language_Pair_View, 
     return false;
 }
 
-inline const std::initializer_list<std::string> kLauncherConfigRegions = {
-    "United States",
-    "Japan",
-    "Europe"
-};
+template <size_t N>
+static bool ResolveRegionLanguageNames(const std::array<Game_Language_Pair_View, N>& pairs, std::string_view game_region, std::string_view game_language, std::string& out_region_name, std::string& out_language_name)
+{
+    for (const auto& p : pairs)
+    {
+        if (p.Game_Region != game_region)
+        {
+            continue;
+        }
+
+        if (p.Game_Language != game_language)
+        {
+            continue;
+        }
+
+        out_region_name.assign(p.Region_Name);
+        out_language_name.assign(p.Language_Name);
+        return true;
+    }
+
+    return false;
+}
