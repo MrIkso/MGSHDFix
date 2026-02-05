@@ -23,6 +23,7 @@
 // THE SOFTWARE.
 // ============================================================================
 
+
 #include "pch.h"
 #include "config_keys.hpp"
 #include <wx/wx.h>
@@ -38,6 +39,11 @@
 #include "version.h"
 #include "tab_data.hpp"
 #include "updater.hpp"
+
+#if !defined(MGSHDFIX_SPECIFIC)
+#define MGSHDFIX_SPECIFIC // MGSHDFix has unique regional/language options. Avoid conflicts with other projects using the same codebase.
+#endif
+
 
 constexpr int iWindowSizeX = 716;
 constexpr int iWindowSizeY = 680;
@@ -108,7 +114,7 @@ class HotkeyCaptureCtrl final : public wxTextCtrl
 public:
     HotkeyCaptureCtrl(wxWindow* parent, wxWindowID id, const wxString& value = "")
         : wxTextCtrl(parent, id, value, wxDefaultPosition, wxDefaultSize,
-            wxTE_PROCESS_TAB | wxTE_PROCESS_ENTER)
+                     wxTE_PROCESS_TAB | wxTE_PROCESS_ENTER)
     {
         Bind(wxEVT_KEY_DOWN, &HotkeyCaptureCtrl::OnKeyDown, this);
         Bind(wxEVT_MIDDLE_DOWN, &HotkeyCaptureCtrl::OnMouseClick, this);
@@ -373,7 +379,6 @@ static int GetBannerResourceID()
 
     if (hasValidGameExe) // We found a valid game folder somewhere above us
     {
-
         message =
             "MGSHDFix has been extracted to the wrong folder!\n"
             "Please move all files from:\n\n" + exePath.string() +
@@ -389,11 +394,8 @@ static int GetBannerResourceID()
             "Current Location:\n\n" + exePath.string() + "\n"
             "\n"
             "All files must be extracted EXACTLY as they were packed into your game's main folder.";
-
-
     }
     wxLogError(message);
-
 
     ExitProcess(1);
 #pragma endregion
@@ -445,8 +447,8 @@ class ConfigFrame : public wxFrame
 public:
     ConfigFrame()
         : wxFrame(nullptr, wxID_ANY, FIX_NAME " v" VERSION_STRING " - Universal Config Tool",
-            wxDefaultPosition, wxSize(iWindowSizeX, iWindowSizeY),
-            wxDEFAULT_FRAME_STYLE & ~(wxRESIZE_BORDER | wxMAXIMIZE_BOX))
+                  wxDefaultPosition, wxSize(iWindowSizeX, iWindowSizeY),
+                  wxDEFAULT_FRAME_STYLE & ~(wxRESIZE_BORDER | wxMAXIMIZE_BOX))
     {
         SetMinSize(wxSize(iWindowSizeX, iWindowSizeY));
         SetMaxSize(wxSize(iWindowSizeX, iWindowSizeY));
@@ -505,11 +507,10 @@ public:
                     continue; // skip normal control creation
                 }
 
-
                 // Label + optional help stacked vertically
                 wxBoxSizer* labelBox = new wxBoxSizer(wxVERTICAL);
                 labelBox->Add(new wxStaticText(sectionSizer->GetStaticBox(), wxID_ANY, field.key),
-                    0, wxALIGN_LEFT | wxBOTTOM, 2);
+                              0, wxALIGN_LEFT | wxBOTTOM, 2);
                 if (!field.help.IsEmpty())
                 {
                     auto* helpText = new wxStaticText(sectionSizer->GetStaticBox(), wxID_ANY, field.help);
@@ -544,9 +545,9 @@ public:
 
                     // If this checkbox is a prerequisite, hook it
                     cb->Bind(wxEVT_CHECKBOX, [this](wxCommandEvent&)
-                        {
-                            ApplyPrerequisites();
-                        });
+                             {
+                                 ApplyPrerequisites();
+                             });
                     break;
                 }
                 case Field::Int:
@@ -561,17 +562,16 @@ public:
                     if (int clamped = std::clamp(v, field.minInt, field.maxInt); clamped != v)
                     {
                         wxLogWarning("Out-of-range value %d for [%s/%s], clamped to %d",
-                            v, field.section, field.key, clamped);
+                                     v, field.section, field.key, clamped);
                         v = clamped;
                         m_missingKeys = true;
                     }
 
-
                     auto* sp = new wxSpinCtrl(sectionSizer->GetStaticBox(), wxID_ANY,
-                        std::to_string(v),
-                        wxDefaultPosition, wxDefaultSize,
-                        wxSP_ARROW_KEYS,
-                        field.minInt, field.maxInt, v);
+                                              std::to_string(v),
+                                              wxDefaultPosition, wxDefaultSize,
+                                              wxSP_ARROW_KEYS,
+                                              field.minInt, field.maxInt, v);
 
                     ctrl = sp;
                     ctrl->Bind(wxEVT_ANY, &ConfigFrame::MarkDirty, this);
@@ -591,6 +591,51 @@ public:
                 }
                 case Field::Choice:
                 {
+                    const bool isRegionField =
+                        (field.section == ConfigKeys::Region_Section) &&
+                        (field.key == ConfigKeys::Region_Setting);
+
+                    const bool isLanguageField =
+                        (field.section == ConfigKeys::Language_Section) &&
+                        (field.key == ConfigKeys::Language_Setting);
+
+                    if (isRegionField)
+                    {
+                        auto* ch = new wxChoice(sectionSizer->GetStaticBox(), wxID_ANY);
+                        ctrl = ch;
+                        m_regionChoice = ch;
+
+                        ctrl->Bind(wxEVT_ANY, &ConfigFrame::MarkDirty, this);
+
+                        ch->Bind(wxEVT_CHOICE, [this](wxCommandEvent&)
+                                 {
+                                     if (!m_regionChoice || !m_languageChoice)
+                                     {
+                                         return;
+                                     }
+
+                                     const wxString regionName = m_regionChoice->GetStringSelection();
+                                     const wxString currentLanguage = m_languageChoice->GetStringSelection(); //prevents langauge selection from defaulting back to the first entry if user reselects the same region.
+
+                                     PopulateLanguageChoices(regionName, currentLanguage);
+
+                                     m_dirty = true;
+                                 });
+
+                        break;
+                    }
+
+                    if (isLanguageField)
+                    {
+                        auto* ch = new wxChoice(sectionSizer->GetStaticBox(), wxID_ANY);
+                        ctrl = ch;
+                        m_languageChoice = ch;
+
+                        ctrl->Bind(wxEVT_ANY, &ConfigFrame::MarkDirty, this);
+                        break;
+                    }
+
+                    // Normal Choice behavior (static options)
                     wxString v = field.defaultString;
                     if (!m_conf->HasEntry(path))
                     {
@@ -610,7 +655,7 @@ public:
                     else
                     {
                         wxLogWarning("Invalid value '%s' for [%s/%s], resetting to default '%s'",
-                            v, field.section, field.key, field.defaultString);
+                                     v, field.section, field.key, field.defaultString);
 
                         if (int defIdx = ch->FindString(field.defaultString); !field.defaultString.IsEmpty() && defIdx != wxNOT_FOUND)
                         {
@@ -659,7 +704,7 @@ public:
                     if (double clamped = std::clamp(v, field.minFloat, field.maxFloat); clamped != v)
                     {
                         wxLogWarning("Out-of-range float %f for [%s/%s], clamped to %f",
-                            v, field.section, field.key, clamped);
+                                     v, field.section, field.key, clamped);
                         v = clamped;
                         m_missingKeys = true;
                     }
@@ -678,8 +723,6 @@ public:
                     ctrl->Bind(wxEVT_ANY, &ConfigFrame::MarkDirty, this);
                     break;
                 }
-
-
                 }
 
                 if (ctrl)
@@ -700,50 +743,78 @@ public:
 
                         // Use provided tooltip if any
                         if (!field.tooltip.IsEmpty())
-                            tip = field.tooltip;
-
-                        // Always append default value
-                        if (!tip.IsEmpty())
-                            tip += "\n\n";
-                        tip += "DEFAULT VALUE: ";
-
-                        switch (field.type)
                         {
-                        case Field::Bool:
-                            tip += (field.defaultInt != 0) ? "Enabled" : "Disabled";
-                            break;
-
-                        case Field::Int:
-                            tip += wxString::Format("%d", field.defaultInt);
-                            break;
-
-                        case Field::Float:
-                            tip += wxString::Format("%f", field.defaultFloat);
-                            break;
-
-                        case Field::Str:
-                        case Field::Hotkey:
-                            if (!field.defaultString.IsEmpty())
-                                tip += "\"" + field.defaultString + "\"";
-                            else
-                                tip += "\"\"";
-                            break;
-
-                        case Field::Choice:
-                            if (!field.defaultString.IsEmpty())
-                                tip += "\"" + field.defaultString + "\"";
-                            else if (!field.choices.empty())
-                                tip += "\"" + field.choices[0] + "\""; // fallback to first option
-                            else
-                                tip += "(none)";
-                            break;
-
-                        default:
-                            break;
+                            tip = field.tooltip;
                         }
 
-                        ctrl->SetToolTip(tip);
+                        const bool isRegionField =
+                            (field.section == ConfigKeys::Region_Section) &&
+                            (field.key == ConfigKeys::Region_Setting);
+
+                        const bool isLanguageField =
+                            (field.section == ConfigKeys::Language_Section) &&
+                            (field.key == ConfigKeys::Language_Setting);
+
+                        const bool isDynamicRegionLanguage = (isRegionField || isLanguageField);
+
+                        // For Region/Language, do NOT show the DEFAULT VALUE footer
+                        if (!isDynamicRegionLanguage)
+                        {
+                            // Always append default value
+                            if (!tip.IsEmpty())
+                            {
+                                tip += "\n\n";
+                            }
+
+                            tip += "DEFAULT VALUE: ";
+
+                            switch (field.type)
+                            {
+                            case Field::Bool:
+                                tip += (field.defaultInt != 0) ? "Enabled" : "Disabled";
+                                break;
+
+                            case Field::Int:
+                                tip += wxString::Format("%d", field.defaultInt);
+                                break;
+
+                            case Field::Float:
+                                tip += wxString::Format("%f", field.defaultFloat);
+                                break;
+
+                            case Field::Str:
+                            case Field::Hotkey:
+                                if (!field.defaultString.IsEmpty())
+                                    tip += "\"" + field.defaultString + "\"";
+                                else
+                                    tip += "\"\"";
+                                break;
+
+                            case Field::Choice:
+                                if (!field.defaultString.IsEmpty())
+                                    tip += "\"" + field.defaultString + "\"";
+                                else if (!field.choices.empty())
+                                    tip += "\"" + field.choices[0] + "\""; // fallback to first option
+                                else
+                                    tip += "(none)";
+                                break;
+
+                            default:
+                                break;
+                            }
+                        }
+
+                        // Only apply tooltip if we actually have something to show
+                        if (!tip.IsEmpty())
+                        {
+                            ctrl->SetToolTip(tip);
+                        }
+                        else
+                        {
+                            ctrl->UnsetToolTip();
+                        }
                     }
+
 
                     int flags = wxALIGN_CENTER_VERTICAL;
                     if (bFullLengthFields)
@@ -752,7 +823,6 @@ public:
                     }
 
                     grid->Add(ctrl, 0, flags);
-
 
                     m_controls[{field.section, field.key}] = ctrl;
                 }
@@ -768,12 +838,12 @@ public:
         BannerPanel* banner = new BannerPanel(this, bannerID);
         banner->SetCursor(wxCursor(wxCURSOR_HAND));
         banner->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent&)
-            {
-                wxLaunchDefaultBrowser(iTargetGame == TARGET_GAME_MG1 ? NEXUS_MG1_URL :
-                                        iTargetGame == TARGET_GAME_MGS2 ? NEXUS_MGS2_URL :
-                                        iTargetGame == TARGET_GAME_MGS3 ? NEXUS_MGS3_URL :
-                                        PRIMARY_REPO_URL);
-            });
+                     {
+                         wxLaunchDefaultBrowser(iTargetGame == TARGET_GAME_MG1 ? NEXUS_MG1_URL :
+                                                iTargetGame == TARGET_GAME_MGS2 ? NEXUS_MGS2_URL :
+                                                iTargetGame == TARGET_GAME_MGS3 ? NEXUS_MGS3_URL :
+                                                PRIMARY_REPO_URL);
+                     });
         mainSizer->Add(banner, 0, wxALIGN_CENTER | wxTOP | wxBOTTOM, 0);
 
         mainSizer->Add(m_tabs, 1, wxEXPAND | wxALL, 5);
@@ -795,18 +865,25 @@ public:
 
         mainSizer->Add(btnSizer, 0, wxEXPAND | wxALL, 5);
 
-
         SetSizer(mainSizer);
         Bind(wxEVT_CLOSE_WINDOW, &ConfigFrame::OnClose, this);
         Centre();
 
         Bind(wxEVT_BUTTON, &ConfigFrame::OnSave, this, wxID_SAVE);
         Bind(wxEVT_BUTTON, [&](wxCommandEvent&)
-            {
-                Close();
-            }, wxID_EXIT);
+             {
+                 Close();
+             }, wxID_EXIT);
         LaunchBtn->Bind(wxEVT_BUTTON, &ConfigFrame::OnSaveAndLaunch, this);
         resetBtn->Bind(wxEVT_BUTTON, &ConfigFrame::OnResetDefaults, this);
+
+        if (m_regionChoice && m_languageChoice)
+        {
+            InitRegionLanguageFromConfig(); // defaults to FIRST entry in pairing if missing/invalid
+            FitChoiceToWidestItem(m_regionChoice);
+            FitChoiceToWidestItem(m_languageChoice);
+            RelayoutAfterDynamicChoiceChange();
+        }
 
         ApplyPrerequisites();
         HandleUpdateCheckPreference();
@@ -855,7 +932,7 @@ public:
             }
 
             v = enable ? 1 : 0;
-            hasValue = true; 
+            hasValue = true;
             ApplyPrerequisites();
         }
 
@@ -872,18 +949,347 @@ public:
         }
     }
 
-
-
 private:
     bool m_dirty = false;
     bool m_firstRun = false;
     bool m_missingKeys = false;
 
     wxNotebook* m_tabs = nullptr;
+
+    wxChoice* m_regionChoice = nullptr;
+    wxChoice* m_languageChoice = nullptr;
+
     void MarkDirty(wxEvent& e)
     {
         m_dirty = true;
         e.Skip();
+    }
+
+    // ----------------------------
+    // Region/Language dynamic lists
+    // ----------------------------
+    static std::span<const Game_Language_Pair_View> GetActiveLanguagePairs()
+    {
+#if defined(MGSHDFIX_SPECIFIC)
+        if (iTargetGame == TARGET_GAME_MGS3)
+        {
+            return std::span<const Game_Language_Pair_View>(MGS3_LanguagePairs.data(), MGS3_LanguagePairs.size());
+        }
+
+        return std::span<const Game_Language_Pair_View>(MG1_MG2_MGS2_LanguagePairs.data(), MG1_MG2_MGS2_LanguagePairs.size());
+#endif
+    }
+
+    static bool IsValidRegionLanguagePair(std::span<const Game_Language_Pair_View> pairs, std::string_view region, std::string_view language)
+    {
+        for (const auto& p : pairs)
+        {
+            if (p.Game_Region == region && p.Game_Language == language)
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    static bool ResolveRegionLanguageNames(std::span<const Game_Language_Pair_View> pairs,
+                                           std::string_view game_region,
+                                           std::string_view game_language,
+                                           std::string& out_region_name,
+                                           std::string& out_language_name)
+    {
+        for (const auto& p : pairs)
+        {
+            if (p.Game_Region != game_region)
+            {
+                continue;
+            }
+
+            if (p.Game_Language != game_language)
+            {
+                continue;
+            }
+
+            out_region_name.assign(p.Region_Name);
+            out_language_name.assign(p.Language_Name);
+            return true;
+        }
+
+        return false;
+    }
+
+    static bool ResolveRegionLanguageCodes(std::span<const Game_Language_Pair_View> pairs,
+                                           std::string_view region_name,
+                                           std::string_view language_name,
+                                           std::string& out_game_region,
+                                           std::string& out_game_language)
+    {
+        for (const auto& p : pairs)
+        {
+            if (p.Region_Name != region_name)
+            {
+                continue;
+            }
+
+            if (p.Language_Name != language_name)
+            {
+                continue;
+            }
+
+            out_game_region.assign(p.Game_Region);
+            out_game_language.assign(p.Game_Language);
+            return true;
+        }
+
+        return false;
+    }
+
+    void FitChoiceToWidestItem(wxChoice* choice)
+    {
+        if (!choice)
+        {
+            return;
+        }
+
+        wxClientDC dc(choice);
+        dc.SetFont(choice->GetFont());
+
+        int maxW = 0;
+        int maxH = 0;
+
+        for (unsigned int i = 0; i < choice->GetCount(); ++i)
+        {
+            wxCoord w = 0;
+            wxCoord h = 0;
+            dc.GetTextExtent(choice->GetString(i), &w, &h);
+
+            if ((int)w > maxW) maxW = (int)w;
+            if ((int)h > maxH) maxH = (int)h;
+        }
+
+        const int extraW = wxSystemSettings::GetMetric(wxSYS_VSCROLL_X, choice);
+        const int padW = FromDIP(32);
+        const int padH = FromDIP(10);
+
+        wxSize best = choice->GetBestSize();
+        const int wantedW = std::max(best.GetWidth(), maxW + extraW + padW);
+        const int wantedH = std::max(best.GetHeight(), maxH + padH);
+
+        choice->SetMinSize(wxSize(wantedW, wantedH));
+        choice->SetSizeHints(wxSize(wantedW, wantedH));
+    }
+
+    void RelayoutAfterDynamicChoiceChange()
+    {
+        Layout();
+        if (m_tabs)
+        {
+            m_tabs->Layout();
+        }
+        Refresh();
+    }
+
+    void PopulateRegionChoices()
+    {
+        if (!m_regionChoice)
+        {
+            return;
+        }
+
+        m_regionChoice->Clear();
+
+        const auto pairs = GetActiveLanguagePairs();
+
+        std::vector<std::string_view> regions;
+        regions.reserve(8);
+
+        for (const auto& p : pairs)
+        {
+            bool exists = false;
+            for (const auto& r : regions)
+            {
+                if (r == p.Region_Name)
+                {
+                    exists = true;
+                    break;
+                }
+            }
+
+            if (!exists)
+            {
+                regions.push_back(p.Region_Name);
+                m_regionChoice->Append(wxString(p.Region_Name));
+            }
+        }
+
+        // Default: first entry
+        if (m_regionChoice->GetCount() > 0)
+        {
+            m_regionChoice->SetSelection(0);
+        }
+
+        FitChoiceToWidestItem(m_regionChoice);
+        RelayoutAfterDynamicChoiceChange();
+    }
+
+    void PopulateLanguageChoices(const wxString& regionName, const wxString& preferredLanguageName = wxString())
+    {
+        if (!m_languageChoice)
+        {
+            return;
+        }
+
+        const auto pairs = GetActiveLanguagePairs();
+
+        m_languageChoice->Clear();
+
+        const std::string regionStd = regionName.ToStdString();
+
+        for (const auto& p : pairs)
+        {
+            if (p.Region_Name != regionStd)
+            {
+                continue;
+            }
+
+            m_languageChoice->Append(wxString(p.Language_Name));
+        }
+
+        if (!preferredLanguageName.IsEmpty())
+        {
+            const int idx = m_languageChoice->FindString(preferredLanguageName);
+            if (idx != wxNOT_FOUND)
+            {
+                m_languageChoice->SetSelection(idx);
+
+                FitChoiceToWidestItem(m_languageChoice);
+                RelayoutAfterDynamicChoiceChange();
+                return;
+            }
+        }
+
+        // Default: first entry for this region
+        if (m_languageChoice->GetCount() > 0)
+        {
+            m_languageChoice->SetSelection(0);
+        }
+
+        FitChoiceToWidestItem(m_languageChoice);
+        RelayoutAfterDynamicChoiceChange();
+    }
+
+    void InitRegionLanguageFromConfig()
+    {
+        if (!m_regionChoice || !m_languageChoice)
+        {
+            return;
+        }
+
+        const wxString sectionRegion = ConfigKeys::Region_Section;
+        const wxString keyRegion = ConfigKeys::Region_Setting;
+        const wxString pathRegion = sectionRegion + "/" + keyRegion;
+
+        const wxString sectionLang = ConfigKeys::Language_Section;
+        const wxString keyLang = ConfigKeys::Language_Setting;
+        const wxString pathLang = sectionLang + "/" + keyLang;
+
+        const auto pairs = GetActiveLanguagePairs();
+
+        // Default is ALWAYS the first entry of the pairing
+        std::string defaultRegionCode = "eu";
+        std::string defaultLangCode = "en";
+        if (!pairs.empty())
+        {
+            defaultRegionCode.assign(pairs[0].Game_Region);
+            defaultLangCode.assign(pairs[0].Game_Language);
+        }
+
+        wxString regionCode(defaultRegionCode);
+        wxString langCode(defaultLangCode);
+
+        bool hasRegion = m_conf->HasEntry(pathRegion);
+        bool hasLang = m_conf->HasEntry(pathLang);
+
+        if (!hasRegion || !hasLang)
+        {
+            m_missingKeys = true;
+        }
+
+        if (hasRegion)
+        {
+            m_conf->Read(pathRegion, &regionCode);
+            regionCode = Unquote(regionCode);
+        }
+
+        if (hasLang)
+        {
+            m_conf->Read(pathLang, &langCode);
+            langCode = Unquote(langCode);
+        }
+
+        std::string regionCodeStd = regionCode.ToStdString();
+        std::string langCodeStd = langCode.ToStdString();
+
+        // If invalid, force to first entry in pairing
+        if (!IsValidRegionLanguagePair(pairs, regionCodeStd, langCodeStd))
+        {
+            regionCodeStd = defaultRegionCode;
+            langCodeStd = defaultLangCode;
+            m_missingKeys = true;
+        }
+
+        std::string regionName;
+        std::string langName;
+
+        if (!ResolveRegionLanguageNames(pairs, regionCodeStd, langCodeStd, regionName, langName))
+        {
+            // Hard fallback to first entry names
+            if (!pairs.empty())
+            {
+                regionName.assign(pairs[0].Region_Name);
+                langName.assign(pairs[0].Language_Name);
+            }
+            m_missingKeys = true;
+        }
+
+        // Fill region list (select correct region name if present, else first)
+        m_regionChoice->Clear();
+        {
+            std::vector<std::string_view> regions;
+            regions.reserve(8);
+
+            for (const auto& p : pairs)
+            {
+                bool exists = false;
+                for (const auto& r : regions)
+                {
+                    if (r == p.Region_Name)
+                    {
+                        exists = true;
+                        break;
+                    }
+                }
+
+                if (!exists)
+                {
+                    regions.push_back(p.Region_Name);
+                    m_regionChoice->Append(wxString(p.Region_Name));
+                }
+            }
+        }
+
+        int regionIdx = m_regionChoice->FindString(wxString(regionName));
+        if (regionIdx == wxNOT_FOUND)
+        {
+            regionIdx = 0; // default: first region entry
+        }
+        if (m_regionChoice->GetCount() > 0)
+        {
+            m_regionChoice->SetSelection(regionIdx);
+        }
+
+        // Fill language list based on selected region, prefer resolved language name, else first
+        PopulateLanguageChoices(m_regionChoice->GetStringSelection(), wxString(langName));
     }
 
     int FindFocusTab()
@@ -892,7 +1298,6 @@ private:
             return m_tabs->GetSelection();
         return -1;
     }
-
 
     void ResetTabToDefaults(int tabIndex)
     {
@@ -954,6 +1359,27 @@ private:
             case Field::Choice:
                 if (auto* c = wxDynamicCast(ctrl, wxChoice))
                 {
+                    // For dynamic Region/Language, reset to first entry in pairing
+                    const bool isRegionField =
+                        (field.section == ConfigKeys::Region_Section) &&
+                        (field.key == ConfigKeys::Region_Setting);
+
+                    const bool isLanguageField =
+                        (field.section == ConfigKeys::Language_Section) &&
+                        (field.key == ConfigKeys::Language_Setting);
+
+                    if (isRegionField || isLanguageField)
+                    {
+                        const auto pairs = GetActiveLanguagePairs();
+                        if (!pairs.empty())
+                        {
+                            // Force UI to first entry in pairing
+                            InitRegionLanguageFromConfig();
+                            m_dirty = true;
+                        }
+                        break;
+                    }
+
                     int idx = c->FindString(field.defaultString);
                     if (idx != wxNOT_FOUND)
                         c->SetSelection(idx);
@@ -973,9 +1399,6 @@ private:
 
         ApplyPrerequisites(); // update dependent fields
     }
-
-
-
 
     void OnResetDefaults(wxCommandEvent&)
     {
@@ -1056,7 +1479,6 @@ private:
             }
         }
 
-
         std::wstring wGameToLaunch = iTargetGame == TARGET_GAME_MG1 ? L"steam://launch/2131680" : iTargetGame == TARGET_GAME_MGS2 ? L"steam://launch/2131640" : iTargetGame == TARGET_GAME_MGS3 ? L"steam://launch/2131650" : L"";
         if (!wGameToLaunch.empty())
         {
@@ -1076,9 +1498,6 @@ private:
         }
         Close();
     }
-
-
-
 
     void OnClose(wxCloseEvent& event)
     {
@@ -1133,7 +1552,6 @@ private:
 
         event.Skip();
     }
-
 
     void ApplyPrerequisites()
     {
@@ -1228,17 +1646,71 @@ private:
         }
     }
 
-
-
     void OnSave(const wxCommandEvent&)
     {
         std::map<wxString, std::map<wxString, wxString>> iniData;
+
         for (auto& kv : m_controls)
         {
             const wxString& section = kv.first.first;
             const wxString& key = kv.first.second;
             wxWindow* ctrl = kv.second;
+
+            const bool isRegionField =
+                (section == ConfigKeys::Region_Section) &&
+                (key == ConfigKeys::Region_Setting);
+
+            const bool isLanguageField =
+                (section == ConfigKeys::Language_Section) &&
+                (key == ConfigKeys::Language_Setting);
+
+            if (isRegionField || isLanguageField)
+            {
+                if (!isRegionField)
+                {
+                    // write both when we hit Region, skip Language pass
+                    continue;
+                }
+
+                const auto pairs = GetActiveLanguagePairs();
+
+                wxString regionNameWx;
+                wxString languageNameWx;
+
+                if (m_regionChoice)
+                {
+                    regionNameWx = m_regionChoice->GetStringSelection();
+                }
+
+                if (m_languageChoice)
+                {
+                    languageNameWx = m_languageChoice->GetStringSelection();
+                }
+
+                std::string outRegionCode;
+                std::string outLangCode;
+
+                if (!ResolveRegionLanguageCodes(
+                    pairs,
+                    regionNameWx.ToStdString(),
+                    languageNameWx.ToStdString(),
+                    outRegionCode,
+                    outLangCode))
+                {
+                    if (!pairs.empty())
+                    {
+                        outRegionCode.assign(pairs[0].Game_Region);
+                        outLangCode.assign(pairs[0].Game_Language);
+                    }
+                }
+
+                iniData[ConfigKeys::Region_Section][ConfigKeys::Region_Setting] = QuoteIfNeeded(wxString(outRegionCode));
+                iniData[ConfigKeys::Language_Section][ConfigKeys::Language_Setting] = QuoteIfNeeded(wxString(outLangCode));
+                continue;
+            }
+
             wxString value;
+
             if (auto* cb = wxDynamicCast(ctrl, wxCheckBox))
                 value = cb->GetValue() ? "1" : "0";
             else if (auto* sp = wxDynamicCast(ctrl, wxSpinCtrl))
@@ -1249,6 +1721,7 @@ private:
                 value = wxString::Format("%f", spd->GetValue());
             else if (auto* ch = wxDynamicCast(ctrl, wxChoice))
                 value = QuoteIfNeeded(ch->GetStringSelection());
+
             iniData[section][key] = value;
         }
 
@@ -1270,9 +1743,9 @@ private:
         Close();
     }
 
-
     wxFileConfig* m_conf;
     wxString m_iniPath = wxString((Helper::FindASILocation(sFixName) / sSettingsFileName).wstring());
+
     using Key = std::pair<wxString, wxString>;
     struct KeyHash
     {
@@ -1298,7 +1771,6 @@ public:
         frame->Show();
         return true;
     }
-
 };
 
 wxIMPLEMENT_APP(MyApp);
@@ -1311,3 +1783,7 @@ int main(int argc, char** argv)
     wxEntryCleanup();
     return 0;
 }
+
+#if defined(MGSHDFIX_SPECIFIC)
+#undef (MGSHDFIX_SPECIFIC)
+#endif

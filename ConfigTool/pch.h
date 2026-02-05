@@ -17,3 +17,4 @@
 #include <shellapi.h>
 #include <string>
 #include <initializer_list>
+#include <span>

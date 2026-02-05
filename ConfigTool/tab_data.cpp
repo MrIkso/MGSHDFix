@@ -46,10 +46,8 @@ const std::vector<std::pair<wxString, std::vector<Field>>> kTabs = {
         { ConfigKeys::PauseOnFocusLoss_SpeedrunnerBugfixOverride_Section, ConfigKeys::PauseOnFocusLoss_SpeedrunnerBugfixOverride_Setting, ConfigKeys::PauseOnFocusLoss_SpeedrunnerBugfixOverride_Help, ConfigKeys::PauseOnFocusLoss_SpeedrunnerBugfixOverride_Tooltip,
           std::nullopt, false, Field::Bool, true },
 
-
         { ConfigKeys::DisableMouseCursor_Section, ConfigKeys::DisableMouseCursor_Setting, ConfigKeys::DisableMouseCursor_Help, ConfigKeys::DisableMouseCursor_Tooltip,
           std::nullopt, false, Field::Bool, true },
-
 
         { ConfigKeys::ForceStereoAudio_Section, ConfigKeys::ForceStereoAudio_Setting, ConfigKeys::ForceStereoAudio_Help, ConfigKeys::ForceStereoAudio_Tooltip,
           std::nullopt, false, Field::Bool, false },
@@ -61,12 +59,10 @@ const std::vector<std::pair<wxString, std::vector<Field>>> kTabs = {
           std::nullopt, false, Field::Bool, false },
 
         { ConfigKeys::Region_Section, ConfigKeys::Region_Setting, ConfigKeys::Region_Help, ConfigKeys::Region_Tooltip,
-          std::nullopt, false, Field::Choice, 0, 0, 0, *std::next(kLauncherConfigRegions.begin(), 0),
-          { std::begin(kLauncherConfigRegions), std::end(kLauncherConfigRegions) } },
+          std::nullopt, false, Field::Choice, 0, 0, 0, "", {} },
 
         { ConfigKeys::Language_Section, ConfigKeys::Language_Setting, ConfigKeys::Language_Help, ConfigKeys::Language_Tooltip,
-          std::nullopt, false, Field::Choice, 0, 0, 0, *std::next(kLauncherConfigLanguages.begin(), 0),
-          { std::begin(kLauncherConfigLanguages), std::end(kLauncherConfigLanguages) } },
+          std::nullopt, false, Field::Choice, 0, 0, 0, "", {} },
 
         { ConfigKeys::CtrlType_Section, ConfigKeys::CtrlType_Setting, ConfigKeys::CtrlType_Help, ConfigKeys::CtrlType_Tooltip,
           std::nullopt, false, Field::Choice, 0, 0, 0, *std::next(kLauncherConfigCtrlTypes.begin(), 5),
@@ -175,7 +171,6 @@ const std::vector<std::pair<wxString, std::vector<Field>>> kTabs = {
         { ConfigKeys::ToggleDistanceCullingGrass_Section, ConfigKeys::ToggleDistanceCullingGrass_Setting, ConfigKeys::ToggleDistanceCullingGrass_Help, ConfigKeys::ToggleDistanceCullingGrass_Tooltip,
           std::make_pair(ConfigKeys::DistanceCullingGrassAlways_Section, ConfigKeys::DistanceCullingGrassAlways_Setting), false, Field::Hotkey, 0, 0, 0, "Page Up" },
 
-
         { ConfigKeys::OverrideMouseSensitivity_Section, ConfigKeys::OverrideMouseSensitivity_Setting, ConfigKeys::OverrideMouseSensitivity_Help, ConfigKeys::OverrideMouseSensitivity_Tooltip,
           std::nullopt, false, Field::Bool, false },
 
@@ -190,7 +185,6 @@ const std::vector<std::pair<wxString, std::vector<Field>>> kTabs = {
         { ConfigKeys::MouseSensitivity_YMultiplier_Section, ConfigKeys::MouseSensitivity_YMultiplier_Setting, ConfigKeys::MouseSensitivity_YMultiplier_Help, ConfigKeys::MouseSensitivity_YMultiplier_Tooltip,
           std::make_pair(ConfigKeys::OverrideMouseSensitivity_Section, ConfigKeys::OverrideMouseSensitivity_Setting), false,
           Field::Int, 1, 1, 100 },
-
 
         {
          ConfigKeys::KeepAimingAfterFiring_InFirstPerson_Section, ConfigKeys::KeepAimingAfterFiring_InFirstPerson_Setting, ConfigKeys::KeepAimingAfterFiring_InFirstPerson_Help, ConfigKeys::KeepAimingAfterFiring_InFirstPerson_Tooltip,
