@@ -58,6 +58,12 @@ const std::vector<std::pair<wxString, std::vector<Field>>> kTabs = {
         { ConfigKeys::DisableFullscreenOptimization_Section, ConfigKeys::DisableFullscreenOptimization_Setting, ConfigKeys::DisableFullscreenOptimization_Help, ConfigKeys::DisableFullscreenOptimization_Tooltip,
           std::nullopt, false, Field::Bool, false },
 
+        { ConfigKeys::RenameOrRemoveCorruptSaveData_Section, ConfigKeys::RenameOrRemoveCorruptSaveData_Setting, ConfigKeys::RenameOrRemoveCorruptSaveData_Help, ConfigKeys::RenameOrRemoveCorruptSaveData_Tooltip,
+          std::nullopt, false, Field::Choice, 0, 0, 0, "", {ConfigKeys::RenameOrRemoveCorruptSaveData_Option_Move, ConfigKeys::RenameOrRemoveCorruptSaveData_Option_Delete, ConfigKeys::RenameOrRemoveCorruptSaveData_Option_Disable} },
+
+        { ConfigKeys::CorruptSaveData_Notification_Section, ConfigKeys::CorruptSaveData_Notification_Setting, ConfigKeys::CorruptSaveData_Notification_Help, ConfigKeys::CorruptSaveData_Notification_Tooltip,
+          std::nullopt, false, Field::Bool, true },
+
         { ConfigKeys::Region_Section, ConfigKeys::Region_Setting, ConfigKeys::Region_Help, ConfigKeys::Region_Tooltip,
           std::nullopt, false, Field::Choice, 0, 0, 0, "", {} },
 
@@ -225,6 +231,7 @@ const std::vector<std::pair<wxString, std::vector<Field>>> kTabs = {
 
         { ConfigKeys::MissingBugfixModWarning_Section, ConfigKeys::MissingBugfixModWarning_Setting, ConfigKeys::MissingBugfixModWarning_Help, ConfigKeys::MissingBugfixModWarning_Tooltip,
           std::nullopt, false, Field::Bool, true },
+
 
         { ConfigKeys::VerboseLogging_Section, ConfigKeys::VerboseLogging_Setting, ConfigKeys::VerboseLogging_Help, ConfigKeys::VerboseLogging_Tooltip,
           std::nullopt, false, Field::Bool, false },

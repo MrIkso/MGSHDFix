@@ -11,6 +11,12 @@ void DamagedSaveFix::Initialize()
         return;
     }
 
+    if (!bEnabled)
+    {
+        spdlog::info("MG | MG2 | MGS 2 | MGS 3: Damaged save data fix disabled in config. Skipping.");
+        return;
+    }
+
     bool bWarnedOnce = false;
     std::filesystem::path gamePath = sGameSavePath;
     spdlog::info("Checking for damaged save files in: {}", gamePath.string());
@@ -65,28 +71,40 @@ void DamagedSaveFix::Initialize()
             {
                 spdlog::error("Damaged save file detected.");
                 spdlog::error("This issue is typically caused by closing the game too quickly after saving, resulting in Steam Cloud syncing old data improperly.");
-                Logging::ShowConsole();
-                std::cout << "MGSHDFix Bugfix: Damaged save file detected.\nThis issue is typically caused by closing the game too quickly after saving, resulting in Steam Cloud syncing old data improperly." << std::endl;
+                if (bEnableConsoleNotification)
+                {
+                    Logging::ShowConsole();
+                }
+
+                std::cout << "MGSHDFix Bugfix: Damaged save file detected.\n" 
+                << "This issue is typically caused by closing the game too quickly after saving, resulting in Steam Cloud syncing old data improperly." << std::endl;
+
                 bWarnedOnce = true;
             }
+
             std::cout << "Outdated save data detected in folder: " << "\n" << secondLevelEntry.path().string() << "\n\nFound Saves:" << std::endl;
             spdlog::error("Outdated save data detected in folder:");
             spdlog::error("{}", secondLevelEntry.path().string());
             spdlog::error("Found Saves:");
-            std::vector<std::filesystem::directory_entry> candidateFiles;
+
+            std::vector<std::filesystem::directory_entry> initialCandidateFiles;
+
             for (const auto& fileEntry : std::filesystem::directory_iterator(secondLevelEntry))
             {
                 if (!fileEntry.is_regular_file())
                 {
                     continue;
                 }
+
                 std::string fileName = fileEntry.path().filename().string();
                 std::string lowerName = fileName;
                 std::transform(lowerName.begin(), lowerName.end(), lowerName.begin(), [](unsigned char c) { return static_cast<char>(std::tolower(c)); });
+
                 if (lowerName == "write_test.tmp")
                 {
                     continue;
                 }
+
                 if (fileName == dirName)
                 {
                     continue;
@@ -106,77 +124,166 @@ void DamagedSaveFix::Initialize()
 #endif
                 std::ostringstream timeStream;
                 timeStream << std::put_time(&tm_buf, "%Y-%m-%d %H:%M:%S");
+
                 std::cout << "  " << fileName << " (Date Created: " << timeStream.str() << ")" << std::endl;
                 spdlog::error("  {} (Date Created: {})", fileName, timeStream.str());
-                candidateFiles.push_back(fileEntry);
+
+                initialCandidateFiles.push_back(fileEntry);
             }
 
-            // Create "Outdated Saves" directory one level up from secondLevelEntry
-            auto parentPath = secondLevelEntry.path().parent_path();
-            auto outdatedSavesPath = parentPath / "Outdated Saves";
-            std::error_code ec;
-            std::filesystem::create_directories(outdatedSavesPath, ec);
-            if (ec)
-            {
-                std::cout << "Failed to create 'Outdated Saves' directory: " << ec.message() << std::endl;
-                spdlog::error("Failed to create 'Outdated Saves' directory: {}", ec.message());
-                continue;
-            }
-
-            // Get current date as YYYY-MM-DD
-            auto now = std::chrono::system_clock::now();
-            std::time_t now_c = std::chrono::system_clock::to_time_t(now);
-            std::tm tm_buf;
-            #ifdef _WIN32
-            localtime_s(&tm_buf, &now_c);
-            #else
-            localtime_r(&now_c, &tm_buf);
-            #endif
-            std::ostringstream dateStream;
-            dateStream << std::put_time(&tm_buf, "%Y-%m-%d");
-            std::string datedDirName = dirName + "_" + dateStream.str();
-
-            // Find a unique datedOutdatedSavePath (append -2, -3, etc. if needed)
-            auto datedOutdatedSavePath = outdatedSavesPath / datedDirName;
-            int suffix = 2;
-            while (std::filesystem::exists(datedOutdatedSavePath))
-            {
-                datedOutdatedSavePath = outdatedSavesPath / (datedDirName + "-" + std::to_string(suffix));
-                ++suffix;
-            }
-            std::filesystem::create_directories(datedOutdatedSavePath, ec);
-            if (ec)
-            {
-                std::cout << "Failed to create dated outdated save directory: " << ec.message() << std::endl;
-                spdlog::error("Failed to create dated outdated save directory: {}", ec.message());
-                continue;
-            }
-
-            // Move the oldest file (by last_write_time) to the new folder
-            if (candidateFiles.empty())
+            if (initialCandidateFiles.empty())
             {
                 continue;
             }
-            auto oldest = std::min_element(candidateFiles.begin(), candidateFiles.end(),
-                [](const std::filesystem::directory_entry& a, const std::filesystem::directory_entry& b)
+
+            std::filesystem::path datedOutdatedSavePath;
+
+            if (!bDeleteOutdatedSaveData)
+            {
+                // Create "Outdated Saves" directory one level up from secondLevelEntry
+                auto parentPath = secondLevelEntry.path().parent_path();
+                auto outdatedSavesPath = parentPath / "Outdated Saves";
+                std::error_code ec;
+
+                std::filesystem::create_directories(outdatedSavesPath, ec);
+                if (ec)
                 {
-                    return std::filesystem::last_write_time(a) < std::filesystem::last_write_time(b);
-                });
-            if (oldest == candidateFiles.end())
-            {
-                continue;
+                    std::cout << "Failed to create 'Outdated Saves' directory: " << ec.message() << std::endl;
+                    spdlog::error("Failed to create 'Outdated Saves' directory: {}", ec.message());
+                    continue;
+                }
+
+                // Get current date as YYYY-MM-DD
+                auto now = std::chrono::system_clock::now();
+                std::time_t now_c = std::chrono::system_clock::to_time_t(now);
+                std::tm tm_buf;
+#ifdef _WIN32
+                localtime_s(&tm_buf, &now_c);
+#else
+                localtime_r(&now_c, &tm_buf);
+#endif
+                std::ostringstream dateStream;
+                dateStream << std::put_time(&tm_buf, "%Y-%m-%d");
+
+                std::string datedDirName = dirName + "_" + dateStream.str();
+
+                // Find a unique datedOutdatedSavePath (append -2, -3, etc. if needed)
+                datedOutdatedSavePath = outdatedSavesPath / datedDirName;
+                int suffix = 2;
+                while (std::filesystem::exists(datedOutdatedSavePath))
+                {
+                    datedOutdatedSavePath = outdatedSavesPath / (datedDirName + "-" + std::to_string(suffix));
+                    ++suffix;
+                }
+
+                std::filesystem::create_directories(datedOutdatedSavePath, ec);
+                if (ec)
+                {
+                    std::cout << "Failed to create dated outdated save directory: " << ec.message() << std::endl;
+                    spdlog::error("Failed to create dated outdated save directory: {}", ec.message());
+                    continue;
+                }
             }
-            std::filesystem::path targetPath = datedOutdatedSavePath / oldest->path().filename();
-            std::error_code moveEc;
-            std::filesystem::rename(oldest->path(), targetPath, moveEc);
-            if (moveEc)
+
+            for (;;)
             {
-                std::cout << "Failed to move save from " << oldest->path().parent_path().filename().string() << " to " << targetPath.parent_path().string() << ": " << moveEc.message() << std::endl;
-                spdlog::error("Failed to move save from {} to {}: {}", oldest->path().parent_path().filename().string(), targetPath.parent_path().string(), moveEc.message());
-                continue;
+                std::vector<std::filesystem::directory_entry> candidateFiles;
+
+                for (const auto& fileEntry : std::filesystem::directory_iterator(secondLevelEntry))
+                {
+                    if (!fileEntry.is_regular_file())
+                    {
+                        continue;
+                    }
+
+                    std::string fileName = fileEntry.path().filename().string();
+                    std::string lowerName = fileName;
+                    std::transform(lowerName.begin(), lowerName.end(), lowerName.begin(), [](unsigned char c) { return static_cast<char>(std::tolower(c)); });
+
+                    if (lowerName == "write_test.tmp")
+                    {
+                        continue;
+                    }
+
+                    if (fileName == dirName)
+                    {
+                        continue;
+                    }
+
+                    candidateFiles.push_back(fileEntry);
+                }
+
+                if (candidateFiles.size() <= 1)
+                {
+                    break;
+                }
+
+                auto oldest = std::min_element(
+                    candidateFiles.begin(),
+                    candidateFiles.end(),
+                    [](const std::filesystem::directory_entry& a, const std::filesystem::directory_entry& b)
+                    {
+                        return std::filesystem::last_write_time(a) < std::filesystem::last_write_time(b);
+                    });
+
+                if (bDeleteOutdatedSaveData)
+                {
+                    std::error_code rmEc;
+                    const bool removed = std::filesystem::remove(oldest->path(), rmEc);
+
+                    if (removed && !rmEc)
+                    {
+                        spdlog::info("Deleted outdated save file '{}' from folder '{}'",
+                                     oldest->path().filename().string(),
+                                     secondLevelEntry.path().filename().string());
+
+                        std::cout << "Deleted outdated save file '" << oldest->path().filename().string()
+                            << "' from folder '" << secondLevelEntry.path().filename().string() << "'" << std::endl;
+                    }
+                    else
+                    {
+                        spdlog::error("Failed to delete outdated save file '{}' from folder '{}': {}",
+                                      oldest->path().filename().string(),
+                                      secondLevelEntry.path().filename().string(),
+                                      rmEc ? rmEc.message() : std::string("unknown error"));
+
+                        std::cout << "Failed to delete outdated save file '" << oldest->path().filename().string()
+                            << "' from folder '" << secondLevelEntry.path().filename().string()
+                            << "': " << (rmEc ? rmEc.message() : std::string("unknown error")) << std::endl;
+
+                        break; // don't spin forever if we can't make progress
+                    }
+                }
+                else
+                {
+                    std::filesystem::path targetPath = datedOutdatedSavePath / oldest->path().filename();
+
+                    std::error_code moveEc;
+                    std::filesystem::rename(oldest->path(), targetPath, moveEc);
+
+                    if (moveEc)
+                    {
+                        std::cout << "Failed to move outdated save from " << oldest->path().parent_path().filename().string()
+                            << " to " << targetPath.parent_path().string() << ": " << moveEc.message() << std::endl;
+
+                        spdlog::error("Failed to move outdated save from {} to {}: {}",
+                                      oldest->path().parent_path().filename().string(),
+                                      targetPath.parent_path().string(),
+                                      moveEc.message());
+
+                        break; // can't progress safely
+                    }
+
+                    const std::string fileName = oldest->path().filename().string();
+                    const std::string fromDir = oldest->path().parent_path().filename().string();
+
+                    std::cout<< "Moved outdated save file '" << fileName << "' from '" << fromDir << "' to '" << targetPath.parent_path().string() << "'" << std::endl;
+
+                    spdlog::info("Moved outdated save file '{}' from '{}' to '{}'", fileName, fromDir, targetPath.parent_path().string()
+                    );
+
+                }
             }
-            std::cout << "Moved oldest save from '" << oldest->path().parent_path().filename().string() << "' to '" << targetPath.parent_path().string() << "'" << std::endl;
-            spdlog::error("Moved oldest save from '{}' to '{}'", oldest->path().parent_path().filename().string(), targetPath.parent_path().string());
         }
     }
     if (!bWarnedOnce)

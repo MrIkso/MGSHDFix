@@ -271,35 +271,6 @@ namespace ConfigKeys
                                                      "This is a workaround for a system configuration issue. Other games will still be affected.\n"
                                                      "Fix your audio device setup if possible.";
 
-
-    constexpr const char* MuteWarning_Section = "Enable Game Warnings";
-    constexpr const char* MuteWarning_Setting = "Warn When Game is Muted";
-    constexpr const char* MuteWarning_Help = "";
-    constexpr const char* MuteWarning_Tooltip = "When enabled, a visible warning will be displayed on startup if game audio is muted via the launcher's audio settings.\n"
-                                                "\n"
-                                                "This is a very common troubleshooting problem.";
-
-    constexpr const char* FSRWarning_Section = "Enable Game Warnings";
-    constexpr const char* FSRWarning_Setting = "Warn When FSR Upscaling is Enabled";
-    constexpr const char* FSRWarning_Help = "";
-    constexpr const char* FSRWarning_Tooltip = "When enabled, a visible warning will be displayed on startup if FSR upscaling is enabled via the launcher's graphics settings.\n"
-                                               "\n"
-                                               "MGSHDFix already handles increasing the game's resolution.\n"
-                                               "\n"
-                                               "Unintended side effects, ie pixelization, mipmap issues (oversharpening on textures), and crashing, may occur while the game's built-in settings are enabled!\n"
-                                               "\n"
-                                               "It's advised to set both Internal Resolution & Internal Upscaling graphical options in the game's main launcher to default/original unless ABSOLUTELY necessary!";
-
-    constexpr const char* MissingBugfixModWarning_Section = "Enable Game Warnings";
-    constexpr const char* MissingBugfixModWarning_Setting = "Warn When Missing Major Bugfix Mods";
-    constexpr const char* MissingBugfixModWarning_Help = "";
-    constexpr const char* MissingBugfixModWarning_Tooltip = "When enabled, a visible warning will be displayed on startup if MGSHDFix is unable to locate major bugfix mods.\n"
-        "\n"
-        "Current Warned Mods Include:\n"
-        "MGS2 Better Audio Mod (fixes a show-stopping crash during a late-game cutscene)\n"
-        "\n"
-        "MGS2 Community Bugfix Mod (restores missing audio, fixes thousands of textures bugs, holes in models, and localization / typo errors.)";
-
     constexpr const char* DisableMouseCursor_Section = "Bugfixes";
     constexpr const char* DisableMouseCursor_Setting = "Fix Mouse Cursor Showing";
     constexpr const char* DisableMouseCursor_Help = "";
@@ -409,6 +380,54 @@ namespace ConfigKeys
     constexpr const char* UpdateConsoleNotifications_Tooltip = "If you want a visible notification when starting the game if an MGSHDFix update is available.\n"
                                                                "\n"
                                                                "Notifications will still be printed to the log file while disabled.";
+
+    constexpr const char* MuteWarning_Section = "Enable Game Warnings";
+    constexpr const char* MuteWarning_Setting = "Warn When Game is Muted";
+    constexpr const char* MuteWarning_Help = "";
+    constexpr const char* MuteWarning_Tooltip = "When enabled, a visible warning will be displayed on startup if game audio is muted via the launcher's audio settings.\n"
+        "\n"
+        "This is a very common troubleshooting problem.";
+
+    constexpr const char* FSRWarning_Section = "Enable Game Warnings";
+    constexpr const char* FSRWarning_Setting = "Warn When FSR Upscaling is Enabled";
+    constexpr const char* FSRWarning_Help = "";
+    constexpr const char* FSRWarning_Tooltip = "When enabled, a visible warning will be displayed on startup if FSR upscaling is enabled via the launcher's graphics settings.\n"
+        "\n"
+        "MGSHDFix already handles increasing the game's resolution.\n"
+        "\n"
+        "Unintended side effects, ie pixelization, mipmap issues (oversharpening on textures), and crashing, may occur while the game's built-in settings are enabled!\n"
+        "\n"
+        "It's advised to set both Internal Resolution & Internal Upscaling graphical options in the game's main launcher to default/original unless ABSOLUTELY necessary!";
+
+    constexpr const char* MissingBugfixModWarning_Section = "Enable Game Warnings";
+    constexpr const char* MissingBugfixModWarning_Setting = "Warn When Missing Major Bugfix Mods";
+    constexpr const char* MissingBugfixModWarning_Help = "";
+    constexpr const char* MissingBugfixModWarning_Tooltip = "When enabled, a visible warning will be displayed on startup if MGSHDFix is unable to locate major bugfix mods.\n"
+        "\n"
+        "Current Warned Mods Include:\n"
+        "MGS2 Better Audio Mod (fixes a show-stopping crash during a late-game cutscene)\n"
+        "\n"
+        "MGS2 Community Bugfix Mod (restores missing audio, fixes thousands of textures bugs, holes in models, and localization / typo errors.)";
+
+    constexpr const char* RenameOrRemoveCorruptSaveData_Section = "Damaged Steam Cloud Save Data Fix";
+    constexpr const char* RenameOrRemoveCorruptSaveData_Setting = "Fix Mode";
+    constexpr const char* RenameOrRemoveCorruptSaveData_Help = "";
+    constexpr const char* RenameOrRemoveCorruptSaveData_Tooltip = "When fixing damaged save data (caused by Steam Cloud syncing issues), should MGSHDFix:\n"
+                                                                  "\n"
+                                                                  "Move outdated save data to an \"Outdated Saves\" folder as a backup copy.\n"
+                                                                  "or\n"
+                                                                  "Delete outdated save data.\n"
+                                                                  "or\n"
+                                                                  "Do nothing, and let the damaged save file remain damaged.";
+    constexpr const char* RenameOrRemoveCorruptSaveData_Option_Move = "Move Outdated Save Data to Backup Folder";
+    constexpr const char* RenameOrRemoveCorruptSaveData_Option_Delete = "Delete Outdated Sava Data";
+    constexpr const char* RenameOrRemoveCorruptSaveData_Option_Disable = "Disable Damaged Save Data Fix";
+
+    constexpr const char* CorruptSaveData_Notification_Section = RenameOrRemoveCorruptSaveData_Section;
+    constexpr const char* CorruptSaveData_Notification_Setting = "Enable Console Notification When Fixed";
+    constexpr const char* CorruptSaveData_Notification_Help = "";
+    constexpr const char* CorruptSaveData_Notification_Tooltip = "If a Console Notification should be shown when a save file is fixed.";
+
 
     constexpr const char* VerboseLogging_Section = "Internal Settings";
     constexpr const char* VerboseLogging_Setting = "Debug Logging";

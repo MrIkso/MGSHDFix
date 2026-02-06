@@ -24,6 +24,7 @@
 #include "keep_aiming_after_firing.hpp"
 #include "mgs2_sunglasses.hpp"
 #include "config_keys.hpp"
+#include "corrupt_save_message.hpp"
 #include "effect_speeds.hpp"
 #include "mgs2_restore_dogtags.hpp"
 #include "skyboxes.hpp"
@@ -517,7 +518,19 @@ void Config::Read()
     ConfigHelper::getValue(ini, ConfigKeys::RestoreDogtagNames_Section, ConfigKeys::RestoreDogtagNames_Setting, MGS2_RestoreDogtags::isEnabled);
     LOG_CONFIG(ConfigKeys::RestoreDogtagNames_Section, ConfigKeys::RestoreDogtagNames_Setting, MGS2_RestoreDogtags::isEnabled);
 
+    std::string sOutdatedSaveDataSetting;
+    ConfigHelper::getValue(ini, ConfigKeys::RenameOrRemoveCorruptSaveData_Section, ConfigKeys::RenameOrRemoveCorruptSaveData_Setting, sOutdatedSaveDataSetting);
+    if (sOutdatedSaveDataSetting == ConfigKeys::RenameOrRemoveCorruptSaveData_Option_Disable)
+    {
+        DamagedSaveFix::bEnabled = false;
+    }
+    else if(sOutdatedSaveDataSetting == ConfigKeys::RenameOrRemoveCorruptSaveData_Option_Delete){
+        DamagedSaveFix::bDeleteOutdatedSaveData = true;
+    }
+    LOG_CONFIG(ConfigKeys::RenameOrRemoveCorruptSaveData_Section, ConfigKeys::RenameOrRemoveCorruptSaveData_Setting, sOutdatedSaveDataSetting);
 
+    ConfigHelper::getValue(ini, ConfigKeys::CorruptSaveData_Notification_Section, ConfigKeys::CorruptSaveData_Notification_Setting, DamagedSaveFix::bEnableConsoleNotification);
+    LOG_CONFIG(ConfigKeys::CorruptSaveData_Notification_Section, ConfigKeys::CorruptSaveData_Notification_Setting, DamagedSaveFix::bEnableConsoleNotification);
 
     ConfigLogger::Flush();
 }
