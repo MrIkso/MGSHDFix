@@ -222,6 +222,10 @@ const std::vector<std::pair<wxString, std::vector<Field>>> kTabs = {
         { ConfigKeys::FSRWarning_Section, ConfigKeys::FSRWarning_Setting, ConfigKeys::FSRWarning_Help, ConfigKeys::FSRWarning_Tooltip,
           std::nullopt, false, Field::Bool, true },
 
+
+        { ConfigKeys::MissingBugfixModWarning_Section, ConfigKeys::MissingBugfixModWarning_Setting, ConfigKeys::MissingBugfixModWarning_Help, ConfigKeys::MissingBugfixModWarning_Tooltip,
+          std::nullopt, false, Field::Bool, true },
+
         { ConfigKeys::VerboseLogging_Section, ConfigKeys::VerboseLogging_Setting, ConfigKeys::VerboseLogging_Help, ConfigKeys::VerboseLogging_Tooltip,
           std::nullopt, false, Field::Bool, false },
 

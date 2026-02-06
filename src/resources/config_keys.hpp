@@ -290,6 +290,16 @@ namespace ConfigKeys
                                                "\n"
                                                "It's advised to set both Internal Resolution & Internal Upscaling graphical options in the game's main launcher to default/original unless ABSOLUTELY necessary!";
 
+    constexpr const char* MissingBugfixModWarning_Section = "Enable Game Warnings";
+    constexpr const char* MissingBugfixModWarning_Setting = "Warn When Missing Major Bugfix Mods";
+    constexpr const char* MissingBugfixModWarning_Help = "";
+    constexpr const char* MissingBugfixModWarning_Tooltip = "When enabled, a visible warning will be displayed on startup if MGSHDFix is unable to locate major bugfix mods.\n"
+        "\n"
+        "Current Warned Mods Include:\n"
+        "MGS2 Better Audio Mod (fixes a show-stopping crash during a late-game cutscene)\n"
+        "\n"
+        "MGS2 Community Bugfix Mod (restores missing audio, fixes thousands of textures bugs, holes in models, and localization / typo errors.)";
+
     constexpr const char* DisableMouseCursor_Section = "Bugfixes";
     constexpr const char* DisableMouseCursor_Setting = "Fix Mouse Cursor Showing";
     constexpr const char* DisableMouseCursor_Help = "";

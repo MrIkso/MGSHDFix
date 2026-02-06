@@ -16,6 +16,7 @@
 #include "steamworks_api.hpp"
 #include "stereo_audio.hpp"
 //#include "texture_buffer_size.hpp"
+#include "bugfix_mod_checks.hpp"
 #include "cpu_core_limit.hpp"
 #include "distance_culling.hpp"
 #include "version_checking.hpp"
@@ -155,10 +156,6 @@ namespace
         const bool bIsMGLauncher = (game->ExeName == kGames.at(MG).ExeName);
         const bool bIsMGS2Launcher = (game->ExeName == kGames.at(MGS2).ExeName);
         const bool bIsMGS3Launcher = (game->ExeName == kGames.at(MGS3).ExeName);
-
-
-        bool usDatExists;
-        bool jpDatExists;
 
         if (bIsMGLauncher)
         {
@@ -366,6 +363,9 @@ void Config::Read()
 
     ConfigHelper::getValue(ini, ConfigKeys::FSRWarning_Section, ConfigKeys::FSRWarning_Setting, g_MuteWarning.bEnableFSRWarning);
     LOG_CONFIG(ConfigKeys::FSRWarning_Section, ConfigKeys::FSRWarning_Setting, g_MuteWarning.bEnableFSRWarning);
+
+    ConfigHelper::getValue(ini, ConfigKeys::MissingBugfixModWarning_Section, ConfigKeys::MissingBugfixModWarning_Setting, BugfixMods::bEnableVisibleWarnings);
+    LOG_CONFIG(ConfigKeys::MissingBugfixModWarning_Section, ConfigKeys::MissingBugfixModWarning_Setting, BugfixMods::bEnableVisibleWarnings);
 
     ConfigHelper::getValue(ini, ConfigKeys::CheckForUpdates_Section, ConfigKeys::CheckForUpdates_Setting, bShouldCheckForUpdates);
     ConfigHelper::getValue(ini, ConfigKeys::UpdateConsoleNotifications_Section, ConfigKeys::UpdateConsoleNotifications_Setting, bConsoleUpdateNotifications);

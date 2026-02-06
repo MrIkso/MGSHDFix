@@ -2,6 +2,7 @@
 #include "bugfix_mod_checks.hpp"
 
 #include "common.hpp"
+#include "config_keys.hpp"
 #include "d3d11_api.hpp"
 #include "logging.hpp"
 #include "version.h"
@@ -22,7 +23,7 @@ namespace
     // CACHE
     // ==========================================================
     constexpr uint32_t kCacheMagic = 'MWC1'; // Mod Warning Cache File
-    constexpr uint32_t kCacheVersion = 3;
+    constexpr uint32_t kCacheVersion = 9;
 
     struct WarningEntry
     {
@@ -186,20 +187,34 @@ namespace
     // ==========================================================
     // MESSAGE HELPERS
     // ==========================================================
-    static std::string BuildInitialPhaseTail(uint32_t remainingAfterThis)
+    static std::string BuildInitialPhaseTail(uint32_t remainingAfterThis, uint32_t cooldownDays)
     {
         if (remainingAfterThis > 0)
         {
-            return "(This warning will be hidden after " + std::to_string(remainingAfterThis) + " more launch" + (remainingAfterThis == 1 ? "" : "es") + ".)";
+            return "----------------\n"
+                   "\n"
+                   "This warning will be hidden after " + std::to_string(remainingAfterThis) + " more launch" + (remainingAfterThis == 1 ? "" : "es") + ".\n"
+                                                                                                                                                        "\n"
+                                                                                                                                                         "It can also be disabled in the config tool.\n"
+                                                                                                                                                         "Internal -> " + ConfigKeys::MissingBugfixModWarning_Setting;
         }
 
-        return "(This is the final warning before cooldown.)";
+        return "----------------\n"
+                "\n"
+                "This warning will be hidden for the next " + std::to_string(cooldownDays) + " days.\n"
+                                                                                            "\n" 
+                                                                                            "It can also be disabled in the config tool.\n"
+                                                                                            "Internal -> " + ConfigKeys::MissingBugfixModWarning_Setting;
     }
 
     static std::string BuildCooldownTail(uint32_t cooldownDays)
     {
-        return "(This reminder will appear once every " +
-            std::to_string(cooldownDays) + " days.)";
+        return "----------------\n"
+                "\n"
+                "This reminder will appear once every " + std::to_string(cooldownDays) + " days.\n"
+                                                                                         "\n"
+                                                                                         "It can also be disabled in the config tool.\n"
+                                                                                         "Internal -> " + ConfigKeys::MissingBugfixModWarning_Setting;
     }
 
     // ==========================================================
@@ -281,67 +296,86 @@ void BugfixMods::Check()
 
     if (eGameType & MGS2)
     {
-        // ------------------------------------------------------
-        // MGS2: Better Audio Mod Crash Fix Check
-        // ------------------------------------------------------
+        spdlog::info("Bugfix Mod Checks: Checking for missing MGS2 Bugfix Mods...");
+
+        if (usDatExists) //don't bother warning people who only have japanese audio installed since the crash only affects US/EU audio.
         {
-            const std::string key = "MGS2_BetterAudioMod";
-            const auto sdtPath = sExePath / "us" / "demo" / "_bp" / "p070_01_p01.sdt";
-
-            if (std::filesystem::exists(sdtPath) && Util::SHA1Check(sdtPath, "ae7497c2a59bc0c1597f49b3e4a26543eb4888a3"))
+            // ------------------------------------------------------
+            // MGS2: Better Audio Mod Crash Fix Check
+            // ------------------------------------------------------
+            spdlog::info("== Bugfix Mod Checks: US/EU DAT language pack detected, checking for MGS2 Better Audio Mod / Crash Fix. ==");
             {
-                const uint32_t remaining = GetWarningsRemaining(cache, key, policy);
+                const std::string key = "MGS2_BetterAudioMod";
+                const auto sdtPath = sExePath / "us" / "demo" / "_bp" / "p070_01_p01.sdt";
 
-                if (ShouldWarn(cache, key, policy))
+                spdlog::info("Bugfix Mod Checks: MGS2 Better Audio Mod Crash Fix Check: Checking for file: {}", sdtPath.string());
+                if (std::filesystem::exists(sdtPath) && Util::SHA1Check(sdtPath, "ae7497c2a59bc0c1597f49b3e4a26543eb4888a3"))
                 {
-                    const bool inInitialPhase = !cache.warn[key].initialPhaseComplete;
+                    const uint32_t remaining = GetWarningsRemaining(cache, key, policy);
 
-                    std::string message;
-                    if (inInitialPhase)
+                    if (ShouldWarn(cache, key, policy))
                     {
-                        const uint32_t remainingAfterThis = (remaining > 0) ? (remaining - 1) : 0;
-                        message =
-                            "Warning: The MGS2 Better Audio mod is not currently installed.\n"
-                            "\n"
-                            "The Better Audio mod fixes a critical hang/crash that occurs very late into the game.\n"
-                            "It is HIGHLY recommended to install the mod, otherwise you will most likely be unable to finish the game.\n"
-                            "\n"
-                            "Would you like to open the mod page now?\n"
-                            "\n" +
-                            BuildInitialPhaseTail(remainingAfterThis);
+                        const bool inInitialPhase = !cache.warn[key].initialPhaseComplete;
+
+                        std::string message;
+                        if (inInitialPhase)
+                        {
+                            const uint32_t remainingAfterThis = (remaining > 0) ? (remaining - 1) : 0;
+                            message =
+                                "Warning: The MGS2 Better Audio mod is not currently installed.\n"
+                                "\n"
+                                "The Better Audio mod fixes a critical hang/crash that occurs very late into the game.\n"
+                                "It is HIGHLY recommended to install the mod, otherwise you will most likely be unable to finish the game.\n"
+                                "\n"
+                                "Would you like to open the mod page now?\n"
+                                "\n" +
+                                BuildInitialPhaseTail(remainingAfterThis, policy.cooldownDays);
+                        }
+                        else
+                        {
+                            message =
+                                "Reminder: The MGS2 Better Audio mod is not currently installed.\n"
+                                "\n"
+                                "This mod fixes a critical hang/crash that occurs very late into the game.\n"
+                                "It is HIGHLY recommended to install the mod, otherwise you will most likely be unable to finish the game.\n"
+                                "\n"
+                                "Would you like to open the mod page now?\n"
+                                "\n" +
+                                BuildCooldownTail(policy.cooldownDays);
+                        }
+
+                        spdlog::warn(message);
+
+                        if (bEnableVisibleWarnings)
+                        {
+                            if (int result = MessageBoxA(
+                                g_D3D11Hooks.MainHwnd,
+                                message.c_str(),
+                                "MGSHDFix - Bugfix Warning",
+                                MB_ICONWARNING | MB_YESNO);
+                                result == IDYES)
+                            {
+                                ShellExecuteA(
+                                    nullptr,
+                                    "open",
+                                    "https://www.nexusmods.com/metalgearsolid2mc/mods/3",
+                                    nullptr,
+                                    nullptr,
+                                    SW_SHOWNORMAL
+                                );
+                            }
+                        }
+
+                        RecordWarning(cache, cacheFile, key, policy);
                     }
                     else
                     {
-                        message =
-                            "Reminder: The MGS2 Better Audio mod is not currently installed.\n"
-                            "\n"
-                            "This mod fixes a critical hang/crash that occurs very late into the game.\n"
-                            "It is HIGHLY recommended to install the mod, otherwise you will most likely be unable to finish the game.\n"
-                            "\n"
-                            "Would you like to open the mod page now?\n"
-                            "\n" +
-                            BuildCooldownTail(policy.cooldownDays);
+                        spdlog::info("Bugfix Mod Checks: MGS2 Better Audio Mod Crash Fix: Not currently installed.");
                     }
-
-                    spdlog::warn(message);
-                    if (int result = MessageBoxA(
-                        g_D3D11Hooks.MainHwnd,
-                        message.c_str(),
-                        "MGSHDFix - Bugfix Warning",
-                        MB_ICONWARNING | MB_YESNO);
-                        result == IDYES)
-                    {
-                        ShellExecuteA(
-                            nullptr,
-                            "open",
-                            "https://www.nexusmods.com/metalgearsolid2mc/mods/3",
-                            nullptr,
-                            nullptr,
-                            SW_SHOWNORMAL
-                        );
-                    }
-
-                    RecordWarning(cache, cacheFile, key, policy);
+                }
+                else
+                {
+                    spdlog::info("Bugfix Mod Checks: MGS2 Better Audio Mod Crash Fix Check: SDT is not vanilla. Assuming mod is installed!");
                 }
             }
         }
@@ -351,11 +385,14 @@ void BugfixMods::Check()
         // ------------------------------------------------------
         
         {
-            const std::string key = "MGS2_AfevisBugFixCompilation";
+            spdlog::info("== Bugfix Mod Checks: Checking for MGS2 Community Bugfix Compilation. ==");
+            const std::string key = "MGS2_CommunityBugfixCompilation";
+            std::filesystem::path CommunityBugfixCompilationASI = sExePath / "plugins" / "MGS2-Community-Bugfix-Compilation.asi";
 
-            if (!std::filesystem::exists(sExePath / "plugins" / "Afevis-MGS2-Bugfix-Compilation.asi"))
+            spdlog::info("Bugfix Mod Checks: MGS2 Community Bugfix Compilation Check: Checking for plugin: {}", CommunityBugfixCompilationASI.string());
+            if (!std::filesystem::exists(CommunityBugfixCompilationASI))
             {
-                const WarningPolicy policy { 1, 60 };
+                const WarningPolicy policy { 2, 60 };
                 const uint32_t remaining = GetWarningsRemaining(cache, key, policy);
 
                 if (ShouldWarn(cache, key, policy))
@@ -373,7 +410,7 @@ void BugfixMods::Check()
                             "\n"
                             "Would you like to open the mod page now?\n"
                             "\n" +
-                            BuildInitialPhaseTail(remainingAfterThis);
+                            BuildInitialPhaseTail(remainingAfterThis, policy.cooldownDays);
                     }
                     else
                     {
@@ -389,27 +426,37 @@ void BugfixMods::Check()
 
                     spdlog::warn(message);
 
-                    if (int result = MessageBoxA(
-                        g_D3D11Hooks.MainHwnd,
-                        message.c_str(),
-                        "MGSHDFix - Bugfix Warning",
-                        MB_ICONWARNING | MB_YESNO);
-                        result == IDYES)
+                    if (bEnableVisibleWarnings)
                     {
-                        ShellExecuteA(
-                            nullptr,
-                            "open",
-                            "https://www.nexusmods.com/metalgearsolid2mc/mods/52",
-                            nullptr,
-                            nullptr,
-                            SW_SHOWNORMAL
-                        );
+                        if (int result = MessageBoxA(
+                            g_D3D11Hooks.MainHwnd,
+                            message.c_str(),
+                            "MGSHDFix - Bugfix Warning",
+                            MB_ICONWARNING | MB_YESNO);
+                            result == IDYES)
+                        {
+                            ShellExecuteA(
+                                nullptr,
+                                "open",
+                                "https://www.nexusmods.com/metalgearsolid2mc/mods/52",
+                                nullptr,
+                                nullptr,
+                                SW_SHOWNORMAL
+                            );
+                        }
                     }
 
                     RecordWarning(cache, cacheFile, key, policy);
                 }
+                else
+                {
+                    spdlog::info("Bugfix Mod Checks: MGS2 Community Bugfix Compilation Check: Not currently installed.");
+                }
             }
-        }
-        
+            else
+            {
+                spdlog::info("Bugfix Mod Checks: MGS2 Community Bugfix Compilation Check: Mod is installed.");
+            }
+        }        
     }
 }

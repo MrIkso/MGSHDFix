@@ -38,3 +38,5 @@ inline const std::map<MgsGame, GameInfo> kGames = {
     {MG, {"Metal Gear / Metal Gear 2 (MSX)", "METAL GEAR.exe", 2131680}},
 };
 
+inline bool usDatExists;
+inline bool jpDatExists;
