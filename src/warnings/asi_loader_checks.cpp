@@ -170,10 +170,12 @@ void ASILoaderCompatibility::Check()
     {
     case VersionCheck::CompareResult::Older:
         spdlog::error("MGSHDFix Warning: An outdated version of ASI Loader ({}) has been installed after MGSHDFix.", bWinhttpDllIsASILoader ? "winhttp.dll" : "wininet.dll");
+        spdlog::error("MGSHDFix Warning: Detected ASI Loader version {}. MGSHDFix v{} was packaged with ASI Loader version {}.", ASILoaderVersion, sFixVersion, ASI_LOADER_VERSION_STRING);
         spdlog::error("MGSHDFix Warning: This can result in bugs & crashes.");
         spdlog::error("MGSHDFix Warning: Please reinstall MGSHDFix to update to the latest version of ASI Loader.");
         Logging::ShowConsole();
         std::cout << "MGSHDFix Warning: An outdated version of ASI Loader (" << (bWinhttpDllIsASILoader ? "winhttp.dll" : "wininet.dll") << ") has been installed after MGSHDFix." << std::endl;
+        std::cout << "MGSHDFix Warning: Detected ASI Loader version " << ASILoaderVersion << ". MGSHDFix v" << sFixVersion << " was packaged with ASI Loader version " << ASI_LOADER_VERSION_STRING << "." << std::endl;
         std::cout << "MGSHDFix Warning: This can result in bugs & crashes." << std::endl;
         std::cout << "MGSHDFix Warning: Please reinstall MGSHDFix to update to the latest version of ASI Loader." << std::endl;
         break;
