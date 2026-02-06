@@ -198,7 +198,7 @@ namespace
 
     static std::string BuildCooldownTail(uint32_t cooldownDays)
     {
-        return "(This reminder will appear at most once every " +
+        return "(This reminder will appear once every " +
             std::to_string(cooldownDays) + " days.)";
     }
 
@@ -349,12 +349,13 @@ void BugfixMods::Check()
         // ------------------------------------------------------
         // MGS2: MGS2 Community Bugfix Compilation
         // ------------------------------------------------------
-        /*
+        
         {
             const std::string key = "MGS2_AfevisBugFixCompilation";
 
             if (!std::filesystem::exists(sExePath / "plugins" / "Afevis-MGS2-Bugfix-Compilation.asi"))
             {
+                const WarningPolicy policy { 1, 60 };
                 const uint32_t remaining = GetWarningsRemaining(cache, key, policy);
 
                 if (ShouldWarn(cache, key, policy))
@@ -368,7 +369,7 @@ void BugfixMods::Check()
                         message =
                             "Warning: MGS2 Community Bugfix Compilation is not currently installed.\n"
                             "\n"
-                            "This mod fixes nearly 14,000 texture issues, hundreds of transparent textures/models, and countless localization errors introduced by the 2011 Bluepoint HD remaster.\n"
+                            "This mod fixes nearly 14,000 texture issues, hundreds of transparent textures/models, missing audio/music, and countless localization errors/typos introduced by the 2011 Bluepoint HD remaster.\n"
                             "\n"
                             "Would you like to open the mod page now?\n"
                             "\n" +
@@ -379,7 +380,7 @@ void BugfixMods::Check()
                         message =
                             "Reminder: MGS2 Community Bugfix Compilation is not currently installed.\n"
                             "\n"
-                            "This mod fixes nearly 14,000 texture issues, hundreds of transparent textures/models, and countless localization errors introduced by the 2011 Bluepoint HD remaster.\n"
+                            "This mod fixes nearly 14,000 texture issues, hundreds of transparent textures/models, missing audio/music, and countless localization errors/typos introduced by the 2011 Bluepoint HD remaster.\n"
                             "\n"
                             "Would you like to open the mod page now?\n"
                             "\n" +
@@ -409,6 +410,6 @@ void BugfixMods::Check()
                 }
             }
         }
-        */
+        
     }
 }

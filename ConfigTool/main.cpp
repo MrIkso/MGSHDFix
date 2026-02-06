@@ -279,14 +279,14 @@ static int GetBannerResourceID()
     exePath = exePath.parent_path();
 
 #pragma region CrashWarnings
-    //These crash warnings are also in src\warnings\asi_loader_checks.cpp, make sure to keep them in sync.
+    //These crash warnings are also in src\warnings\asi_loader_checks.cpp / ASILoaderCompatibility::Check(), make sure to keep them in sync.
     if (std::filesystem::exists(exePath / "d3d11.dll") &&
         (Helper::GetFileDescription((exePath / "d3d11.dll").string()) ==
          Helper::GetFileDescription((exePath / "winhttp.dll").string())))
     {
         wxLogError("DUPLICATE MOD LOADER ERROR: Multiple ASI Loader .dll installations detected! This can cause inconsistent bugs and crashes.\n"
                    "\n"
-                   "Please delete d3d11.dll, it has been replaced by winhttp.dll & wininit.dll.");
+                   "Please delete d3d11.dll, it has been replaced by winhttp.dll & wininet.dll.");
         if (Helper::IsSteamOS())
         {
             wxLogError("\nSteam Deck / Linux users must also replace their Steam game launch paramaters with the following command:\n"
@@ -300,7 +300,7 @@ static int GetBannerResourceID()
     {
         wxLogError("DUPLICATE MOD LOADER ERROR: Multiple ASI Loader .dll installations detected! This can cause inconsistent bugs and crashes.\n"
                    "\n"
-                   "Please delete dxgi.dll, it has been replaced by winhttp.dll & wininit.dll.");
+                   "Please delete dxgi.dll, it has been replaced by winhttp.dll & wininet.dll.");
     }
 #pragma endregion
 
@@ -1785,5 +1785,5 @@ int main(int argc, char** argv)
 }
 
 #if defined(MGSHDFIX_SPECIFIC)
-#undef (MGSHDFIX_SPECIFIC)
+#undef MGSHDFIX_SPECIFIC
 #endif

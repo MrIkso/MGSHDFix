@@ -4,6 +4,8 @@
 
 
 #include "logging.hpp"
+#include "version.h"
+#include "version_checking.hpp"
 
 
 namespace
@@ -74,12 +76,14 @@ namespace
         GenerateInstalledModList(sExePath / "plugins");
         GenerateInstalledModList(sExePath / "scripts");
         GenerateInstalledModList(sExePath / "update");
+        const std::filesystem::path MGS2_w01a_stpt02_ctxr = (sExePath / "textures/flatlist/ovr_stm/_win/w01a_stpt02.bmp.ctxr");
+        const std::filesystem::path MGS3_00d81b4d_ctxr = (sExePath / "textures/flatlist/ovr_stm/_win/00d81b4d.ctxr");
 
-        const bool texturePackDetected = std::filesystem::exists(sExePath / "textures/flatlist/ovr_stm/_win/w01a_stpt02.bmp.ctxr") ||
-                                  std::filesystem::exists(sExePath / "textures/flatlist/ovr_stm/_win/00d81b4d.ctxr");
+        const bool texturePackDetected = eGameType & MGS2 ? std::filesystem::exists(MGS2_w01a_stpt02_ctxr) : eGameType & MGS3 ? std::filesystem::exists(MGS3_00d81b4d_ctxr) : false;
         if (texturePackDetected)
         {
             spdlog::info("---------- Installed Mods ----------");
+            spdlog::info("== textures ==");
             spdlog::info("    Upscaled texture pack installed.");
         }
         if (g_InstalledMods.empty())
@@ -90,7 +94,7 @@ namespace
         {
             spdlog::info("---------- Installed Mods ----------");
         }
-
+        spdlog::info("== root folder ==");
         std::map<std::string, std::vector<std::filesystem::path>> grouped;
         for (const auto& mod : g_InstalledMods)
         {
@@ -154,16 +158,44 @@ namespace
 
 void ASILoaderCompatibility::Check()
 {
-    //Config tool also includes a mirrored D3D11.dll warning, make sure to keep these in sync
+
+    const std::string winhttp_dll_description = Util::GetFileDescription((sExePath / "winhttp.dll").string());
+    const std::string ASILoaderDescription = "Ultimate-ASI-Loader-x64";
+    bool bWinhttpDllIsASILoader = winhttp_dll_description == ASILoaderDescription ? true : (Util::GetFileDescription((sExePath / "wininet.dll").string()) == ASILoaderDescription);
+    spdlog::info("ASI Loader Compatibility Check: ASI Loader dll: ({}.dll) | ({})", bWinhttpDllIsASILoader ? "winhttp" : "wininet", winhttp_dll_description);
+
+
+    std::string ASILoaderVersion = VersionCheck::GetFileVersion((bWinhttpDllIsASILoader ? (sExePath / "winhttp.dll") : (sExePath / "wininet.dll")), VersionCheck::VersionType::Product);
+    switch (VersionCheck::CompareSemanticVersion(ASILoaderVersion, ASI_LOADER_VERSION_STRING))
+    {
+    case VersionCheck::CompareResult::Older:
+        spdlog::error("MGSHDFix Warning: An outdated version of ASI Loader ({}) has been installed after MGSHDFix.", bWinhttpDllIsASILoader ? "winhttp.dll" : "wininet.dll");
+        spdlog::error("MGSHDFix Warning: This can result in bugs & crashes.");
+        spdlog::error("MGSHDFix Warning: Please reinstall MGSHDFix to update to the latest version of ASI Loader.");
+        Logging::ShowConsole();
+        std::cout << "MGSHDFix Warning: An outdated version of ASI Loader (" << (bWinhttpDllIsASILoader ? "winhttp.dll" : "wininet.dll") << ") has been installed after MGSHDFix." << std::endl;
+        std::cout << "MGSHDFix Warning: This can result in bugs & crashes." << std::endl;
+        std::cout << "MGSHDFix Warning: Please reinstall MGSHDFix to update to the latest version of ASI Loader." << std::endl;
+        break;
+    case VersionCheck::CompareResult::Equal:
+        spdlog::info("ASI Loader Compatibility Check: ASI Loader version {} is same as time of MGSHDFix compilation.", ASILoaderVersion);
+        break;
+    case VersionCheck::CompareResult::Newer:
+        spdlog::info("ASI Loader Compatibility Check: ASI Loader is newer version than at time of MGSHDFix compilation.");
+        spdlog::info("ASI Loader Compatibility Check: Detected ASI Loader version {}. MGSHDFix Compilation Version: {}", ASILoaderVersion, ASI_LOADER_VERSION_STRING);
+    }
+
+
+    //Config tool also includes a mirrored D3D11.dll warning in GetBannerResourceID(), make sure to keep these in sync
     spdlog::info("ASI Loader Compatibility Check: Checking for duplicate instances of ASI Loader (ie d3d11.dll, dxgi.dll).");
     //Don't simplify by removing filesystem::exists() from this check. While GetFileDescription does handle non-existent files own its own, checking filesystem::exists() first saves 400+ ms of initialization time
-    if (std::filesystem::exists(sExePath / "d3d11.dll") && (Util::GetFileDescription((sExePath / "d3d11.dll").string()) == Util::GetFileDescription((sExePath / "winhttp.dll").string())))
+    if (std::filesystem::exists(sExePath / "d3d11.dll") && (Util::GetFileDescription((sExePath / "d3d11.dll").string()) == ASILoaderDescription))
     {
         spdlog::error("DUPLICATE MOD LOADER ERROR: Multiple ASI Loader .dll installations detected! This can cause inconsistent bugs and crashes.");
-        spdlog::error("DUPLICATE MOD LOADER ERROR: Please delete d3d11.dll, it has been replaced by winhttp.dll & wininit.dll.");
+        spdlog::error("DUPLICATE MOD LOADER ERROR: Please delete d3d11.dll, it has been replaced by winhttp.dll & wininet.dll.");
         Logging::ShowConsole();
         std::cout << "DUPLICATE MOD LOADER ERROR: Multiple ASI Loader .dll's detected! This can cause inconsistent bugs and crashes." << std::endl;
-        std::cout << "DUPLICATE MOD LOADER ERROR: Please delete d3d11.dll, it has been replaced by winhttp.dll & wininit.dll." << std::endl;
+        std::cout << "DUPLICATE MOD LOADER ERROR: Please delete d3d11.dll, it has been replaced by winhttp.dll & wininet.dll." << std::endl;
         if (Util::IsSteamOS())
         {
             std::cout << "DUPLICATE MOD LOADER ERROR: Steam Deck / Linux users must also replace their Steam game launch paramaters with the following command:" << std::endl;
@@ -171,15 +203,15 @@ void ASILoaderCompatibility::Check()
             spdlog::error("DUPLICATE MOD LOADER ERROR: Steam Deck / Linux users must also replace their Steam game launch paramaters with the following command:");
             spdlog::error("WINEDLLOVERRIDES=\"wininet,winhttp=n,b\" % command %");
         }
-    }
+    } 
 
     if (std::filesystem::exists(sExePath / "dxgi.dll") && Util::GetFileDescription((sExePath / "dxgi.dll").string()) == "File description not found.")
     {
         spdlog::error("DUPLICATE MOD LOADER ERROR: Multiple ASI Loader .dll installations detected! This can cause inconsistent bugs and crashes.");
-        spdlog::error("DUPLICATE MOD LOADER ERROR: Please delete dxgi.dll, it has been replaced by winhttp.dll & wininit.dll.");
+        spdlog::error("DUPLICATE MOD LOADER ERROR: Please delete dxgi.dll, it has been replaced by winhttp.dll & wininet.dll.");
         Logging::ShowConsole();
         std::cout << "DUPLICATE MOD LOADER ERROR: Multiple ASI Loader .dll's detected! This can cause inconsistent bugs and crashes." << std::endl;
-        std::cout << "DUPLICATE MOD LOADER ERROR: Please delete dxgi.dll, it has been replaced by winhttp.dll & wininit.dll." << std::endl;
+        std::cout << "DUPLICATE MOD LOADER ERROR: Please delete dxgi.dll, it has been replaced by winhttp.dll & wininet.dll." << std::endl;
     }
 
     spdlog::info("ASI Mod Compatibility Check: Checking for common mod installation issues.");

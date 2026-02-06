@@ -28,7 +28,9 @@ namespace
 
             size_t i = 0;
             while (i < token.size() && std::isdigit(static_cast<unsigned char>(token[i])))
+            {
                 ++i;
+            }
 
             int value = (i > 0) ? std::stoi(token.substr(0, i)) : 0;
             parts.push_back(value);
@@ -50,55 +52,62 @@ namespace
 
         return parts;
     }
-}
 
-namespace VersionCheck
-{
-
-    std::string GetModuleVersion(HMODULE module, VersionType type = VersionType::File, bool fourDigit = false)
+    std::string GetVersionFromFilePathA(const char* filePath, VersionCheck::VersionType type, bool fourDigit)
     {
-        if (!module)
+        if (!filePath || filePath[0] == '\0')
+        {
             return "0.0.0";
-
-        char modulePath[MAX_PATH] = { 0 };
-        if (!GetModuleFileNameA(module, modulePath, MAX_PATH))
-            return "0.0.0";
+        }
 
         DWORD handle = 0;
-        DWORD size = GetFileVersionInfoSizeA(modulePath, &handle);
+        DWORD size = GetFileVersionInfoSizeA(filePath, &handle);
         if (size == 0)
+        {
             return "0.0.0";
+        }
 
         std::vector<BYTE> versionInfo(size);
-        if (!GetFileVersionInfoA(modulePath, handle, size, versionInfo.data()))
-            return "0.0.0";
-
-        if (type == VersionType::Product)
+        if (!GetFileVersionInfoA(filePath, handle, size, versionInfo.data()))
         {
-            struct LANGANDCODEPAGE
-            {
-                WORD wLanguage; WORD wCodePage;
+            return "0.0.0";
+        }
+
+        if (type == VersionCheck::VersionType::Product)
+        {
+            struct LANGANDCODEPAGE 
+            { 
+                WORD wLanguage; 
+                WORD wCodePage; 
             };
-            LANGANDCODEPAGE* lpTranslate = nullptr; UINT cbTranslate = 0;
+            LANGANDCODEPAGE* lpTranslate = nullptr;
+            UINT cbTranslate = 0;
+
             if (VerQueryValueA(versionInfo.data(), "\\VarFileInfo\\Translation", reinterpret_cast<LPVOID*>(&lpTranslate), &cbTranslate) && cbTranslate >= sizeof(LANGANDCODEPAGE))
             {
                 char subBlock[64] = { 0 };
                 sprintf_s(subBlock, "\\StringFileInfo\\%04x%04x\\ProductVersion", lpTranslate[0].wLanguage, lpTranslate[0].wCodePage);
-                char* productVersion = nullptr; UINT len = 0;
-                if (VerQueryValueA(versionInfo.data(), subBlock, reinterpret_cast<LPVOID*>(&productVersion), &len) && productVersion)
+
+                char* productVersion = nullptr;
+                UINT len = 0;
+
+                if (VerQueryValueA(versionInfo.data(), subBlock, reinterpret_cast<LPVOID*>(&productVersion), &len) && productVersion && len > 1)
                 {
                     return std::string(productVersion, len - 1);
                 }
             }
         }
+
         VS_FIXEDFILEINFO* fileInfo = nullptr;
         UINT fileInfoLen = 0;
         if (!VerQueryValueA(versionInfo.data(), "\\", reinterpret_cast<LPVOID*>(&fileInfo), &fileInfoLen) || !fileInfo)
+        {
             return "0.0.0";
+        }
 
-        // Extract version numbers
-        DWORD verMS = (type == VersionType::Product) ? fileInfo->dwProductVersionMS : fileInfo->dwFileVersionMS;
-        DWORD verLS = (type == VersionType::Product) ? fileInfo->dwProductVersionLS : fileInfo->dwFileVersionLS;
+        DWORD verMS = (type == VersionCheck::VersionType::Product) ? fileInfo->dwProductVersionMS : fileInfo->dwFileVersionMS;
+        DWORD verLS = (type == VersionCheck::VersionType::Product) ? fileInfo->dwProductVersionLS : fileInfo->dwFileVersionLS;
+
         int major = HIWORD(verMS);
         int minor = LOWORD(verMS);
         int patch = HIWORD(verLS);
@@ -108,10 +117,39 @@ namespace VersionCheck
             int build = LOWORD(verLS);
             return std::to_string(major) + "." + std::to_string(minor) + "." + std::to_string(patch) + "." + std::to_string(build);
         }
-        else
+
+        return std::to_string(major) + "." + std::to_string(minor) + "." + std::to_string(patch);
+    }
+}
+
+namespace VersionCheck
+{
+
+    std::string GetModuleVersion(HMODULE module, VersionType type, bool fourDigit)
+    {
+        if (!module)
         {
-            return std::to_string(major) + "." + std::to_string(minor) + "." + std::to_string(patch);
+            return "0.0.0";
         }
+
+        char modulePath[MAX_PATH] = { 0 };
+        if (!GetModuleFileNameA(module, modulePath, MAX_PATH))
+        {
+            return "0.0.0";
+        }
+
+        return GetVersionFromFilePathA(modulePath, type, fourDigit);
+    }
+
+    std::string GetFileVersion(const std::filesystem::path& filePath, VersionType type, bool fourDigit)
+    {
+        if (filePath.empty())
+        {
+            return "0.0.0";
+        }
+
+        const std::string pathA = filePath.string();
+        return GetVersionFromFilePathA(pathA.c_str(), type, fourDigit);
     }
 
     CompareResult CompareSemanticVersion(const std::string& currentVersion, const std::string& targetVersion)

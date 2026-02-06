@@ -14,6 +14,8 @@ namespace VersionCheck
     };
     std::string GetModuleVersion(HMODULE module, VersionType type, bool fourDigit);
 
+    std::string GetFileVersion(const std::filesystem::path& filePath, VersionType type = VersionType::File, bool fourDigit = false);
+
     enum class CompareResult  // NOLINT(performance-enum-size)
     {
         Older = -1,
