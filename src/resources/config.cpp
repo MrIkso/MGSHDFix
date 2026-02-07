@@ -308,9 +308,12 @@ void Config::Read()
 
     ConfigHelper::getValue(ini, ConfigKeys::WindowWidth_Section, ConfigKeys::WindowWidth_Setting, iOutputResX);
     ConfigHelper::getValue(ini, ConfigKeys::WindowHeight_Section, ConfigKeys::WindowHeight_Setting, iOutputResY);
-    if (iOutputResX == 0 || iOutputResY == 0)
+    if (iOutputResX == 0)
     {
         iOutputResX = DesktopDimensions.first;
+    }
+    if (iOutputResY == 0)
+    {
         iOutputResY = DesktopDimensions.second;
     }
     LOG_CONFIG(ConfigKeys::WindowWidth_Section, ConfigKeys::WindowWidth_Setting, iOutputResX);
@@ -323,10 +326,18 @@ void Config::Read()
 
     ConfigHelper::getValue(ini, ConfigKeys::RenderScaleWidth_Section, ConfigKeys::RenderScaleWidth_Setting, iInternalResX);
     ConfigHelper::getValue(ini, ConfigKeys::RenderScaleHeight_Section, ConfigKeys::RenderScaleHeight_Setting, iInternalResY);
-    if (iInternalResX == 0 || iInternalResY == 0)
+    if (iInternalResX == 0)
     {
         iInternalResX = iOutputResX;
+    }
+    if (iInternalResY == 0)
+    {
         iInternalResY = iOutputResY;
+    }
+    if (bBorderlessMode)
+    {
+        iOutputResX = iInternalResX;
+        iOutputResY = iInternalResY;
     }
     LOG_CONFIG(ConfigKeys::RenderScaleWidth_Section, ConfigKeys::RenderScaleWidth_Setting, iInternalResX);
     LOG_CONFIG(ConfigKeys::RenderScaleHeight_Section, ConfigKeys::RenderScaleHeight_Setting, iInternalResY);

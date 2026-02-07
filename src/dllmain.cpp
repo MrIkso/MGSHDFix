@@ -317,8 +317,7 @@ static void Init_CustomResolution()
                         *reinterpret_cast<int*>(ctx.rsp + 0x20) = (int)DesktopDimensions.first;
                         *reinterpret_cast<int*>(ctx.rsp + 0x28) = (int)DesktopDimensions.second;
                     }
-
-                    if (bWindowedMode)
+                    else if (bWindowedMode)
                     {
                         // Set X and Y to 0 to position window at centre of screen in case the window is off-screen.
                         ctx.r8 = 0;
