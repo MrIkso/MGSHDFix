@@ -3,7 +3,6 @@
 #include "line_scaling.hpp"
 #include "d3d11_api.hpp"
 
-#include "config.hpp"
 #include "input_handler.hpp"
 #include "logging.hpp"
 #include "custom_resolution_and_borderless.hpp"

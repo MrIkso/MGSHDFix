@@ -298,35 +298,73 @@ void Config::Read()
     }
 
     // Grab desktop resolution
-    DesktopDimensions = Util::GetPhysicalDesktopDimensions();
+    CustomResolutionAndBorderless::DesktopDimensions = Util::GetPhysicalDesktopDimensions();
 
 
     ConfigHelper::getValue(ini, ConfigKeys::VerboseLogging_Section, ConfigKeys::VerboseLogging_Setting, g_Logging.bVerboseLogging);
     LOG_CONFIG(ConfigKeys::VerboseLogging_Section, ConfigKeys::VerboseLogging_Setting, g_Logging.bVerboseLogging);
 
+
     ConfigHelper::getValue(ini, ConfigKeys::ForceWindowSize_Section, ConfigKeys::ForceWindowSize_Setting, CustomResolutionAndBorderless::bOutputResolution);
     LOG_CONFIG(ConfigKeys::ForceWindowSize_Section, ConfigKeys::ForceWindowSize_Setting, CustomResolutionAndBorderless::bOutputResolution);
 
+    
+        
+        
     ConfigHelper::getValue(ini, ConfigKeys::WindowWidth_Section, ConfigKeys::WindowWidth_Setting, CustomResolutionAndBorderless::iOutputResX);
     ConfigHelper::getValue(ini, ConfigKeys::WindowHeight_Section, ConfigKeys::WindowHeight_Setting, CustomResolutionAndBorderless::iOutputResY);
+    ConfigHelper::getValue(ini, ConfigKeys::RenderScaleWidth_Section, ConfigKeys::RenderScaleWidth_Setting, CustomResolutionAndBorderless::iInternalResX);
+    ConfigHelper::getValue(ini, ConfigKeys::RenderScaleHeight_Section, ConfigKeys::RenderScaleHeight_Setting, CustomResolutionAndBorderless::iInternalResY);
+
+    ConfigHelper::getValue(ini, ConfigKeys::WindowedMode_Section, ConfigKeys::WindowedMode_Setting, CustomResolutionAndBorderless::bWindowOrFullscreenMode);
+    LOG_CONFIG(ConfigKeys::WindowedMode_Section, ConfigKeys::WindowedMode_Setting, CustomResolutionAndBorderless::bWindowOrFullscreenMode);
+    CustomResolutionAndBorderless::bLimitToPrimaryMonitor = true;
+    if (CustomResolutionAndBorderless::bOutputResolution)
+    {
+        if (CustomResolutionAndBorderless::bWindowOrFullscreenMode == ConfigKeys::BorderlessMode_Option_BorderlessFullscreen)
+        {
+            CustomResolutionAndBorderless::bMaximizeBorderless = true;
+            CustomResolutionAndBorderless::bBorderlessMode = true;
+            CustomResolutionAndBorderless::bWindowedMode = true;
+            CustomResolutionAndBorderless::iOutputResX = 0;
+            CustomResolutionAndBorderless::iOutputResY = 0;
+        }
+        else if (CustomResolutionAndBorderless::bWindowOrFullscreenMode == ConfigKeys::BorderlessMode_Option_BorderlessWindowed)
+        {   
+            CustomResolutionAndBorderless::bBorderlessMode = true;
+            CustomResolutionAndBorderless::bWindowedMode = true;
+        }
+        else if (CustomResolutionAndBorderless::bWindowOrFullscreenMode == ConfigKeys::BorderlessMode_Option_Windowed)
+        {
+            CustomResolutionAndBorderless::bWindowedMode = true;
+        }
+        else if (CustomResolutionAndBorderless::bWindowOrFullscreenMode == ConfigKeys::BorderlessMode_Option_Fullscreen)
+        {
+            CustomResolutionAndBorderless::iOutputResX = 0;
+            CustomResolutionAndBorderless::iOutputResY = 0;
+        }
+        else{
+             spdlog::warn("Config Parse: Invalid value for {} in section {}, expected 'borderless', 'windowed', or 'fullscreen', got '{}'. Defaulting to fullscreen mode.", ConfigKeys::WindowedMode_Setting, ConfigKeys::WindowedMode_Section, CustomResolutionAndBorderless::bWindowOrFullscreenMode);
+        }
+    }
+
     if (CustomResolutionAndBorderless::iOutputResX == 0)
     {
-        CustomResolutionAndBorderless::iOutputResX = DesktopDimensions.first;
+        CustomResolutionAndBorderless::bUsingAutomaticOutputX = true;
+        CustomResolutionAndBorderless::iOutputResX = CustomResolutionAndBorderless::DesktopDimensions.first;
     }
     if (CustomResolutionAndBorderless::iOutputResY == 0)
     {
-        CustomResolutionAndBorderless::iOutputResY = DesktopDimensions.second;
+        CustomResolutionAndBorderless::bUsingAutomaticOutputY = true;
+        CustomResolutionAndBorderless::iOutputResY = CustomResolutionAndBorderless::DesktopDimensions.second;
     }
+    CustomResolutionAndBorderless::iOriginalOutputResX = CustomResolutionAndBorderless::iOutputResX;
+    CustomResolutionAndBorderless::iOriginalOutputResY = CustomResolutionAndBorderless::iOutputResY;
     LOG_CONFIG(ConfigKeys::WindowWidth_Section, ConfigKeys::WindowWidth_Setting, CustomResolutionAndBorderless::iOutputResX);
     LOG_CONFIG(ConfigKeys::WindowHeight_Section, ConfigKeys::WindowHeight_Setting, CustomResolutionAndBorderless::iOutputResY);
 
-    ConfigHelper::getValue(ini, ConfigKeys::WindowedMode_Section, ConfigKeys::WindowedMode_Setting, CustomResolutionAndBorderless::bWindowedMode);
-    ConfigHelper::getValue(ini, ConfigKeys::BorderlessWindowed_Section, ConfigKeys::BorderlessWindowed_Setting, CustomResolutionAndBorderless::bBorderlessMode);
-    LOG_CONFIG(ConfigKeys::WindowedMode_Section, ConfigKeys::WindowedMode_Setting, CustomResolutionAndBorderless::bWindowedMode);
-    LOG_CONFIG(ConfigKeys::BorderlessWindowed_Section, ConfigKeys::BorderlessWindowed_Setting, CustomResolutionAndBorderless::bBorderlessMode);
 
-    ConfigHelper::getValue(ini, ConfigKeys::RenderScaleWidth_Section, ConfigKeys::RenderScaleWidth_Setting, CustomResolutionAndBorderless::iInternalResX);
-    ConfigHelper::getValue(ini, ConfigKeys::RenderScaleHeight_Section, ConfigKeys::RenderScaleHeight_Setting, CustomResolutionAndBorderless::iInternalResY);
+
     if (CustomResolutionAndBorderless::iInternalResX == 0)
     {
         CustomResolutionAndBorderless::iInternalResX = CustomResolutionAndBorderless::iOutputResX;
@@ -335,16 +373,12 @@ void Config::Read()
     {
         CustomResolutionAndBorderless::iInternalResY = CustomResolutionAndBorderless::iOutputResY;
     }
-    if (CustomResolutionAndBorderless::bBorderlessMode)
+    if (CustomResolutionAndBorderless::bBorderlessMode || CustomResolutionAndBorderless::bWindowedMode)
     {
         CustomResolutionAndBorderless::iOutputResX = CustomResolutionAndBorderless::iInternalResX;
         CustomResolutionAndBorderless::iOutputResY = CustomResolutionAndBorderless::iInternalResY;
     }
-    else if (CustomResolutionAndBorderless::bWindowedMode)
-    {
-        CustomResolutionAndBorderless::iInternalResX = CustomResolutionAndBorderless::iOutputResX;
-        CustomResolutionAndBorderless::iInternalResY = CustomResolutionAndBorderless::iOutputResY;
-    }
+
 
     LOG_CONFIG(ConfigKeys::RenderScaleWidth_Section, ConfigKeys::RenderScaleWidth_Setting, CustomResolutionAndBorderless::iInternalResX);
     LOG_CONFIG(ConfigKeys::RenderScaleHeight_Section, ConfigKeys::RenderScaleHeight_Setting, CustomResolutionAndBorderless::iInternalResY);
@@ -380,8 +414,8 @@ void Config::Read()
     ConfigHelper::getValue(ini, ConfigKeys::MuteWarning_Section, ConfigKeys::MuteWarning_Setting, g_MuteWarning.bEnabled);
     LOG_CONFIG(ConfigKeys::MuteWarning_Section, ConfigKeys::MuteWarning_Setting, g_MuteWarning.bEnabled);
 
-    ConfigHelper::getValue(ini, ConfigKeys::FSRWarning_Section, ConfigKeys::FSRWarning_Setting, g_MuteWarning.bEnableFSRWarning);
-    LOG_CONFIG(ConfigKeys::FSRWarning_Section, ConfigKeys::FSRWarning_Setting, g_MuteWarning.bEnableFSRWarning);
+    ConfigHelper::getValue(ini, ConfigKeys::FSRWarning_Section, ConfigKeys::FSRWarning_Setting, CustomResolutionAndBorderless::bEnableFSRWarning);
+    LOG_CONFIG(ConfigKeys::FSRWarning_Section, ConfigKeys::FSRWarning_Setting, CustomResolutionAndBorderless::bEnableFSRWarning);
 
     ConfigHelper::getValue(ini, ConfigKeys::MissingBugfixModWarning_Section, ConfigKeys::MissingBugfixModWarning_Setting, BugfixMods::bEnableVisibleWarnings);
     LOG_CONFIG(ConfigKeys::MissingBugfixModWarning_Section, ConfigKeys::MissingBugfixModWarning_Setting, BugfixMods::bEnableVisibleWarnings);
@@ -461,7 +495,6 @@ void Config::Read()
 
     ConfigHelper::getValue(ini, ConfigKeys::DistanceCullingGrassScalar_Section, ConfigKeys::DistanceCullingGrassScalar_Setting, g_DistanceCulling.fGrassDistanceScalar);
     LOG_CONFIG(ConfigKeys::DistanceCullingGrassScalar_Section, ConfigKeys::DistanceCullingGrassScalar_Setting, g_DistanceCulling.fGrassDistanceScalar);
-
 
 
     ConfigHelper::getValue(ini, ConfigKeys::Region_Section, ConfigKeys::Region_Setting, sSkipLauncherRegion);

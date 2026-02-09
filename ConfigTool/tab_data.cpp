@@ -79,26 +79,36 @@ const std::vector<std::pair<wxString, std::vector<Field>>> kTabs = {
           std::nullopt, false, Field::Spacer }
     }},
     { wxString("Graphics"), {
-        { ConfigKeys::ForceWindowSize_Section, ConfigKeys::ForceWindowSize_Setting, ConfigKeys::ForceWindowSize_Help, ConfigKeys::ForceWindowSize_Tooltip,
+        
+
+
+                { ConfigKeys::ForceWindowSize_Section, ConfigKeys::ForceWindowSize_Setting, ConfigKeys::ForceWindowSize_Help, ConfigKeys::ForceWindowSize_Tooltip,
           std::nullopt, false, Field::Bool, true },
 
         { ConfigKeys::WindowWidth_Section, ConfigKeys::WindowWidth_Setting, ConfigKeys::WindowWidth_Help, ConfigKeys::WindowWidth_Tooltip,
-          std::make_pair(ConfigKeys::ForceWindowSize_Section, ConfigKeys::ForceWindowSize_Setting), false, Field::Int, 0, 0, D3D11_REQ_TEXTURE2D_U_OR_V_DIMENSION },
+          std::make_pair(ConfigKeys::WindowedMode_Section, ConfigKeys::WindowedMode_Setting),
+          false,
+          Field::Int, 0, 0, D3D11_REQ_TEXTURE2D_U_OR_V_DIMENSION,
+          "", {}, 0.0, 0.0, 0.0,
+          { ConfigKeys::BorderlessMode_Option_BorderlessWindowed, ConfigKeys::BorderlessMode_Option_Windowed } },
+
 
         { ConfigKeys::WindowedMode_Section, ConfigKeys::WindowedMode_Setting, ConfigKeys::WindowedMode_Help, ConfigKeys::WindowedMode_Tooltip,
-          std::nullopt, false, Field::Bool, false },
+          std::make_pair(ConfigKeys::ForceWindowSize_Section, ConfigKeys::ForceWindowSize_Setting), false, Field::Choice, 0, 0, 0, ConfigKeys::BorderlessMode_Option_BorderlessFullscreen, {ConfigKeys::BorderlessMode_Option_Fullscreen, ConfigKeys::BorderlessMode_Option_BorderlessFullscreen, ConfigKeys::BorderlessMode_Option_BorderlessWindowed, ConfigKeys::BorderlessMode_Option_Windowed, } },
+
 
         { ConfigKeys::WindowHeight_Section, ConfigKeys::WindowHeight_Setting, ConfigKeys::WindowHeight_Help, ConfigKeys::WindowHeight_Tooltip,
-          std::make_pair(ConfigKeys::ForceWindowSize_Section, ConfigKeys::ForceWindowSize_Setting), false, Field::Int, 0, 0, D3D11_REQ_TEXTURE2D_U_OR_V_DIMENSION },
-
-        { ConfigKeys::BorderlessWindowed_Section, ConfigKeys::BorderlessWindowed_Setting, ConfigKeys::BorderlessWindowed_Help, ConfigKeys::BorderlessWindowed_Tooltip,
-          std::make_pair(ConfigKeys::WindowedMode_Section, ConfigKeys::WindowedMode_Setting), false, Field::Bool, true },
+          std::make_pair(ConfigKeys::WindowedMode_Section, ConfigKeys::WindowedMode_Setting),
+          false,
+          Field::Int, 0, 0, D3D11_REQ_TEXTURE2D_U_OR_V_DIMENSION,
+          "", {}, 0.0, 0.0, 0.0,
+          { ConfigKeys::BorderlessMode_Option_BorderlessWindowed, ConfigKeys::BorderlessMode_Option_Windowed } },
 
         { ConfigKeys::RenderScaleWidth_Section, ConfigKeys::RenderScaleWidth_Setting, ConfigKeys::RenderScaleWidth_Help, ConfigKeys::RenderScaleWidth_Tooltip,
-          std::nullopt, false, Field::Int, 0, 0, D3D11_REQ_TEXTURE2D_U_OR_V_DIMENSION },
+          std::make_pair(ConfigKeys::ForceWindowSize_Section, ConfigKeys::ForceWindowSize_Setting), false, Field::Int, 0, 0, D3D11_REQ_TEXTURE2D_U_OR_V_DIMENSION },
 
         { ConfigKeys::RenderScaleHeight_Section, ConfigKeys::RenderScaleHeight_Setting, ConfigKeys::RenderScaleHeight_Help, ConfigKeys::RenderScaleHeight_Tooltip,
-          std::nullopt, false, Field::Int, 0, 0, D3D11_REQ_TEXTURE2D_U_OR_V_DIMENSION },
+          std::make_pair(ConfigKeys::ForceWindowSize_Section, ConfigKeys::ForceWindowSize_Setting), false, Field::Int, 0, 0, D3D11_REQ_TEXTURE2D_U_OR_V_DIMENSION },
 
         { ConfigKeys::AnisotropicFiltering_Section, ConfigKeys::AnisotropicFiltering_Setting, ConfigKeys::AnisotropicFiltering_Help, ConfigKeys::AnisotropicFiltering_Tooltip,
           std::make_pair(ConfigKeys::DisableTextureFiltering_Section, ConfigKeys::DisableTextureFiltering_Setting), true, Field::Int, 16, 0, D3D11_DEFAULT_MAX_ANISOTROPY},

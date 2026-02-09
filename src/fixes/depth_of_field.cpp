@@ -2,13 +2,16 @@
 #include "depth_of_field.hpp"
 
 #include "common.hpp"
-#include "config.hpp"
 #include "logging.hpp"
 #include "custom_resolution_and_borderless.hpp"
 
 void DepthOfFieldFixes::Initialize()
 {
     if (!(eGameType & MGS2))
+    {
+        return;
+    }
+    if (!CustomResolutionAndBorderless::bOutputResolution) //remove if you fix a vanilla bug. 
     {
         return;
     }

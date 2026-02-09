@@ -13,6 +13,7 @@
 #include "version_checking.hpp"
 
 ///Features
+#include "custom_resolution_and_borderless.hpp"
 #include "distance_culling.hpp"
 #include "effect_speeds.hpp"
 #include "intro_skip.hpp"
@@ -31,7 +32,6 @@
 #include "stereo_audio.hpp"
 #include "water_reflections.hpp"
 #include "mgs3_hud_fixes.hpp"
-#include "depth_of_field.hpp"
 #include "windows_fullscreen_optimization.hpp"
 
 //Warnings
@@ -44,13 +44,13 @@
 #include "bugfix_mod_checks.hpp"
 
 ///WIP
+#include "depth_of_field.hpp"
 #include "color_filters.hpp"
 #include "gamma_correction.hpp"
 #include "mg1_custom_loading_screens.hpp"
 #include "mgs3_fix_camera_offset.hpp"
 #include "mgs3_fix_holster_after_torture.hpp"
 #include "swap_menu_buttons.hpp"
-#include "custom_resolution_and_borderless.hpp"
 //#include "texture_buffer_size.hpp" //disabled for now, the vanilla limit was increased to 128MB/texture in 2.0.0, so there's no much need until 8k gaming is standard & there's a need for a 16k texture pack lol.
 
 

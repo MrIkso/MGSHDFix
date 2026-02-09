@@ -280,9 +280,7 @@ static int GetBannerResourceID()
 
 #pragma region CrashWarnings
     //These crash warnings are also in src\warnings\asi_loader_checks.cpp / ASILoaderCompatibility::Check(), make sure to keep them in sync.
-    if (std::filesystem::exists(exePath / "d3d11.dll") &&
-        (Helper::GetFileDescription((exePath / "d3d11.dll").string()) ==
-         Helper::GetFileDescription((exePath / "winhttp.dll").string())))
+    if (std::filesystem::exists(exePath / "d3d11.dll") && (Helper::GetFileDescription((exePath / "d3d11.dll").string()) == Helper::GetFileDescription((exePath / "winhttp.dll").string())))
     {
         wxLogError("DUPLICATE MOD LOADER ERROR: Multiple ASI Loader .dll installations detected! This can cause inconsistent bugs and crashes.\n"
                    "\n"
@@ -645,6 +643,13 @@ public:
                     v = Unquote(v);
 
                     auto* ch = new wxChoice(sectionSizer->GetStaticBox(), wxID_ANY);
+                    ch->Bind(wxEVT_CHOICE, [this](wxCommandEvent& e)
+                             {
+                                 m_dirty = true;
+                                 ApplyPrerequisites();
+                                 e.Skip();
+                             });
+                    
                     for (auto& c : field.choices)
                         ch->Append(c);
 
@@ -1561,90 +1566,166 @@ private:
             {
                 auto it = m_controls.find({ field.section, field.key });
                 if (it == m_controls.end())
+                {
                     continue;
+                }
 
                 wxWindow* ctrl = it->second;
 
-                if (field.prerequisite.has_value())
+                if (!field.prerequisite.has_value())
                 {
-                    auto prereq = field.prerequisite.value();
-                    auto prereqIt = m_controls.find(prereq);
-                    if (prereqIt != m_controls.end())
+                    continue;
+                }
+
+                auto prereq = field.prerequisite.value();
+                auto prereqIt = m_controls.find(prereq);
+                if (prereqIt == m_controls.end())
+                {
+                    continue;
+                }
+
+                wxWindow* prereqCtrl = prereqIt->second;
+
+                bool enabled = false;
+
+                // NEW: if matches provided, prerequisite is a wxChoice match
+                if (!field.prerequisiteChoiceMatches.empty())
+                {
+                    if (auto* ch = wxDynamicCast(prereqCtrl, wxChoice))
                     {
-                        if (auto* cb = wxDynamicCast(prereqIt->second, wxCheckBox))
+                        const wxString sel = ch->GetStringSelection();
+
+                        bool match = false;
+                        for (const auto& allowed : field.prerequisiteChoiceMatches)
                         {
-                            bool enabled = cb->GetValue();
-
-                            if (field.prerequisiteNegate)
-                                enabled = !enabled;
-
-                            ctrl->Enable(enabled);
-
-                            if (!enabled)
+                            if (sel == allowed)
                             {
-                                // Reset to saved or default
-                                wxString path = field.section + "/" + field.key;
-                                wxString strVal;
-                                long intVal;
-                                bool boolVal;
-
-                                switch (field.type)
-                                {
-                                case Field::Bool:
-                                    boolVal = field.defaultInt != 0;
-                                    if (!m_conf->HasEntry(path))
-                                    {
-                                        m_missingKeys = true;
-                                    }
-                                    m_conf->Read(path, &boolVal);
-                                    if (auto* c = wxDynamicCast(ctrl, wxCheckBox))
-                                        c->SetValue(boolVal);
-                                    break;
-
-                                case Field::Int:
-                                    intVal = field.defaultInt;
-                                    if (!m_conf->HasEntry(path))
-                                    {
-                                        m_missingKeys = true;
-                                    }
-                                    m_conf->Read(path, &intVal);
-                                    if (auto* c = wxDynamicCast(ctrl, wxSpinCtrl))
-                                        c->SetValue(intVal);
-                                    break;
-
-                                case Field::Str:
-                                case Field::Hotkey:
-                                    strVal = field.defaultString;
-                                    if (!m_conf->HasEntry(path))
-                                    {
-                                        m_missingKeys = true;
-                                    }
-                                    m_conf->Read(path, &strVal);
-                                    strVal = Unquote(strVal);
-                                    if (auto* c = wxDynamicCast(ctrl, wxTextCtrl))
-                                        c->SetValue(strVal);
-                                    break;
-
-                                case Field::Choice:
-                                    strVal = field.defaultString;
-                                    if (!m_conf->HasEntry(path))
-                                    {
-                                        m_missingKeys = true;
-                                    }
-                                    m_conf->Read(path, &strVal);
-                                    strVal = Unquote(strVal);
-                                    if (auto* c = wxDynamicCast(ctrl, wxChoice))
-                                        if (c->FindString(strVal) != wxNOT_FOUND)
-                                            c->SetStringSelection(strVal);
-                                    break;
-                                }
+                                match = true;
+                                break;
                             }
                         }
+
+                        enabled = match;
                     }
+                    else
+                    {
+                        // Misconfigured prerequisite: matches provided but prerequisite control is not a wxChoice.
+                        enabled = false;
+                    }
+                }
+                else
+                {
+                    // OLD: prerequisite treated as a wxCheckBox bool
+                    if (auto* cb = wxDynamicCast(prereqCtrl, wxCheckBox))
+                    {
+                        enabled = cb->GetValue();
+                    }
+                    else
+                    {
+                        // Misconfigured prerequisite: expected checkbox.
+                        enabled = false;
+                    }
+                }
+
+                if (field.prerequisiteNegate)
+                {
+                    enabled = !enabled;
+                }
+
+                ctrl->Enable(enabled);
+
+                if (enabled)
+                {
+                    continue;
+                }
+
+                // Reset to saved or default when disabling
+                wxString path = field.section + "/" + field.key;
+                wxString strVal;
+                long intVal = 0;
+                bool boolVal = false;
+                double dblVal = 0.0;
+
+                switch (field.type)
+                {
+                case Field::Bool:
+                    boolVal = field.defaultInt != 0;
+                    if (!m_conf->HasEntry(path))
+                    {
+                        m_missingKeys = true;
+                    }
+                    m_conf->Read(path, &boolVal);
+                    if (auto* c = wxDynamicCast(ctrl, wxCheckBox))
+                    {
+                        c->SetValue(boolVal);
+                    }
+                    break;
+
+                case Field::Int:
+                    intVal = field.defaultInt;
+                    if (!m_conf->HasEntry(path))
+                    {
+                        m_missingKeys = true;
+                    }
+                    m_conf->Read(path, &intVal);
+                    if (auto* c = wxDynamicCast(ctrl, wxSpinCtrl))
+                    {
+                        c->SetValue((int)intVal);
+                    }
+                    break;
+
+                case Field::Float:
+                    dblVal = field.defaultFloat;
+                    if (!m_conf->HasEntry(path))
+                    {
+                        m_missingKeys = true;
+                    }
+                    m_conf->Read(path, &dblVal);
+                    if (auto* c = wxDynamicCast(ctrl, wxSpinCtrlDouble))
+                    {
+                        c->SetValue(dblVal);
+                    }
+                    break;
+
+                case Field::Str:
+                case Field::Hotkey:
+                    strVal = field.defaultString;
+                    if (!m_conf->HasEntry(path))
+                    {
+                        m_missingKeys = true;
+                    }
+                    m_conf->Read(path, &strVal);
+                    strVal = Unquote(strVal);
+                    if (auto* c = wxDynamicCast(ctrl, wxTextCtrl))
+                    {
+                        c->SetValue(strVal);
+                    }
+                    break;
+
+                case Field::Choice:
+                    strVal = field.defaultString;
+                    if (!m_conf->HasEntry(path))
+                    {
+                        m_missingKeys = true;
+                    }
+                    m_conf->Read(path, &strVal);
+                    strVal = Unquote(strVal);
+                    if (auto* c = wxDynamicCast(ctrl, wxChoice))
+                    {
+                        if (c->FindString(strVal) != wxNOT_FOUND)
+                        {
+                            c->SetStringSelection(strVal);
+                        }
+                    }
+                    break;
+
+                default:
+                    break;
                 }
             }
         }
     }
+
 
     void OnSave(const wxCommandEvent&)
     {

@@ -17,15 +17,15 @@ namespace ConfigKeys
     constexpr const char* ControllerType_KeyboardMouse = "Keyboard / Mouse";
     constexpr const char* ControllerType_PS2 = "PlayStation 2";
 
-    constexpr const char* ForceWindowSize_Section = "Window Settings";
-    constexpr const char* ForceWindowSize_Setting = "Set Window Size";
-    constexpr const char* ForceWindowSize_Help = "";
-    constexpr const char* ForceWindowSize_Tooltip = "If you want MGSHDFix to force the game's window to a specific size.";
-
     constexpr const char* WindowWidth_Section = "Window Settings";
     constexpr const char* WindowWidth_Setting = "Window Width";
     constexpr const char* WindowWidth_Help = "";
     constexpr const char* WindowWidth_Tooltip = "Leave this set to 0 to default to your desktop resolution.";
+
+    constexpr const char* ForceWindowSize_Section = "Window Settings";
+    constexpr const char* ForceWindowSize_Setting = "Enable Resolution Overrides";
+    constexpr const char* ForceWindowSize_Help = "";
+    constexpr const char* ForceWindowSize_Tooltip = "If you want MGSHDFix to force the game's window to a specific size, force its internal resolution, or enable borderless / windowed mode..";
 
     constexpr const char* WindowHeight_Section = "Window Settings";
     constexpr const char* WindowHeight_Setting = "Window Height";
@@ -33,19 +33,27 @@ namespace ConfigKeys
     constexpr const char* WindowHeight_Tooltip = "Leave this set to 0 to default to your desktop resolution.";
 
     constexpr const char* WindowedMode_Section = "Window Settings";
-    constexpr const char* WindowedMode_Setting = "Enable Windowed Mode";
+    constexpr const char* WindowedMode_Setting = "Fullscreen, Borderless, and Windowed";
     constexpr const char* WindowedMode_Help = "";
-    constexpr const char* WindowedMode_Tooltip = "Runs the game in a window instead of exclusive fullscreen.";
+    constexpr const char* WindowedMode_Tooltip = "If the game should run:\n"
+                                                 "\n"
+                                                 "In Exclusive Fullscreen (Vanilla behavior)\n"
+                                                 "In Borderless Fullscreen\n"
+                                                 "In Borderless Windowed Mode\n"
+                                                 "In Windowed Mode\n"
+                                                 "\n"
+                                                 "All options will maintain the internal resolution's aspect ratio.\n"
+                                                 "\n"
+                                                 "If you are having issues with fullscreen opening on a secondary monitor:\n"
+                                                 "   1) Open the main launcher\n"
+                                                 "   2) Options -> Screen -> Windowed Mode -> Set to ON\n"
+                                                 "   3) Reposition the launcher window\n"
+                                                 "   4) Launch the game once";
+    constexpr const char* BorderlessMode_Option_BorderlessWindowed = "Borderless Windowed";
+    constexpr const char* BorderlessMode_Option_BorderlessFullscreen = "Borderless Fullscreen";
+    constexpr const char* BorderlessMode_Option_Windowed = "Windowed (with borders)";
+    constexpr const char* BorderlessMode_Option_Fullscreen = "Exclusive Fullscreen";
 
-    constexpr const char* BorderlessWindowed_Section = "Borderless Window Settings";
-    constexpr const char* BorderlessWindowed_Setting = "Borderless Window";
-    constexpr const char* BorderlessWindowed_Help = "";
-    constexpr const char* BorderlessWindowed_Tooltip = "Removes the title bar and borders while keeping the game windowed.";
-
-    constexpr const char* MaximizeBorderless_Section = "Borderless Window Settings";
-    constexpr const char* MaximizeBorderless_Setting = "Maximize Window";
-    constexpr const char* MaximizeBorderless_Help = "";
-    constexpr const char* MaximizeBorderless_Tooltip = "Removes the title bar and borders while keeping the game windowed.";
 
     constexpr const char* ConstraintBorderlessToMonitor_Section = "Borderless Window Settings";
     constexpr const char* ConstraintBorderlessToMonitor_Setting = "Multi-Monitor Window Spanning";
@@ -54,15 +62,24 @@ namespace ConfigKeys
     constexpr const char* ConstraintBorderlessToMonitor_Option_Single_Monitor = "Constraint Window to Primary Monitor";
     constexpr const char* ConstraintBorderlessToMonitor_Option_Multi_Monitor = "Allow Window to Span Across Multiple Monitors";
 
-    constexpr const char* RenderScaleWidth_Section = "Internal Resolution";
-    constexpr const char* RenderScaleWidth_Setting = "Width";
+    constexpr const char* RenderScaleWidth_Section = "Internal Resolution / Render Scale (+ Downsampling / Supersampling / 21:9+ and 4:3 Support)";
+    constexpr const char* RenderScaleWidth_Setting = "Render Width";
     constexpr const char* RenderScaleWidth_Help = "";
-    constexpr const char* RenderScaleWidth_Tooltip = "Leave 0 to use your desktop width. Otherwise sets the internal render width.";
+    constexpr const char* RenderScaleWidth_Tooltip = "Leave 0 to use your desktop width. Otherwise, sets the internal render width.\n"
+                                                     "\n"
+                                                     "Any aspect ratio can be set here.\n"
+                                                     "E.g. for 4:3 - 2880x2160 @ 4K, 1920x1440 @ 2K, 1440x1080 @ 1080p.\n"
+                                                     "\n"
+                                                     "If set wider than your monitor, the window will be clamped to maintain the internal aspect ratio.\n"
+                                                     "\n"
+                                                     "Original PS2 4:3 resolution was 512x448 for reference.";
 
-    constexpr const char* RenderScaleHeight_Section = "Internal Resolution";
-    constexpr const char* RenderScaleHeight_Setting = "Height";
+    constexpr const char* RenderScaleHeight_Section = RenderScaleWidth_Section;
+    constexpr const char* RenderScaleHeight_Setting = "Render Height";
     constexpr const char* RenderScaleHeight_Help = "";
-    constexpr const char* RenderScaleHeight_Tooltip = "Leave 0 to use your desktop height. Otherwise sets the internal render height.";
+    constexpr const char* RenderScaleHeight_Tooltip = "Leave 0 to use your desktop height. Otherwise sets the internal render height.\n"
+                                                       "\n"
+                                                       "Original PS2 4:3 resolution was 512x448 for reference.";
 
     constexpr const char* AnisotropicFiltering_Section = "Texture Filtering";
     constexpr const char* AnisotropicFiltering_Setting = "Anisotropic Filtering Level";

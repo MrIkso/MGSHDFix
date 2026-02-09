@@ -11,7 +11,6 @@ public:
     void CheckStatus() const;
     bool bEnabled = false;
 
-    bool bEnableFSRWarning = true;
 };
 
 inline MuteWarning g_MuteWarning;

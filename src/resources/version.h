@@ -10,7 +10,7 @@
 
 #define VERSION_MAJOR 2
 #define VERSION_MINOR 8
-#define VERSION_PATCH 3
+#define VERSION_PATCH 4
 
 /// Current release version of MGSHDFix at time of compile.
 /// This is automatically set by CI and should be left at 0.0.0.
@@ -24,11 +24,11 @@ inline const std::string sFixVersion = VERSION_STRING;
 inline const std::string sFixName = FIX_NAME;
 
 // Metadata
-#define COMPANY_NAME      "Lyall & Contributors"
+#define COMPANY_NAME      "Lyall, Afevis, & Contributors"
 #define PRODUCT_NAME      FIX_NAME
 #define PRODUCT_VERSION   VERSION_STRING
 #define FILE_VERSION      VERSION_STRING
-#define LEGAL_COPYRIGHT   "© 2025 Lyall & Contributors. Licensed under the MIT License."
+#define LEGAL_COPYRIGHT   "© 2026 Lyall, Afevis, & Contributors. Licensed under the MIT License."
 #define LEGAL_TRADEMARKS  ""
 #define COMMENTS          ""
 #define FILE_DESCRIPTION_ASI     FIX_NAME " ASI Plugin"
@@ -37,7 +37,7 @@ inline const std::string sFixName = FIX_NAME;
 
 // Universal Config Tool Metadata
 #define COMPANY_NAME_CONFIG      "Afevis"
-#define LEGAL_COPYRIGHT_CONFIG   "© 2025 Afevis. Licensed under the MIT License."
+#define LEGAL_COPYRIGHT_CONFIG   "© 2026 Afevis. Licensed under the MIT License."
 #define FILE_DESCRIPTION_CONFIG  "Universal Config Tool"
 #define PRODUCT_NAME_CONFIG      "Universal Config Tool for " FIX_NAME
 #define INTERNAL_NAME_CONFIG     FIX_NAME " Config Tool.exe"

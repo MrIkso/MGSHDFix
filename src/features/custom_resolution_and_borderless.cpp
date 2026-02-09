@@ -5,61 +5,211 @@
 #include "logging.hpp"
 
 #include "common.hpp"
-#include "config.hpp"
 #include "d3d11_api.hpp"
-#include "mute_warning.hpp"
 
-namespace 
+namespace
 {
-
-
     float fAspectRatio;
 
-    // Aspect ratio + HUD stuff
     constexpr float fNativeAspect = 16.0f / 9.0f;
     float fAspectMultiplier;
     float fHUDWidth;
     float fHUDHeight;
-    constexpr float fDefaultHUDWidth = 1280;
-    constexpr float fDefaultHUDHeight = 720;
+    constexpr float fDefaultHUDWidth = 1280.0f;
+    constexpr float fDefaultHUDHeight = 720.0f;
     float fHUDWidthOffset;
     float fHUDHeightOffset;
     float fMGS2_EffectScaleX;
     float fMGS2_EffectScaleY;
 
-    // CreateWindowExA Hook
+    static const char* kOrigWndProcProp = "CRB_OrigWndProc";
+    static const char* kInitFocusProp = "CRB_InitFocusDone";
+
+    static void EnsureInitialTopmostAndFocus(HWND hWnd)
+    {
+        if (hWnd == nullptr || GetPropA(hWnd, kInitFocusProp) != nullptr)
+        {
+            return;
+        }
+
+        SetPropA(hWnd, kInitFocusProp, (HANDLE)1);
+
+        SetWindowPos(hWnd, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
+
+        ShowWindow(hWnd, SW_SHOW);
+        UpdateWindow(hWnd);
+
+        HWND fg = GetForegroundWindow();
+        DWORD fgThread = fg ? GetWindowThreadProcessId(fg, nullptr) : 0;
+        DWORD wndThread = GetWindowThreadProcessId(hWnd, nullptr);
+
+        if (fgThread && wndThread && fgThread != wndThread)
+        {
+            AttachThreadInput(fgThread, wndThread, TRUE);
+        }
+
+        SetForegroundWindow(hWnd);
+        SetActiveWindow(hWnd);
+        SetFocus(hWnd);
+
+        if (fgThread && wndThread && fgThread != wndThread)
+        {
+            AttachThreadInput(fgThread, wndThread, FALSE);
+        }
+
+        spdlog::info("CreateWindowExA: EnsureInitialTopmostAndFocus applied.");
+    }
+
+    static LRESULT CALLBACK FocusTopmostWndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
+    {
+        if (msg == WM_SHOWWINDOW && wParam != 0)
+        {
+            EnsureInitialTopmostAndFocus(hWnd);
+        }
+        else if (msg == WM_ACTIVATEAPP)
+        {
+            const bool active = (wParam != 0);
+            SetWindowPos(hWnd, active ? HWND_TOPMOST : HWND_NOTOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE);
+
+            if (active)
+            {
+                EnsureInitialTopmostAndFocus(hWnd);
+            }
+        }
+        else if (msg == WM_NCDESTROY || msg == WM_DESTROY)
+        {
+            RemovePropA(hWnd, kInitFocusProp);
+
+            WNDPROC orig = (WNDPROC)GetPropA(hWnd, kOrigWndProcProp);
+            if (orig != nullptr)
+            {
+                RemovePropA(hWnd, kOrigWndProcProp);
+                SetWindowLongPtrA(hWnd, GWLP_WNDPROC, (LONG_PTR)orig);
+                return CallWindowProcA(orig, hWnd, msg, wParam, lParam);
+            }
+        }
+
+        WNDPROC orig = (WNDPROC)GetPropA(hWnd, kOrigWndProcProp);
+        return orig ? CallWindowProcA(orig, hWnd, msg, wParam, lParam) : DefWindowProcA(hWnd, msg, wParam, lParam);
+    }
+
     SafetyHookInline CreateWindowExA_hook {};
+
+    static void SubclassAndKick(HWND hWnd)
+    {
+        if (hWnd == nullptr)
+        {
+            return;
+        }
+
+        if (GetPropA(hWnd, kOrigWndProcProp) == nullptr)
+        {
+            WNDPROC orig = (WNDPROC)SetWindowLongPtrA(hWnd, GWLP_WNDPROC, (LONG_PTR)FocusTopmostWndProc);
+            SetPropA(hWnd, kOrigWndProcProp, (HANDLE)orig);
+        }
+
+        EnsureInitialTopmostAndFocus(hWnd);
+    }
+
     HWND WINAPI CreateWindowExA_hooked(DWORD dwExStyle, LPCSTR lpClassName, LPCSTR lpWindowName, DWORD dwStyle, int X, int Y, int nWidth, int nHeight, HWND hWndParent, HMENU hMenu, HINSTANCE hInstance, LPVOID lpParam)
     {
-        const LPCSTR sClassName = "CSD3DWND";
-        if (std::string(lpClassName) == std::string(sClassName))
+        const char* sClassName = "CSD3DWND";
+
+        if (lpClassName != nullptr && std::strcmp(lpClassName, sClassName) == 0 && !(eGameType & UNKNOWN))
         {
-            if (CustomResolutionAndBorderless::bBorderlessMode && !(eGameType & UNKNOWN))
+            if (CustomResolutionAndBorderless::bBorderlessMode)
             {
-                auto hWnd = CreateWindowExA_hook.stdcall<HWND>(dwExStyle, lpClassName, lpWindowName, WS_POPUP, X, Y, nWidth, nHeight, hWndParent, hMenu, hInstance, lpParam);
-                SetWindowPos(hWnd, HWND_TOP, 0, 0, DesktopDimensions.first, DesktopDimensions.second, NULL);
-                spdlog::info("CreateWindowExA: Borderless: ClassName = {}, WindowName = {}, dwStyle = 0x{:08X}, X = {}, Y = {}, nWidth = {}, nHeight = {}", lpClassName, lpWindowName, WS_POPUP, X, Y, nWidth, nHeight);
-                spdlog::info("CreateWindowExA: Borderless: SetWindowPos to X = {}, Y = {}, cx = {}, cy = {}", 0, 0, (int)DesktopDimensions.first, (int)DesktopDimensions.second);
+                spdlog::info("CreateWindowExA: Borderless: ClassName = {}, WindowName = {}, dwStyle = 0x{:08X}, dwExStyle = 0x{:08X}, X = {}, Y = {}, nWidth = {}, nHeight = {}",
+                             lpClassName ? lpClassName : "<null>",
+                             lpWindowName ? lpWindowName : "<null>",
+                             (uint32_t)dwStyle,
+                             (uint32_t)dwExStyle,
+                             X, Y, nWidth, nHeight);
+
+                HWND hWnd = CreateWindowExA_hook.stdcall<HWND>(dwExStyle, lpClassName, lpWindowName, WS_POPUP | WS_VISIBLE, X, Y, nWidth, nHeight, hWndParent, hMenu, hInstance, lpParam);
+
+                {
+                    LONG_PTR style = GetWindowLongPtrA(hWnd, GWL_STYLE);
+                    style &= ~WS_OVERLAPPEDWINDOW;
+                    style |= WS_POPUP | WS_VISIBLE;
+                    SetWindowLongPtrA(hWnd, GWL_STYLE, style);
+
+                    LONG_PTR exStyle = GetWindowLongPtrA(hWnd, GWL_EXSTYLE);
+                    exStyle &= ~WS_EX_TOOLWINDOW;
+                    exStyle |= WS_EX_APPWINDOW;
+                    SetWindowLongPtrA(hWnd, GWL_EXSTYLE, exStyle);
+                }
+
+                HMONITOR mon = CustomResolutionAndBorderless::bLimitToPrimaryMonitor ? MonitorFromPoint(POINT { 0, 0 }, MONITOR_DEFAULTTOPRIMARY) : MonitorFromWindow(hWnd, MONITOR_DEFAULTTONEAREST);
+
+                MONITORINFO mi {};
+                mi.cbSize = sizeof(mi);
+                GetMonitorInfoA(mon, &mi);
+
+                const int monX = mi.rcMonitor.left;
+                const int monY = mi.rcMonitor.top;
+                const int monW = mi.rcMonitor.right - mi.rcMonitor.left;
+                const int monH = mi.rcMonitor.bottom - mi.rcMonitor.top;
+
+                spdlog::info("CreateWindowExA: Borderless: LimitToPrimaryMonitor = {}", CustomResolutionAndBorderless::bLimitToPrimaryMonitor);
+                spdlog::info("CreateWindowExA: Borderless: Monitor rcMonitor = L={}, T={}, R={}, B={} ({}x{})", mi.rcMonitor.left, mi.rcMonitor.top, mi.rcMonitor.right, mi.rcMonitor.bottom, monW, monH);
+
+                int finalW = CustomResolutionAndBorderless::iFinalWindowResolutionX;
+                int finalH = CustomResolutionAndBorderless::iFinalWindowResolutionY;
+
+                if (finalW <= 0 || finalH <= 0)
+                {
+                    finalW = CustomResolutionAndBorderless::DesktopDimensions.first > 0 ? CustomResolutionAndBorderless::DesktopDimensions.first : monW;
+                    finalH = CustomResolutionAndBorderless::DesktopDimensions.second > 0 ? CustomResolutionAndBorderless::DesktopDimensions.second : monH;
+
+                    spdlog::info("CreateWindowExA: Borderless: Final size was invalid, falling back: DesktopDimensions = {}x{}, Using = {}x{}",
+                                 CustomResolutionAndBorderless::DesktopDimensions.first,
+                                 CustomResolutionAndBorderless::DesktopDimensions.second,
+                                 finalW,
+                                 finalH);
+                }
+
+                const int posX = monX + (monW - finalW) / 2;
+                const int posY = monY + (monH - finalH) / 2;
+
+                spdlog::info("CreateWindowExA: Borderless: SetWindowPos to X = {}, Y = {}, cx = {}, cy = {}", posX, posY, finalW, finalH);
+
+                SetWindowPos(hWnd, HWND_TOPMOST, posX, posY, finalW, finalH, SWP_FRAMECHANGED | SWP_SHOWWINDOW);
+
+                SubclassAndKick(hWnd);
+
                 g_D3D11Hooks.MainHwnd = hWnd;
                 return hWnd;
             }
 
-            if (CustomResolutionAndBorderless::bWindowedMode && !(eGameType & UNKNOWN))
+            if (CustomResolutionAndBorderless::bWindowedMode)
             {
-                auto hWnd = CreateWindowExA_hook.stdcall<HWND>(dwExStyle, lpClassName, lpWindowName, dwStyle, X, Y, nWidth, nHeight, hWndParent, hMenu, hInstance, lpParam);
-                SetWindowPos(hWnd, HWND_TOP, 0, 0, CustomResolutionAndBorderless::iOutputResX, CustomResolutionAndBorderless::iOutputResY, NULL);
-                spdlog::info("CreateWindowExA: Windowed: ClassName = {}, WindowName = {}, dwStyle = 0x{:08X}, X = {}, Y = {}, nWidth = {}, nHeight = {}", lpClassName, lpWindowName, dwStyle, X, Y, nWidth, nHeight);
+                spdlog::info("CreateWindowExA: Windowed: ClassName = {}, WindowName = {}, dwStyle = 0x{:08X}, dwExStyle = 0x{:08X}, X = {}, Y = {}, nWidth = {}, nHeight = {}",
+                             lpClassName ? lpClassName : "<null>",
+                             lpWindowName ? lpWindowName : "<null>",
+                             (uint32_t)dwStyle,
+                             (uint32_t)dwExStyle,
+                             X, Y, nWidth, nHeight);
+
+                HWND hWnd = CreateWindowExA_hook.stdcall<HWND>(dwExStyle, lpClassName, lpWindowName, dwStyle, X, Y, nWidth, nHeight, hWndParent, hMenu, hInstance, lpParam);
+
+                spdlog::info("CreateWindowExA: Windowed: Forcing output size: iOutputResX = {}, iOutputResY = {}", CustomResolutionAndBorderless::iOutputResX, CustomResolutionAndBorderless::iOutputResY);
                 spdlog::info("CreateWindowExA: Windowed: SetWindowPos to X = {}, Y = {}, cx = {}, cy = {}", 0, 0, CustomResolutionAndBorderless::iOutputResX, CustomResolutionAndBorderless::iOutputResY);
+
+                SetWindowPos(hWnd, HWND_TOP, 0, 0, CustomResolutionAndBorderless::iOutputResX, CustomResolutionAndBorderless::iOutputResY, SWP_FRAMECHANGED | SWP_SHOWWINDOW);
+
+                SubclassAndKick(hWnd);
+
                 g_D3D11Hooks.MainHwnd = hWnd;
                 return hWnd;
             }
         }
 
+        spdlog::info("CreateWindowExA: Passing through original CreateWindowExA");
+
         g_D3D11Hooks.MainHwnd = CreateWindowExA_hook.stdcall<HWND>(dwExStyle, lpClassName, lpWindowName, dwStyle, X, Y, nWidth, nHeight, hWndParent, hMenu, hInstance, lpParam);
         return g_D3D11Hooks.MainHwnd;
     }
-
-
 }
 
 namespace CustomResolutionAndBorderless
@@ -125,8 +275,11 @@ namespace CustomResolutionAndBorderless
                     FSRWarningMidHook = safetyhook::create_mid(MGS2_MGS3_FSR_Result,
                                                                [](SafetyHookContext& ctx)
                                                                {
+
+
+
                                                                    static bool bFSRWarningShown = false;
-                                                                   if (!g_MuteWarning.bEnableFSRWarning || bFSRWarningShown)
+                                                                   if (!bEnableFSRWarning || bFSRWarningShown)
                                                                    {
                                                                        return;
                                                                    }
@@ -147,6 +300,8 @@ namespace CustomResolutionAndBorderless
                                                                        "It's advised to set both Internal Resolution & Internal Upscaling graphical options in the game's main launcher to default/original unless ABSOLUTELY necessary! (such as some systems crashing during Stillman's tutorial)\n"
                                                                        "\n"
                                                                        "This warning can be muted on the config tool's \"MGSHDfix / Internal\" settings page." << std::endl;
+
+
                                                                });
 
                 }
@@ -270,125 +425,250 @@ namespace CustomResolutionAndBorderless
             // MG 1/2 | MGS 2 | MGS 3: SetWindowPos
                 if (uint8_t* MGS2_MGS3_SetWindowPosScanResult = Memory::PatternScan(baseModule, "33 ?? 48 ?? ?? ?? FF ?? ?? ?? ?? ?? 8B ?? ?? BA 02 00 00 00", "SetWindowPos"))
                 {
+                    if (bBorderlessMode || bWindowedMode)
+                    {
+                        const int desktopW = DesktopDimensions.first;
+                        const int desktopH = DesktopDimensions.second;
+
+                        const float desktopAspect = (float)desktopW / (float)desktopH;
+
+                        constexpr float EPSILON = 1e-6f;
+
+                        const bool aspectsMatch = std::abs(fAspectRatio - desktopAspect) < EPSILON;
+                        const bool clampToWidth = desktopAspect < fAspectRatio;
+
+                        const bool internalMeetsDesktop = clampToWidth ? (iInternalResX >= desktopW) : (iInternalResY >= desktopH);
+                        const bool shouldMaximize = bMaximizeBorderless || internalMeetsDesktop;
+
+                        int finalX = 0;
+                        int finalY = 0;
+
+                        const bool manualX = !bUsingAutomaticOutputX;
+                        const bool manualY = !bUsingAutomaticOutputY;
+
+                        spdlog::info("AspectClamp: Desktop = {}x{}, Internal = {}x{}, AspectInternal = {:.6f}, AspectDesktop = {:.6f}", desktopW, desktopH, iInternalResX, iInternalResY, fAspectRatio, desktopAspect);
+                        spdlog::info("AspectClamp: aspectsMatch = {}, clampToWidth = {}, internalMeetsDesktop = {}, shouldMaximize = {}", aspectsMatch, clampToWidth, internalMeetsDesktop, shouldMaximize);
+                        spdlog::info("AspectClamp: manualX = {}, manualY = {}, iOriginalOutputResX = {}, iOriginalOutputResY = {}", manualX, manualY, iOriginalOutputResX, iOriginalOutputResY);
+
+                        if (manualX || manualY)
+                        {
+                            if (manualX)
+                            {
+                                finalX = iOriginalOutputResX;
+                            }
+                            if (manualY)
+                            {
+                                finalY = iOriginalOutputResY;
+                            }
+
+                            spdlog::info("AspectClamp: Manual: start finalX = {}, finalY = {}", finalX, finalY);
+
+                            if (!manualX || finalX <= 0)
+                            {
+                                if (finalY > 0)
+                                {
+                                    finalX = (int)std::lround((double)finalY * (double)fAspectRatio);
+                                }
+                            }
+                            if (!manualY || finalY <= 0)
+                            {
+                                if (finalX > 0)
+                                {
+                                    finalY = (int)std::lround((double)finalX / (double)fAspectRatio);
+                                }
+                            }
+
+                            spdlog::info("AspectClamp: Manual: derived finalX = {}, finalY = {}", finalX, finalY);
+
+                            if (finalX <= 0) { finalX = iInternalResX; }
+                            if (finalY <= 0) { finalY = iInternalResY; }
+
+                            if (finalX > desktopW || finalY > desktopH)
+                            {
+                                spdlog::info("AspectClamp: Manual: clamping to desktop {}x{}", desktopW, desktopH);
+
+                                finalX = std::min(finalX, desktopW);
+                                finalY = (int)std::lround((double)finalX / (double)fAspectRatio);
+
+                                if (finalY > desktopH)
+                                {
+                                    finalY = desktopH;
+                                    finalX = (int)std::lround((double)finalY * (double)fAspectRatio);
+                                }
+                            }
+
+                            spdlog::info("AspectClamp: Manual: final window size = {}x{}", finalX, finalY);
+                        }
+                        else if (aspectsMatch)
+                        {
+                            spdlog::info("AspectClamp: MATCH branch");
+
+                            if (shouldMaximize)
+                            {
+                                finalX = desktopW;
+                                finalY = desktopH;
+                                spdlog::info("AspectClamp: MATCH maximize -> desktop {}x{}", finalX, finalY);
+                            }
+                            else
+                            {
+                                finalX = iInternalResX;
+                                finalY = iInternalResY;
+                                spdlog::info("AspectClamp: MATCH use internal {}x{}", finalX, finalY);
+
+                                if (finalX > desktopW || finalY > desktopH)
+                                {
+                                    spdlog::info("AspectClamp: MATCH internal exceeds desktop, clamping");
+
+                                    finalX = desktopW;
+                                    finalY = (int)std::lround((double)finalX / (double)fAspectRatio);
+
+                                    if (finalY > desktopH)
+                                    {
+                                        finalY = desktopH;
+                                        finalX = (int)std::lround((double)finalY * (double)fAspectRatio);
+                                    }
+                                }
+                            }
+                        }
+                        else
+                        {
+                            spdlog::info("AspectClamp: DIFFER branch");
+
+                            if (!shouldMaximize)
+                            {
+                                finalX = iInternalResX;
+                                finalY = iInternalResY;
+                                spdlog::info("AspectClamp: DIFFER not maximizing -> internal {}x{}", finalX, finalY);
+
+                                if (finalX > desktopW || finalY > desktopH)
+                                {
+                                    spdlog::info("AspectClamp: DIFFER internal exceeds desktop, clamping");
+
+                                    finalX = desktopW;
+                                    finalY = (int)std::lround((double)finalX / (double)fAspectRatio);
+
+                                    if (finalY > desktopH)
+                                    {
+                                        finalY = desktopH;
+                                        finalX = (int)std::lround((double)finalY * (double)fAspectRatio);
+                                    }
+                                }
+                            }
+                            else if (clampToWidth)
+                            {
+                                finalX = desktopW;
+                                finalY = (int)std::lround((double)finalX / (double)fAspectRatio);
+                                spdlog::info("AspectClamp: DIFFER clamp X -> {}x{}", finalX, finalY);
+
+                                if (finalY > desktopH)
+                                {
+                                    spdlog::info("AspectClamp: DIFFER secondary clamp to Y");
+
+                                    finalY = desktopH;
+                                    finalX = (int)std::lround((double)finalY * (double)fAspectRatio);
+                                }
+                            }
+                            else
+                            {
+                                finalY = desktopH;
+                                finalX = (int)std::lround((double)finalY * (double)fAspectRatio);
+                                spdlog::info("AspectClamp: DIFFER clamp Y -> {}x{}", finalX, finalY);
+
+                                if (finalX > desktopW)
+                                {
+                                    spdlog::info("AspectClamp: DIFFER secondary clamp to X");
+
+                                    finalX = desktopW;
+                                    finalY = (int)std::lround((double)finalX / (double)fAspectRatio);
+                                }
+                            }
+                        }
+
+                        iFinalWindowResolutionX = finalX;
+                        iFinalWindowResolutionY = finalY;
+
+                        spdlog::info("AspectClamp: FINAL iFinalWindowResolution = {}x{}, Internal = {}x{}, Desktop = {}x{}", iFinalWindowResolutionX, iFinalWindowResolutionY, iInternalResX, iInternalResY, desktopW, desktopH);
+                    }
+
                     static SafetyHookMid SetWindowPosMidHook {};
                     SetWindowPosMidHook = safetyhook::create_mid(MGS2_MGS3_SetWindowPosScanResult,
                                                                  [](SafetyHookContext& ctx)
                                                                  {
-                                                                     if (bBorderlessMode)
+                                                                     if (bBorderlessMode || bWindowedMode)
                                                                      {
-                                                                         // Set X and Y to 0 to position window at centre of screen.
-                                                                         ctx.r8 = 0;
-                                                                         ctx.r9 = 0;
-                                                                         // Set window width and height to desktop resolution.
-                                                                         /// todo - add new option - maximize to desktop resolution, or keep at native size
-                                                                             /// second option -> single monitor or span multiple monitors
-                                                                         //clamp to largest of total screen dimension x or total screen dimension y, then calc ratio for the other dimension to properly clamp. 
-                                                                         // that way, window size is either smaller than top/bottom or left/right dimension when clamped to largest screen dimension
-                                                                         *reinterpret_cast<int*>(ctx.rsp + 0x20) = (int)DesktopDimensions.first;
-                                                                         *reinterpret_cast<int*>(ctx.rsp + 0x28) = (int)DesktopDimensions.second;
-                                                                     }
-                                                                     else if (bWindowedMode)
-                                                                     {
-                                                                         const int desktopW = static_cast<int>(DesktopDimensions.first);
-                                                                         const int desktopH = static_cast<int>(DesktopDimensions.second);
+                                                                         const int desktopW = (int)DesktopDimensions.first;
+                                                                         const int desktopH = (int)DesktopDimensions.second;
 
-                                                                         // Actual viewport size, factoring for the frame.
-                                                                         const int winW = static_cast<int>(iOutputResX) + 18;
-                                                                         const int winH = static_cast<int>(iOutputResY) + 47;
+                                                                         const bool isBorderless = bBorderlessMode;
 
-                                                                         // Centering offsets (can be negative)
-                                                                         const int offsetX = (desktopW - winW) / 2;
-                                                                         const int offsetY = (desktopH - winH) / 2;
+                                                                         const int outW = iFinalWindowResolutionX + (isBorderless ? 0 : 18);
+                                                                         const int outH = iFinalWindowResolutionY + (isBorderless ? 0 : 47);
 
-                                                                         // X / Y position
-                                                                         ctx.r8 = static_cast<uint64_t>(static_cast<int64_t>(offsetX));
-                                                                         ctx.r9 = static_cast<uint64_t>(static_cast<int64_t>(offsetY));
+                                                                         int offsetX = (desktopW - outW) / 2;
+                                                                         int offsetY = (desktopH - outH) / 2;
 
-                                                                         // Width / Height
-                                                                         *reinterpret_cast<int*>(ctx.rsp + 0x20) = winW;
-                                                                         *reinterpret_cast<int*>(ctx.rsp + 0x28) = winH;
+                                                                         if (isBorderless)
+                                                                         {
+                                                                             if (offsetX < 0) offsetX = 0;
+                                                                             if (offsetY < 0) offsetY = 0;
+                                                                         }
 
+                                                                         spdlog::info("SetWindowPos: {}: Desktop = {}x{}, Final = {}x{}, Out = {}x{}, Internal = {}x{}, Offset = {},{}",
+                                                                                      isBorderless ? "Borderless" : "Windowed",
+                                                                                      desktopW, desktopH,
+                                                                                      iFinalWindowResolutionX, iFinalWindowResolutionY,
+                                                                                      outW, outH,
+                                                                                      iInternalResX, iInternalResY,
+                                                                                      offsetX, offsetY);
+
+                                                                         ctx.r8 = (uint64_t)(int64_t)offsetX;
+                                                                         ctx.r9 = (uint64_t)(int64_t)offsetY;
+
+                                                                         *reinterpret_cast<int*>(ctx.rsp + 0x20) = outW;
+                                                                         *reinterpret_cast<int*>(ctx.rsp + 0x28) = outH;
                                                                      }
                                                                  });
 
+                    LOG_HOOK(SetWindowPosMidHook, "MG 1/2 | MGS 2 | MGS 3: SetWindowPos")
                 }
+        }
+    
 
 
-            // MGS 2 | MGS 3: Framebuffer fix, stops the framebuffer from being set to maximum display resolution.
-            // Thanks emoose!
-            if (bFramebufferFix)
+        // MGS 2 | MGS 3: Framebuffer fix, stops the framebuffer from being set to maximum display resolution.
+        // Thanks emoose!
+        if (bFramebufferFix && eGameType & (MG | MGS2 | MGS3))
+        {
+            // Need to stop hor + vert from being modified.
+            for (int i = 1; i <= 2; ++i)
             {
-                // Need to stop hor + vert from being modified.
-                for (int i = 1; i <= 2; ++i)
+                // Fullscreen framebuffer
+                if (uint8_t* MGS2_MGS3_FullscreenFramebufferFixScanResult = Memory::PatternScanSilent(baseModule, "03 ?? 41 ?? ?? ?? C7 ?? ?? ?? ?? ?? ?? 00 00 00"))
                 {
-                    // Fullscreen framebuffer
-                    if (uint8_t* MGS2_MGS3_FullscreenFramebufferFixScanResult = Memory::PatternScanSilent(baseModule, "03 ?? 41 ?? ?? ?? C7 ?? ?? ?? ?? ?? ?? 00 00 00"))
-                    {
-                        Memory::PatchBytes((uintptr_t)MGS2_MGS3_FullscreenFramebufferFixScanResult + 0x2, "\x90\x90\x90\x90", 4);
-                        spdlog::info("MG/MG2 | MGS 2 | MGS 3: Fullscreen Framebuffer {}: Patched instruction.", i);
-                    }
-                }
-
-                // Windowed framebuffer
-
-                if (uint8_t* MGS2_MGS3_WindowedFramebufferFixScanResult = Memory::PatternScan(baseModule, "?? ?? F3 0F ?? ?? 41 ?? ?? F3 0F ?? ?? F3 0F ?? ?? 66 0F ?? ?? 0F ?? ??", "Windowed Framebuffer"))
-                {
-                    Memory::PatchBytes((uintptr_t)MGS2_MGS3_WindowedFramebufferFixScanResult, "\xEB", 1);
-                    if (eGameType & MG | MGS3)
-                    {
-                        Memory::PatchBytes((uintptr_t)MGS2_MGS3_WindowedFramebufferFixScanResult + 0x2A, "\xEB", 1);
-                    }
-
-                    if (eGameType & MGS2)
-                    {
-                        Memory::PatchBytes((uintptr_t)MGS2_MGS3_WindowedFramebufferFixScanResult + 0x27, "\xEB", 1);
-                    }
-                    spdlog::info("MG/MG2 | MGS 2 | MGS 3: Windowed Framebuffer: Patched instructions.");
+                    Memory::PatchBytes((uintptr_t)MGS2_MGS3_FullscreenFramebufferFixScanResult + 0x2, "\x90\x90\x90\x90", 4);
+                    spdlog::info("MG/MG2 | MGS 2 | MGS 3: Fullscreen Framebuffer {}: Patched instruction.", i);
                 }
             }
-        }
 
-        /*
-        float WidescreenRes = (float)(iOutputResY * 16) / 9;
-    
-        if (uint8_t* MGS2_MGS3_ViewportScanResult = Memory::PatternScan(baseModule, "48 83 EC ?? 48 8B 05 ?? ?? ?? ?? 4C 8B C2", "MGS 2 | MGS 3: CD3DCachedDevice::SetViewport"))
-        {
-            static SafetyHookMid Viewport_MidHook {};
-            Viewport_MidHook = safetyhook::create_mid(MGS2_MGS3_ViewportScanResult,
-                [](SafetyHookContext& ctx)
+            // Windowed framebuffer
+
+            if (uint8_t* MGS2_MGS3_WindowedFramebufferFixScanResult = Memory::PatternScan(baseModule, "?? ?? F3 0F ?? ?? 41 ?? ?? F3 0F ?? ?? F3 0F ?? ?? 66 0F ?? ?? 0F ?? ??", "Windowed Framebuffer"))
+            {
+                Memory::PatchBytes((uintptr_t)MGS2_MGS3_WindowedFramebufferFixScanResult, "\xEB", 1);
+                if (eGameType & MG | MGS3)
                 {
-                    D3D11_VIEWPORT D3DViewport = *reinterpret_cast<D3D11_VIEWPORT*>(ctx.rdx);
-                    //check what scales with 1024x1024
-                    /*if (D3DViewport.Height == 720.0f)
-                    {
-                        return;
-                    }
-    
-                    if (D3DViewport.Height == 2160.0f)
-                    {
-                        return;
-                    }
-                    if (D3DViewport.Height == 969.0f && (D3DViewport.Width == 645.0f || D3DViewport.Width == 652.0f) && ((D3DViewport.TopLeftX == 2745.0f && D3DViewport.TopLeftY == 106.0f) || (D3DViewport.TopLeftX == 427.0f && D3DViewport.TopLeftY == 106.0f)))
-                    {
-                        return;
-                    }
-                    if (D3DViewport.Width == 384.0f && D3DViewport.Height == 288.0f)//videos
-                    {
-                        return;
-                    }
-                    spdlog::info("MGS 2 | MGS 3: Viewport: X: {}, Y: {}, Width: {}, Height: {}, Max Depth: {}, Min Depth: {}", D3DViewport.TopLeftX, D3DViewport.TopLeftY, D3DViewport.Width, D3DViewport.Height, D3DViewport.MaxDepth, D3DViewport.MinDepth);
-                    /*
-                    if (D3DViewport.TopLeftY != 1080.0f)
-                    {
-                        //D3DViewport.TopLeftX = (float)iOutputResX/2/2/2;
-                        D3DViewport.Width = 1920.0f;
-                        spdlog::info("MGS 2 | MGS 3: Viewport: New X: {}, Y: {}, Width: {}, Height: {}", D3DViewport.TopLeftX, D3DViewport.TopLeftY, D3DViewport.Width, D3DViewport.Height);
-                        *reinterpret_cast<D3D11_VIEWPORT*>(ctx.rdx) = D3DViewport;
-    
-                    }*//*
-                });
+                    Memory::PatchBytes((uintptr_t)MGS2_MGS3_WindowedFramebufferFixScanResult + 0x2A, "\xEB", 1);
+                }
+
+                if (eGameType & MGS2)
+                {
+                    Memory::PatchBytes((uintptr_t)MGS2_MGS3_WindowedFramebufferFixScanResult + 0x27, "\xEB", 1);
+                }
+                spdlog::info("MG/MG2 | MGS 2 | MGS 3: Windowed Framebuffer: Patched instructions.");
+            }
         }
-        */
+    
+
     }
 
 

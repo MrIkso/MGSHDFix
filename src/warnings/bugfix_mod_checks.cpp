@@ -392,7 +392,7 @@ void BugfixMods::Check()
             spdlog::info("Bugfix Mod Checks: MGS2 Community Bugfix Compilation Check: Checking for plugin: {}", CommunityBugfixCompilationASI.string());
             if (!std::filesystem::exists(CommunityBugfixCompilationASI))
             {
-                const WarningPolicy policy { 2, 60 };
+                const WarningPolicy policy { 2, 120 };
                 const uint32_t remaining = GetWarningsRemaining(cache, key, policy);
 
                 if (ShouldWarn(cache, key, policy))

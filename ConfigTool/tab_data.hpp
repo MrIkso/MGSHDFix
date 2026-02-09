@@ -55,6 +55,8 @@ struct Field
     double minFloat = std::numeric_limits<double>::lowest();
     double maxFloat = std::numeric_limits<double>::max();
 
+    std::vector<wxString> prerequisiteChoiceMatches;
 };
+
 
 extern const std::vector<std::pair<wxString, std::vector<Field>>> kTabs;
