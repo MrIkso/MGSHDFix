@@ -4,6 +4,7 @@
 #include "mg1_custom_loading_screens.hpp"
 
 #include "config.hpp"
+#include "custom_resolution_and_borderless.hpp"
 #include "logging.hpp"
 
 void MG1CustomLoadingScreens::Initialize() const
@@ -31,7 +32,7 @@ Enabled = true
 
         return;
     }
-    if (iOutputResY < 1080)
+    if (CustomResolutionAndBorderless::iOutputResY < 1080)
     {
         spdlog::info("MG1/2: Custom Loading Screens: Resolution below 1080p, skipping.");
         return;
@@ -44,9 +45,9 @@ Enabled = true
         MG1CustomLoadingScreenEnglishMidHook = safetyhook::create_mid(loadingScreenEnglish,
             [](SafetyHookContext& ctx)
             {
-                ctx.rdx = iOutputResY >= 2160 ? reinterpret_cast<uintptr_t>(&"$/misc/loading/****/loading_4k.ctxr") :
-                    iOutputResY >= 1440 ? reinterpret_cast<uintptr_t>(&"$/misc/loading/****/loading_wqhd.ctxr") :
-                    /*iOutputResY >= 1080*/ reinterpret_cast<uintptr_t>(&"$/misc/loading/****/loading_fhd.ctxr");
+                ctx.rdx = CustomResolutionAndBorderless::iOutputResY >= 2160 ? reinterpret_cast<uintptr_t>(&"$/misc/loading/****/loading_4k.ctxr") :
+                          CustomResolutionAndBorderless::iOutputResY >= 1440 ? reinterpret_cast<uintptr_t>(&"$/misc/loading/****/loading_wqhd.ctxr") :
+                              /*iOutputResY >= 1080*/ reinterpret_cast<uintptr_t>(&"$/misc/loading/****/loading_fhd.ctxr");
             });
         LOG_HOOK(MG1CustomLoadingScreenEnglishMidHook, "MG1/2: Custom Loading Screens: English")
     }
@@ -58,9 +59,9 @@ Enabled = true
         MG1CustomLoadingScreenJapaneseMidHook = safetyhook::create_mid(loadingScreenJapanese,
             [](SafetyHookContext& ctx)
             {
-                ctx.rdx = iOutputResY >= 2160 ? reinterpret_cast<uintptr_t>(&"$/misc/loading/****/loading_jp_4k.ctxr") :
-                    iOutputResY >= 1440 ? reinterpret_cast<uintptr_t>(&"$/misc/loading/****/loading_jp_wqhd.ctxr") :
-                    /*iOutputResY >= 1080*/ reinterpret_cast<uintptr_t>(&"$/misc/loading/****/loading_jp_fhd.ctxr");
+                ctx.rdx = CustomResolutionAndBorderless::iOutputResY >= 2160 ? reinterpret_cast<uintptr_t>(&"$/misc/loading/****/loading_jp_4k.ctxr") :
+                          CustomResolutionAndBorderless::iOutputResY >= 1440 ? reinterpret_cast<uintptr_t>(&"$/misc/loading/****/loading_jp_wqhd.ctxr") :
+                              /*iOutputResY >= 1080*/ reinterpret_cast<uintptr_t>(&"$/misc/loading/****/loading_jp_fhd.ctxr");
             });
         LOG_HOOK(MG1CustomLoadingScreenJapaneseMidHook, "MG1/2: Custom Loading Screens: Japanese")
     }

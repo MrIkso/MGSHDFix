@@ -4,7 +4,7 @@
 #include "common.hpp"
 #include "config.hpp"
 #include "logging.hpp"
-
+#include "custom_resolution_and_borderless.hpp"
 
 void DepthOfFieldFixes::Initialize()
 {
@@ -15,12 +15,12 @@ void DepthOfFieldFixes::Initialize()
 
     MAKE_HOOK_MID(baseModule, "E8 ?? ?? ?? ?? F6 C3 ?? 74 ?? 41 0F 28 D9 41 0F 28 CA EB ?? 0F 28 DF 41 0F 28 C8 F6 C3 ?? 74 ?? 41 0F 28 D3 41 0F 28 C4 EB ?? 0F 28 D7 41 0F 28 C0 C7 44 24 ?? ?? ?? ?? ?? F3 0F 58 C2 F3 0F 58 CB 48 8D 4F ?? F3 0F 11 44 24 ?? F3 0F 11 4C 24 ?? 0F 28 CF F3 44 0F 11 6C 24 ?? F3 44 0F 11 74 24 ?? F3 0F 11 54 24 ?? 0F 28 D7 E8 ?? ?? ?? ?? 48 81 C7", "dof test near", {
         spdlog::info("ctx.xmm1.f32[0] before = {:.6g}", ctx.xmm1.f32[0]);
-        ctx.xmm1.f32[0] *= (float)iInternalResY / 448.0f;
+        ctx.xmm1.f32[0] *= (float)CustomResolutionAndBorderless::iInternalResY / 448.0f;
         spdlog::info("ctx.xmm1.f32[0] after = {:.6g}", ctx.xmm1.f32[0]);
         })
 
         MAKE_HOOK_MID(baseModule, "E8 ?? ?? ?? ?? F6 C3 ?? 74 ?? 41 0F 28 D9 41 0F 28 CA EB ?? 0F 28 DF 41 0F 28 C8 F6 C3 ?? 74 ?? 41 0F 28 D3 41 0F 28 C4 EB ?? 0F 28 D7 41 0F 28 C0 C7 44 24 ?? ?? ?? ?? ?? F3 0F 58 C2 F3 0F 58 CB 48 8D 4F ?? F3 0F 11 44 24 ?? F3 0F 11 4C 24 ?? 0F 28 CF F3 44 0F 11 6C 24 ?? F3 44 0F 11 74 24 ?? F3 0F 11 54 24 ?? 0F 28 D7 E8 ?? ?? ?? ?? 48 83 C7", "dof test far", {
-        ctx.xmm1.f32[0] *= (float)iInternalResY / 448.0f;
+        ctx.xmm1.f32[0] *= (float)CustomResolutionAndBorderless::iInternalResY / 448.0f;
             })
 
    /* uintptr_t testXres = Memory::GetRelativeOffset(Memory::PatternScan(baseModule, "F3 0F 10 35 ?? ?? ?? ?? 0F 57 D2 F3 0F 10 3D ?? ?? ?? ?? 0F 28 DE C1 E3", "MGS 2: GameVars: 1280 resolution") + 4);

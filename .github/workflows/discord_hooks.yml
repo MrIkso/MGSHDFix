@@ -210,13 +210,15 @@ jobs:
             (github.event.head_commit && !startsWith(github.event.head_commit.message, 'Merge pull request'))
           }}
         run: |
-          # Get commits as a JSON string, safely escaped
-          COMMITS_JSON='${{ toJson(github.event.commits) }}'
+          set -euo pipefail
 
-          # Strip JSON quoting into a real JSON file
-          printf "%s" "$COMMITS_JSON" | jq -r . > commits.json
+          # Write the event commits JSON to a file safely (handles apostrophes, quotes, newlines, anything)
+          cat > commits.json <<'JSON'
+          ${{ toJson(github.event.commits) }}
+          JSON
 
-          if ! jq type commits.json | grep -q array; then
+          # Guard: missing/empty commits array
+          if ! jq -e 'type == "array" and length > 0' commits.json >/dev/null 2>&1; then
             echo "No commits found, skipping notification."
             exit 0
           fi
@@ -224,14 +226,19 @@ jobs:
           lines=$(jq -r '
             .[0:5]
             | map("- [" + (.id[0:7]) + "](" + .url + ") " +
-                  (((.message // "(no commit message)") | split("\n")[0])))
+                  ((.message // "(no commit message)") | split("\n")[0]))
             | join("\n")
           ' commits.json)
 
-          count=$(jq 'length' commits.json)
+          count=$(jq -r 'length' commits.json)
           compare='${{ github.event.compare }}'
-          authors=$(jq -r '[.[].author.username // .[].author.name // "unknown"]
-                           | unique | map("@" + .) | join(", ")' commits.json)
+
+          authors=$(jq -r '
+            map(.author.username // .author.name // "unknown")
+            | unique
+            | map("@" + .)
+            | join(", ")
+          ' commits.json)
 
           if [ "$count" -eq 1 ]; then
             author_line="$authors - 1 commit"

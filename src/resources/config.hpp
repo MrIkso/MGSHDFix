@@ -8,19 +8,6 @@ public:
 };
 
 
-
-inline float fAspectRatio;
-inline bool bAspectFix;
-inline bool bHUDFix;
-inline bool bFOVFix;
-inline bool bOutputResolution;
-inline int iOutputResX;
-inline int iOutputResY;
-inline int iInternalResX;
-inline int iInternalResY;
-inline bool bWindowedMode;
-inline bool bBorderlessMode;
-inline bool bFramebufferFix;
 inline bool bLauncherJumpStart;
 inline int iAnisotropicFiltering;
 inline bool bDisableTextureFiltering;

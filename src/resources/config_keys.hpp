@@ -33,14 +33,26 @@ namespace ConfigKeys
     constexpr const char* WindowHeight_Tooltip = "Leave this set to 0 to default to your desktop resolution.";
 
     constexpr const char* WindowedMode_Section = "Window Settings";
-    constexpr const char* WindowedMode_Setting = "Windowed Mode";
+    constexpr const char* WindowedMode_Setting = "Enable Windowed Mode";
     constexpr const char* WindowedMode_Help = "";
     constexpr const char* WindowedMode_Tooltip = "Runs the game in a window instead of exclusive fullscreen.";
 
-    constexpr const char* BorderlessWindowed_Section = "Window Settings";
+    constexpr const char* BorderlessWindowed_Section = "Borderless Window Settings";
     constexpr const char* BorderlessWindowed_Setting = "Borderless Window";
     constexpr const char* BorderlessWindowed_Help = "";
     constexpr const char* BorderlessWindowed_Tooltip = "Removes the title bar and borders while keeping the game windowed.";
+
+    constexpr const char* MaximizeBorderless_Section = "Borderless Window Settings";
+    constexpr const char* MaximizeBorderless_Setting = "Maximize Window";
+    constexpr const char* MaximizeBorderless_Help = "";
+    constexpr const char* MaximizeBorderless_Tooltip = "Removes the title bar and borders while keeping the game windowed.";
+
+    constexpr const char* ConstraintBorderlessToMonitor_Section = "Borderless Window Settings";
+    constexpr const char* ConstraintBorderlessToMonitor_Setting = "Multi-Monitor Window Spanning";
+    constexpr const char* ConstraintBorderlessToMonitor_Help = "";
+    constexpr const char* ConstraintBorderlessToMonitor_Tooltip = "Removes the title bar and borders while keeping the game windowed.";
+    constexpr const char* ConstraintBorderlessToMonitor_Option_Single_Monitor = "Constraint Window to Primary Monitor";
+    constexpr const char* ConstraintBorderlessToMonitor_Option_Multi_Monitor = "Allow Window to Span Across Multiple Monitors";
 
     constexpr const char* RenderScaleWidth_Section = "Internal Resolution";
     constexpr const char* RenderScaleWidth_Setting = "Width";

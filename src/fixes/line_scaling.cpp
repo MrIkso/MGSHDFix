@@ -6,6 +6,7 @@
 #include "config.hpp"
 #include "input_handler.hpp"
 #include "logging.hpp"
+#include "custom_resolution_and_borderless.hpp"
 
 namespace
 {
@@ -220,21 +221,21 @@ bool VectorScalingFix::CompileGeometryShader()
     if(iVectorLineScale < DEFAULT_LINE_SCALE*0.5)
     {
         spdlog::warn("Config Warning");
-        spdlog::warn("Line scale is currently set to more that double the default size of Screen Height / 360 (6 pixels wide,) with individual raindrops currently set to {} ({} pixels wide.)", iVectorLineScale, iInternalResY / iVectorLineScale);
+        spdlog::warn("Line scale is currently set to more that double the default size of Screen Height / 360 (6 pixels wide,) with individual raindrops currently set to {} ({} pixels wide.)", iVectorLineScale, CustomResolutionAndBorderless::iInternalResY / iVectorLineScale);
         spdlog::warn("If you intend for line effects to be MASSIVE like this, set \"Silence Scaling Warnings\" to true in the config");
         Logging::ShowConsole();
         std::cout << "MGSHDFix Config Warning:\n"
-            "Line scale is currently set to more that double the default size of Screen Height/360 (" << iInternalResY / 360 << " pixels wide),\n"
-            "with individual raindrops currently set to " << iVectorLineScale << " (" << iInternalResY / iVectorLineScale << " pixels wide.)\n"
+            "Line scale is currently set to more that double the default size of Screen Height/360 (" << CustomResolutionAndBorderless::iInternalResY / 360 << " pixels wide),\n"
+            "with individual raindrops currently set to " << iVectorLineScale << " (" << CustomResolutionAndBorderless::iInternalResY / iVectorLineScale << " pixels wide.)\n"
             "If you intend for line effects to be MASSIVE like this, set \"Silence Scaling Warnings\" to true in the config";
     }
     else
     {
         spdlog::info("MGS 2 | MGS 3: Vector Line Fix - CompileGeometryShader: Line Scale before: {}", iVectorLineScale);
     }
-    iVectorLineScale = round(iInternalResY / iVectorLineScale);
+    iVectorLineScale = round(CustomResolutionAndBorderless::iInternalResY / iVectorLineScale);
     spdlog::info("MGS 2 | MGS 3: Vector Line Fix - CompileGeometryShader: Target Pixel Width = : {}", iVectorLineScale);
-    iVectorLineScale = (iInternalResY / iVectorLineScale);
+    iVectorLineScale = (CustomResolutionAndBorderless::iInternalResY / iVectorLineScale);
     spdlog::info("MGS 2 | MGS 3: Vector Line Fix - CompileGeometryShader: Line Scale after rounding: {}", iVectorLineScale);
     const std::string shaderString = R"(
         cbuffer GSParams : register(b0)
@@ -270,7 +271,7 @@ bool VectorScalingFix::CompileGeometryShader()
             // NDC per pixel for the current viewport
             float2 ndc_per_pixel = 2.0 * invViewport;
 
-            float targetPixelWidth = )" + std::to_string(static_cast<float>(iInternalResY) / static_cast<float>(std::max(1.0, g_VectorScalingFix.iVectorLineScale))) + R"(;
+            float targetPixelWidth = )" + std::to_string(static_cast<float>(CustomResolutionAndBorderless::iInternalResY) / static_cast<float>(std::max(1.0, g_VectorScalingFix.iVectorLineScale))) + R"(;
             // Offset half on each side
             float2 offset = perp_ndc * (0.5 * targetPixelWidth) * ndc_per_pixel;
 

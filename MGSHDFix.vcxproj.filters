@@ -173,6 +173,9 @@
     <ClCompile Include="src\features\mgs2_restore_dogtags.cpp">
       <Filter>Features</Filter>
     </ClCompile>
+    <ClCompile Include="src\features\custom_resolution_and_borderless.cpp">
+      <Filter>Features</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\fixes\line_scaling.hpp">
@@ -329,6 +332,9 @@
       <Filter>Warnings\Headers</Filter>
     </ClInclude>
     <ClInclude Include="src\features\mgs2_restore_dogtags.hpp">
+      <Filter>Features\Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="src\features\custom_resolution_and_borderless.hpp">
       <Filter>Features\Headers</Filter>
     </ClInclude>
   </ItemGroup>
