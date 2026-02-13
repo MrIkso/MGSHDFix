@@ -52,7 +52,6 @@ This is a fix that adds custom resolutions, ultrawide support and much more to t
 - Fixes various visual effects which ran at double speed, causing them to end early compared to on the PS2 (these issue even occur on PCSX2/PS2 emulation) (MGS2).
 - Fixes vector effects / line based rendering scaling (ie rain, lasers, bullet trails.) [PR #140](https://github.com/Lyall/MGSHDFix/pull/140)
 - Fixes UI scaling. [PR #181](github.com/Lyall/MGSHDFix/pull/181)
-- Fixes broken skybox initialization procs (MGS2). [PR#142](https://github.com/Lyall/MGSHDFix/pull/142)
 - Fixes typos in several Snake Tales missions, and in the in-game novel "In The Darkness of Shadow Moses". [PR#201](https://github.com/Lyall/MGSHDFix/pull/201)
 - Many more!
 
@@ -122,8 +121,6 @@ This list will contain bugs which may or may not be fixed.
 | --------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------- |
 | <img width="3840" height="2160" alt="mgs2 - d00t - rain 1" src="screenshots/before/mgs2%20-%20d00t%20-%20rain%201.png" />         | <img width="3840" height="2160" alt="mgs2 - d00t - rain 1" src="screenshots/after/mgs2%20-%20d00t%20-%20rain%201.png" />         |
 | <img width="3840" height="2160" alt="mgs2 - d00t - rain 1" src="screenshots/before/mgs2%20-%20d05t%20-%20rain%20(olga).png" />    | <img width="3840" height="2160" alt="mgs2 - d00t - rain 1" src="screenshots/after/mgs2%20-%20d05t%20-%20rain%20(olga).png" />    |
-| <img width="3840" height="2160" alt="mgs2 - d00t - rain 1" src="screenshots/before/mgs2%20-%20skyboxes%201.png" />                | <img width="3840" height="2160" alt="mgs2 - d00t - rain 1" src="screenshots/after/mgs2%20-%20skyboxes%201.png" />                |
-| <img width="3840" height="2160" alt="mgs2 - d00t - rain 1" src="screenshots/before/mgs2%20-%20skyboxes%202.png" />                | <img width="3840" height="2160" alt="mgs2 - d00t - rain 1" src="screenshots/after/mgs2%20-%20skyboxes%202.png" />                |
 | <img width="3840" height="2160" alt="mgs2 - d00t - rain 1" src="screenshots/before/mgs2%20-%20w24a%20-%20solidus%20flames%202.png" /> | <img width="3840" height="2160" alt="mgs2 - d00t - rain 1" src="screenshots/after/mgs2%20-%20w24a%20-%20solidus%20flames%202.png" /> |
 | <img width="3840" height="2160" alt="mgs2 - d00t - rain 1" src="screenshots/before/mgs2%20-%20w32a%20-%20scope.png" />            | <img width="3840" height="2160" alt="mgs2 - d00t - rain 1" src="screenshots/after/mgs2%20-%20w32a%20-%20scope.png" />            |
 | <img width="3840" height="2160" alt="mgs2 - d00t - rain 1" src="screenshots/before/mgs2%20-%20codec.png" />                       | <img width="3840" height="2160" alt="mgs2 - d00t - rain 1" src="screenshots/after/mgs2%20-%20codec.png" />                       |

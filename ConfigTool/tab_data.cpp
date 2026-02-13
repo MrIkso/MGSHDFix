@@ -37,9 +37,6 @@ const std::vector<std::pair<wxString, std::vector<Field>>> kTabs = {
         { ConfigKeys::FixAimingAfterEquip_Section, ConfigKeys::FixAimingAfterEquip_Setting, ConfigKeys::FixAimingAfterEquip_Help, ConfigKeys::FixAimingAfterEquip_Tooltip,
           std::nullopt, false, Field::Bool, true },
 
-        { ConfigKeys::FixSkyboxes_Section, ConfigKeys::FixSkyboxes_Setting, ConfigKeys::FixSkyboxes_Help, ConfigKeys::FixSkyboxes_Tooltip,
-          std::nullopt, false, Field::Bool, true },
-
         { ConfigKeys::FixAimingFullTilt_Section, ConfigKeys::FixAimingFullTilt_Setting, ConfigKeys::FixAimingFullTilt_Help, ConfigKeys::FixAimingFullTilt_Tooltip,
           std::nullopt, false, Field::Bool, true },
 
