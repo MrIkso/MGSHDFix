@@ -125,12 +125,20 @@ void VectorScalingFix::LoadCompiledShader() const
     {
         return;
     }
+    if (!bFixRain && !bFixUI)
+    {
+        return;
+    }
     spdlog::info("MGS 2 | MGS 3: Vector Line Fix - Load Shader: Attempting to load compiled geometry shader...");
 
-    if (geometryShader || !compiledShaderBytecode)
+    if (geometryShader)
     {
         spdlog::error("MGS 2 | MGS 3: Vector Line Fix - Load Shader: Geometry shader or compiled shader bytecode already exists.");
         return;
+    }
+    if (!compiledShaderBytecode)
+    {
+        spdlog::error("MGS 2 | MGS 3: Vector Line Fix - Load Shader: Shader bytecode not compiled.");
     }
 
     if (!g_D3D11Hooks.d3dDevice)
@@ -360,7 +368,7 @@ void VectorScalingFix::Initialize()
         return;
     }
 
-    if (uint8_t* MGS3_DrawIndexedPrimitive_ScanResult = Memory::PatternScan(baseModule, "48 89 5C 24 ?? 57 48 83 EC 20 FF 41 ?? 41 8B ??", "MGS 2 | MGS 3: Vector Line Fix - DrawIndexedPrimitive"))
+    if (uint8_t* MGS3_DrawIndexedPrimitive_ScanResult = Memory::PatternScan(baseModule, "48 89 5C 24 ?? 57 48 83 EC ?? FF 41", "MGS 2 | MGS 3: Vector Line Fix - DrawIndexedPrimitive"))
     {
         MGS3_DrawIndexedPrimitive_Hook = safetyhook::create_inline(reinterpret_cast<void*>(MGS3_DrawIndexedPrimitive_ScanResult), reinterpret_cast<void*>(MGS3_DrawIndexedPrimitive_Hooked));
         LOG_HOOK(MGS3_DrawIndexedPrimitive_Hook, "MGS 2 | MGS 3: Vector Line Fix - DrawIndexedPrimitive")
