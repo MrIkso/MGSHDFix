@@ -88,7 +88,6 @@
     </ClCompile>
     <ClCompile Include="src\resources\gpu_check.cpp" />
     <ClCompile Include="src\resources\logging.cpp" />
-    <ClCompile Include="src\fixes\skyboxes.cpp" />
     <ClCompile Include="src\features\mg1_custom_loading_screens.cpp" />
     <ClCompile Include="src\features\distance_culling.cpp" />
     <ClCompile Include="src\fixes\aiming_after_equip.cpp" />
@@ -147,7 +146,6 @@
     <ClInclude Include="src\resources\gpu_check.hpp" />
     <ClInclude Include="src\resources\input_handler.hpp" />
     <ClInclude Include="src\resources\logging.hpp" />
-    <ClInclude Include="src\fixes\skyboxes.hpp" />
     <ClInclude Include="src\fixes\aiming_after_equip.hpp" />
     <ClInclude Include="src\fixes\color_filters.hpp" />
     <ClInclude Include="src\resources\RegStateHelpers.hpp" />

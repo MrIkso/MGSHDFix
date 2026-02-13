@@ -306,12 +306,6 @@ namespace ConfigKeys
     constexpr const char* DisableMouseCursor_Tooltip = "Stops the mouse cursor from showing in the launcher and game.";
 
 
-    constexpr const char* FixSkyboxes_Section = "Bugfixes";
-    constexpr const char* FixSkyboxes_Setting = "Fix Invisible Skyboxes";
-    constexpr const char* FixSkyboxes_Help = "";
-    constexpr const char* FixSkyboxes_Tooltip = "Fixes multiple invisible skyboxes in MGS2's cutscenes that were broken by a code refactor in 2002 PS2 Substance.";
-
-
     constexpr const char* OverrideMouseSensitivity_Section = "Mouse Sensitivity";
     constexpr const char* OverrideMouseSensitivity_Setting = "Override Mouse Sensitivity";
     constexpr const char* OverrideMouseSensitivity_Help = "";

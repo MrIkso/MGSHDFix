@@ -35,9 +35,6 @@
     <ClCompile Include="src\warnings\reshade_compatibility_checks.cpp">
       <Filter>Warnings</Filter>
     </ClCompile>
-    <ClCompile Include="src\fixes\skyboxes.cpp">
-      <Filter>Fixes</Filter>
-    </ClCompile>
     <ClCompile Include="src\fixes\water_reflections.cpp">
       <Filter>Fixes</Filter>
     </ClCompile>
@@ -216,9 +213,6 @@
     </ClInclude>
     <ClInclude Include="src\warnings\asi_loader_checks.hpp">
       <Filter>Warnings\Headers</Filter>
-    </ClInclude>
-    <ClInclude Include="src\fixes\skyboxes.hpp">
-      <Filter>Fixes\Headers</Filter>
     </ClInclude>
     <ClInclude Include="src\fixes\water_reflections.hpp">
       <Filter>Fixes\Headers</Filter>

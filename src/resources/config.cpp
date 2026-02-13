@@ -27,7 +27,6 @@
 #include "corrupt_save_message.hpp"
 #include "effect_speeds.hpp"
 #include "mgs2_restore_dogtags.hpp"
-#include "skyboxes.hpp"
 #include "windows_fullscreen_optimization.hpp"
 #include "custom_resolution_and_borderless.hpp"
 
@@ -561,10 +560,6 @@ void Config::Read()
 
     ConfigHelper::getValue(ini, ConfigKeys::EffectSpeedFixes_Section, ConfigKeys::EffectSpeedFixes_Setting, g_EffectSpeedFix.isEnabled);
     LOG_CONFIG(ConfigKeys::EffectSpeedFixes_Section, ConfigKeys::EffectSpeedFixes_Setting, g_EffectSpeedFix.isEnabled);
-
-    ConfigHelper::getValue(ini, ConfigKeys::FixSkyboxes_Section, ConfigKeys::FixSkyboxes_Setting, SkyboxFix::isEnabled);
-    LOG_CONFIG(ConfigKeys::FixSkyboxes_Section, ConfigKeys::FixSkyboxes_Setting, SkyboxFix::isEnabled);
-
 
     ConfigHelper::getValue(ini, ConfigKeys::RestoreDogtagNames_Section, ConfigKeys::RestoreDogtagNames_Setting, MGS2_RestoreDogtags::isEnabled);
     LOG_CONFIG(ConfigKeys::RestoreDogtagNames_Section, ConfigKeys::RestoreDogtagNames_Setting, MGS2_RestoreDogtags::isEnabled);
