@@ -16,6 +16,7 @@
 #include "steamworks_api.hpp"
 #include "stereo_audio.hpp"
 //#include "texture_buffer_size.hpp"
+#include "background_shuffle_warning.hpp"
 #include "bugfix_mod_checks.hpp"
 #include "cpu_core_limit.hpp"
 #include "distance_culling.hpp"
@@ -418,6 +419,10 @@ void Config::Read()
 
     ConfigHelper::getValue(ini, ConfigKeys::MissingBugfixModWarning_Section, ConfigKeys::MissingBugfixModWarning_Setting, BugfixMods::bEnableVisibleWarnings);
     LOG_CONFIG(ConfigKeys::MissingBugfixModWarning_Section, ConfigKeys::MissingBugfixModWarning_Setting, BugfixMods::bEnableVisibleWarnings);
+
+
+    ConfigHelper::getValue(ini, ConfigKeys::WindowsSlideshowWarning_Section, ConfigKeys::WindowsSlideshowWarning_Setting, BackgroundShuffleWarning::bEnabled);
+    LOG_CONFIG(ConfigKeys::WindowsSlideshowWarning_Section, ConfigKeys::WindowsSlideshowWarning_Setting, BackgroundShuffleWarning::bEnabled);
 
     ConfigHelper::getValue(ini, ConfigKeys::CheckForUpdates_Section, ConfigKeys::CheckForUpdates_Setting, bShouldCheckForUpdates);
     ConfigHelper::getValue(ini, ConfigKeys::UpdateConsoleNotifications_Section, ConfigKeys::UpdateConsoleNotifications_Setting, bConsoleUpdateNotifications);

@@ -235,6 +235,8 @@ const std::vector<std::pair<wxString, std::vector<Field>>> kTabs = {
         { ConfigKeys::FSRWarning_Section, ConfigKeys::FSRWarning_Setting, ConfigKeys::FSRWarning_Help, ConfigKeys::FSRWarning_Tooltip,
           std::nullopt, false, Field::Bool, true },
 
+        { ConfigKeys::WindowsSlideshowWarning_Section, ConfigKeys::WindowsSlideshowWarning_Setting, ConfigKeys::WindowsSlideshowWarning_Help, ConfigKeys::WindowsSlideshowWarning_Tooltip,
+          std::nullopt, false, Field::Bool, true },
 
         { ConfigKeys::MissingBugfixModWarning_Section, ConfigKeys::MissingBugfixModWarning_Setting, ConfigKeys::MissingBugfixModWarning_Help, ConfigKeys::MissingBugfixModWarning_Tooltip,
           std::nullopt, false, Field::Bool, true },

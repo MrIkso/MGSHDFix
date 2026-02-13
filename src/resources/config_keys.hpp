@@ -432,6 +432,13 @@ namespace ConfigKeys
         "\n"
         "MGS2 Community Bugfix Mod (restores missing audio, fixes thousands of textures bugs, holes in models, and localization / typo errors.)";
 
+    constexpr const char* WindowsSlideshowWarning_Section = "Enable Game Warnings";
+    constexpr const char* WindowsSlideshowWarning_Setting = "Warn When Windows Slideshow Enabled";
+    constexpr const char* WindowsSlideshowWarning_Help = "";
+    constexpr const char* WindowsSlideshowWarning_Tooltip = "Having Windows wallpaper set to Slideshow / Window Spotlight mode is known to cause stuttering while in DirectX games.\n"
+                                                            "\n"
+                                                            "This will provide a warning when the Windows setting is enabled.";
+
     constexpr const char* RenameOrRemoveCorruptSaveData_Section = "Damaged Steam Cloud Save Data Fix";
     constexpr const char* RenameOrRemoveCorruptSaveData_Setting = "Fix Mode";
     constexpr const char* RenameOrRemoveCorruptSaveData_Help = "";

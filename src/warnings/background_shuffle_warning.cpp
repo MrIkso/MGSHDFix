@@ -2,9 +2,15 @@
 #include "background_shuffle_warning.hpp"
 
 #include "helper.hpp"
+#include "logging.hpp"
 
 void BackgroundShuffleWarning::Check()
 {
+	if (!bEnabled)
+	{
+        spdlog::info("Background Shuffle Warning: Disabled via config, skipping check.");
+		return;
+	}
 	if (Util::IsSteamOS())
 	{
 		return;
