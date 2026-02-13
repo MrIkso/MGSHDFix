@@ -5,7 +5,6 @@
 #include "config_keys.hpp"
 #include "d3d11_api.hpp"
 #include "logging.hpp"
-#include "version.h"
 
 
 namespace
@@ -348,21 +347,33 @@ void BugfixMods::Check()
 
                         if (bEnableVisibleWarnings)
                         {
-                            if (int result = MessageBoxA(
-                                g_D3D11Hooks.MainHwnd,
-                                message.c_str(),
-                                "MGSHDFix - Bugfix Warning",
-                                MB_ICONWARNING | MB_YESNO);
-                                result == IDYES)
+                            if (Util::IsSteamOS())
                             {
-                                ShellExecuteA(
-                                    nullptr,
-                                    "open",
-                                    "https://www.nexusmods.com/metalgearsolid2mc/mods/3",
-                                    nullptr,
-                                    nullptr,
-                                    SW_SHOWNORMAL
-                                );
+                                std::cout
+                                    << "\n================ MGSHDFix WARNING ================\n\n"
+                                    << message
+                                    << "\nMod page:\n"
+                                    << "https://www.nexusmods.com/metalgearsolid2mc/mods/3\n"
+                                    << "\n=================================================\n\n";
+                            }
+                            else
+                            {
+                                if (int result = MessageBoxA(
+                                    g_D3D11Hooks.MainHwnd,
+                                    message.c_str(),
+                                    "MGSHDFix - Bugfix Warning",
+                                    MB_ICONWARNING | MB_YESNO);
+                                    result == IDYES)
+                                {
+                                    ShellExecuteA(
+                                        nullptr,
+                                        "open",
+                                        "https://www.nexusmods.com/metalgearsolid2mc/mods/3",
+                                        nullptr,
+                                        nullptr,
+                                        SW_SHOWNORMAL
+                                    );
+                                }
                             }
                         }
 
@@ -428,21 +439,33 @@ void BugfixMods::Check()
 
                     if (bEnableVisibleWarnings)
                     {
-                        if (int result = MessageBoxA(
-                            g_D3D11Hooks.MainHwnd,
-                            message.c_str(),
-                            "MGSHDFix - Bugfix Warning",
-                            MB_ICONWARNING | MB_YESNO);
-                            result == IDYES)
+                        if (Util::IsSteamOS())
                         {
-                            ShellExecuteA(
-                                nullptr,
-                                "open",
-                                "https://www.nexusmods.com/metalgearsolid2mc/mods/52",
-                                nullptr,
-                                nullptr,
-                                SW_SHOWNORMAL
-                            );
+                            std::cout
+                                << "\n================ MGSHDFix WARNING ================\n\n"
+                                << message
+                                << "\nMod page:\n"
+                                << "https://www.nexusmods.com/metalgearsolid2mc/mods/52\n"
+                                << "\n=================================================\n\n";
+                        }
+                        else
+                        {
+                            if (int result = MessageBoxA(
+                                g_D3D11Hooks.MainHwnd,
+                                message.c_str(),
+                                "MGSHDFix - Bugfix Warning",
+                                MB_ICONWARNING | MB_YESNO);
+                                result == IDYES)
+                            {
+                                ShellExecuteA(
+                                    nullptr,
+                                    "open",
+                                    "https://www.nexusmods.com/metalgearsolid2mc/mods/52",
+                                    nullptr,
+                                    nullptr,
+                                    SW_SHOWNORMAL
+                                );
+                            }
                         }
                     }
 

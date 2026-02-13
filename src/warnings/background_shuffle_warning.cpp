@@ -9,7 +9,7 @@ void BackgroundShuffleWarning::Check()
 	if (!bEnabled)
 	{
         spdlog::info("Background Shuffle Warning: Disabled via config, skipping check.");
-		return;
+        return;
 	}
 	if (Util::IsSteamOS())
 	{
@@ -29,12 +29,13 @@ void BackgroundShuffleWarning::Check()
 
 	if (status == ERROR_SUCCESS && value > 1)
 	{
+	    Logging::ShowConsole();
 		const char* message =
-			"Warning:\n\n"
+			"MGSHDFix Warning:\n\n"
 			"Having Windows wallpaper set to Slideshow / Window Spotlight mode is known to cause stuttering while in DirectX games.\n"
 	        "\n"
 			"If you experience intermittent stuttering, change your wallpaper to a static picture in your personalization settings.";
 
-		MessageBoxA(nullptr, message, "Performance Warning", MB_ICONWARNING | MB_OK);
+        std::cout << message << std::endl;
 	}
 }
