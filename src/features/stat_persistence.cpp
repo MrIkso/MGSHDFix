@@ -228,7 +228,7 @@ void StatPersistence::Setup() const
 
     if (eGameType & MGS2)
     {        
-        if (uint8_t* MGS2_Achvmt_JohnnyOnTheSpot_Scene1_Result = Memory::PatternScan(baseModule, "C7 05 ?? ?? ?? ?? ?? ?? ?? ?? 7E", "Steam Stat Persistance: MGS2 - Johnny on the Spot (Scene #1)"))
+        if (uint8_t* MGS2_Achvmt_JohnnyOnTheSpot_Scene1_Result = Memory::PatternScan(baseModule, "C7 05 ?? ?? ?? ?? ?? ?? ?? ?? 7E ?? 8D 48", "Steam Stat Persistance: MGS2 - Johnny on the Spot (Scene #1)"))
         {
             static SafetyHookMid MGS2_Achvmt_JohnnyOnTheSpot_Scene1_Midhook {};
             MGS2_Achvmt_JohnnyOnTheSpot_Scene1_Midhook = safetyhook::create_mid(MGS2_Achvmt_JohnnyOnTheSpot_Scene1_Result,
@@ -249,7 +249,6 @@ void StatPersistence::Setup() const
                 });
             LOG_HOOK(MGS2_Achvmt_JohnnyOnTheSpot_Scene2_Midhook, "Steam Stat Persistance: MGS2 - Johnny on the Spot (Scene #2)") // Hear Johnny's bowel noises in two locations
         }
-
         if (uint8_t* MGS2_Achvmt_ByeByeBigBrother_Result = Memory::PatternScan(baseModule, "89 05 ?? ?? ?? ?? 83 F8 ?? 7C ?? B9 ?? ?? ?? ?? E9 ?? ?? ?? ?? C3 CC CC 8B 05", "Steam Stat Persistance: MGS2 - Bye Bye Big Brother (Destroy 5 cameras)"))
         {
             static SafetyHookMid MGS2_Achvmt_ByeByeBigBrother_Midhook {};
@@ -339,7 +338,6 @@ void StatPersistence::Setup() const
                 });
             LOG_HOOK(MGS3_Achievement_SnakeEyes_Scene3_Midhook, "Steam Stat Persistance: MGS3 - Snake Eyes (Scene #3)")
         }
-
 
         if (uint8_t* MGS3_SnakeEyes_Scene_Result = Memory::PatternScan(baseModule, "83 C8 ?? 89 05 ?? ?? ?? ?? EB ?? 48 8D 15 ?? ?? ?? ?? 48 8B CB E8 ?? ?? ?? ?? 85 C0 75 ?? 8B 05 ?? ?? ?? ?? 81 FF", "Steam Stat Persistance: MGS3 - Snake Eyes (Scene #4)"))
         {
