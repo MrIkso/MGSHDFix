@@ -25,18 +25,108 @@ namespace
     const char* kOrigWndProcProp = "CRB_OrigWndProc";
     const char* kInitFocusProp = "CRB_InitFocusDone";
 
+    bool IsOverlappingTaskbarArea(HWND hWnd)
+    {
+        if (hWnd == nullptr)
+        {
+            return false;
+        }
+
+        const int winW = CustomResolutionAndBorderless::iFinalWindowResolutionX;
+        const int winH = CustomResolutionAndBorderless::iFinalWindowResolutionY;
+
+        if (winW <= 0 || winH <= 0)
+        {
+            return false;
+        }
+
+        HMONITOR mon = MonitorFromWindow(hWnd, MONITOR_DEFAULTTONEAREST);
+        if (mon == nullptr)
+        {
+            return false;
+        }
+
+        MONITORINFO mi {};
+        mi.cbSize = sizeof(mi);
+        if (!GetMonitorInfoA(mon, &mi))
+        {
+            return false;
+        }
+
+        const RECT& monRect = mi.rcMonitor;
+        const RECT& work = mi.rcWork;
+
+        const int monW = monRect.right - monRect.left;
+        const int monH = monRect.bottom - monRect.top;
+
+        // Centered in the FULL monitor area (not work area).
+        const int left = monRect.left + (monW - winW) / 2;
+        const int top = monRect.top + (monH - winH) / 2;
+        const int right = left + winW;
+        const int bottom = top + winH;
+
+        // If any part of this centered rect lies outside work area, it overlaps taskbar/appbar space.
+        if (left < work.left)
+        {
+            return true;
+        }
+        if (top < work.top)
+        {
+            return true;
+        }
+        if (right > work.right)
+        {
+            return true;
+        }
+        if (bottom > work.bottom)
+        {
+            return true;
+        }
+
+        return false;
+    }
+
+    ///fixes the taskbar being over the window when first created when window is smaller than max res & overlaps the taskbar.
     void EnsureInitialTopmostAndFocus(HWND hWnd)
     {
+        static bool bLikeAVirgin = true;
+        if (!bLikeAVirgin || hWnd == nullptr || GetPropA(hWnd, kInitFocusProp) != nullptr)
+        {
+            return;
+        }
+        bLikeAVirgin = false; //touched for the very first time
+
+        spdlog::info("CreateWindowExA: Checking if EnsureInitialTopmostAndFocus is needed...");
+        
+        if (!CustomResolutionAndBorderless::bWindowedMode)
+        {
+            spdlog::info("CreateWindowExA: Not in windowed mode, skipping EnsureInitialTopmostAndFocus.");
+            return;
+        }
+
+        if (CustomResolutionAndBorderless::bBorderlessMode && (CustomResolutionAndBorderless::bUsingAutomaticOutputY || (CustomResolutionAndBorderless::iFinalWindowResolutionY >= CustomResolutionAndBorderless::DesktopDimensions.second)))
+        {
+            spdlog::info("CreateWindowExA: Detected fullscreen mode, skipping EnsureInitialTopmostAndFocus.");
+            return;
+        }
+        if (!IsOverlappingTaskbarArea(hWnd))
+        {
+            spdlog::info("CreateWindowExA: Window is not overlapping taskbar area, skipping EnsureInitialTopmostAndFocus.");
+            return;
+        }
+        else
+        {
+            spdlog::info("CreateWindowExA: Window is overlapping taskbar area, EnsureInitialTopmostAndFocus will be applied.");
+        }
         if (g_Logging.bConsoleShown)
         {
             static bool bAlreadyWarned = false;
-            if (bAlreadyWarned) return;
+            if (bAlreadyWarned)
+            {
+                return;
+            }
             bAlreadyWarned = true;
             spdlog::warn("CreateWindowExA: Skipping EnsureInitialTopmostAndFocus because console is shown. This may cause focus issues. If you want to fix this, close the console and restart the game.");
-            return;
-        }
-        if (hWnd == nullptr || GetPropA(hWnd, kInitFocusProp) != nullptr)
-        {
             return;
         }
 

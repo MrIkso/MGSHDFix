@@ -33,7 +33,6 @@
     <ClCompile Include="src\fixes\windows_fullscreen_optimization.cpp" />
     <ClCompile Include="src\resources\input_handler.cpp" />
     <ClCompile Include="src\fixes\fix_default_gpu.cpp" />
-    <ClCompile Include="src\features\postfx.cpp" />
     <ClCompile Include="src\fixes\aiming_full_tilt.cpp" />
     <ClCompile Include="src\features\keep_aiming_after_firing.cpp" />
     <ClCompile Include="src\features\mgs2_sunglasses.cpp" />
@@ -105,7 +104,6 @@
     <ClCompile Include="src\warnings\asi_loader_checks.cpp" />
     <ClCompile Include="src\warnings\reshade_compatibility_checks.cpp" />
     <ClCompile Include="src\dllmain.cpp" />
-    <ClCompile Include="src\features\gamma_correction.cpp" />
     <ClCompile Include="src\features\intro_skip.cpp" />
     <ClCompile Include="src\fixes\color_filters.cpp" />
     <ClCompile Include="src\fixes\effect_speeds.cpp" />

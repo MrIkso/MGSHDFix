@@ -22,9 +22,6 @@
     <ClCompile Include="src\fixes\color_filters.cpp">
       <Filter>WIP</Filter>
     </ClCompile>
-    <ClCompile Include="src\features\gamma_correction.cpp">
-      <Filter>WIP</Filter>
-    </ClCompile>
     <ClCompile Include="src\features\mg1_custom_loading_screens.cpp">
       <Filter>WIP</Filter>
     </ClCompile>
@@ -153,9 +150,6 @@
       <Filter>WIP</Filter>
     </ClCompile>
     <ClCompile Include="src\features\swap_menu_buttons.cpp">
-      <Filter>WIP</Filter>
-    </ClCompile>
-    <ClCompile Include="src\features\postfx.cpp">
       <Filter>WIP</Filter>
     </ClCompile>
     <ClCompile Include="src\warnings\bugfix_mod_checks.cpp">
