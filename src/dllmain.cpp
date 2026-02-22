@@ -223,7 +223,7 @@ static void Init_LauncherConfigOverride()
 
                     // Force launcher to exit
                     spdlog::shutdown();
-                    ExitProcess(0);
+                    ExitProcess(EXIT_SUCCESS);
                 }
                 else
                 {
@@ -241,7 +241,7 @@ static void Init_LauncherConfigOverride()
                 }
                 spdlog::info("MG/MG2 | MGS 2 | MGS 3: Companion game exited, exiting launcher.");
                 spdlog::shutdown();
-                ExitProcess(0);
+                ExitProcess(EXIT_SUCCESS);
             }
         }
         else if (bLauncherJumpStart)
@@ -265,7 +265,7 @@ static void Init_LauncherConfigOverride()
 
                     // Force launcher to exit
                     spdlog::shutdown();
-                    ExitProcess(0);
+                    ExitProcess(EXIT_SUCCESS);
                 }
                 spdlog::error("MG/MG2 | MGS 2 | MGS 3: Launcher Config: Failed to restart launcher with jumpstart.");
             }

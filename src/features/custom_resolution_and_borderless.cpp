@@ -22,10 +22,10 @@ namespace
     float fMGS2_EffectScaleX;
     float fMGS2_EffectScaleY;
 
-    static const char* kOrigWndProcProp = "CRB_OrigWndProc";
-    static const char* kInitFocusProp = "CRB_InitFocusDone";
+    const char* kOrigWndProcProp = "CRB_OrigWndProc";
+    const char* kInitFocusProp = "CRB_InitFocusDone";
 
-    static void EnsureInitialTopmostAndFocus(HWND hWnd)
+    void EnsureInitialTopmostAndFocus(HWND hWnd)
     {
         if (hWnd == nullptr || GetPropA(hWnd, kInitFocusProp) != nullptr)
         {
@@ -60,7 +60,7 @@ namespace
         spdlog::info("CreateWindowExA: EnsureInitialTopmostAndFocus applied.");
     }
 
-    static LRESULT CALLBACK FocusTopmostWndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
+    LRESULT CALLBACK FocusTopmostWndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
     {
         if (msg == WM_SHOWWINDOW && wParam != 0)
         {
@@ -95,7 +95,7 @@ namespace
 
     SafetyHookInline CreateWindowExA_hook {};
 
-    static void SubclassAndKick(HWND hWnd)
+    void SubclassAndKick(HWND hWnd)
     {
         if (hWnd == nullptr)
         {
