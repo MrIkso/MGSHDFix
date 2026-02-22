@@ -27,6 +27,14 @@ namespace
 
     void EnsureInitialTopmostAndFocus(HWND hWnd)
     {
+        if (g_Logging.bConsoleShown)
+        {
+            static bool bAlreadyWarned = false;
+            if (bAlreadyWarned) return;
+            bAlreadyWarned = true;
+            spdlog::warn("CreateWindowExA: Skipping EnsureInitialTopmostAndFocus because console is shown. This may cause focus issues. If you want to fix this, close the console and restart the game.");
+            return;
+        }
         if (hWnd == nullptr || GetPropA(hWnd, kInitFocusProp) != nullptr)
         {
             return;
