@@ -450,7 +450,7 @@ namespace ConfigKeys
                                                                   "or\n"
                                                                   "Do nothing, and let the damaged save file remain damaged.";
     constexpr const char* RenameOrRemoveCorruptSaveData_Option_Move = "Move Outdated Save Data to Backup Folder";
-    constexpr const char* RenameOrRemoveCorruptSaveData_Option_Delete = "Delete Outdated Sava Data";
+    constexpr const char* RenameOrRemoveCorruptSaveData_Option_Delete = "Delete Outdated Save Data";
     constexpr const char* RenameOrRemoveCorruptSaveData_Option_Disable = "Disable Damaged Save Data Fix";
 
     constexpr const char* CorruptSaveData_Notification_Section = RenameOrRemoveCorruptSaveData_Section;
@@ -458,6 +458,16 @@ namespace ConfigKeys
     constexpr const char* CorruptSaveData_Notification_Help = "";
     constexpr const char* CorruptSaveData_Notification_Tooltip = "If a Console Notification should be shown when a save file is fixed.";
 
+
+    constexpr const char* SaveFolderWriteWarning_Section = "Enable Game Warnings";
+    constexpr const char* SaveFolderWriteWarning_Setting = "Warn When Save Folders Not Writable";
+    constexpr const char* SaveFolderWriteWarning_Help = "";
+    constexpr const char* SaveFolderWriteWarning_Tooltip = "Warn the user when the save folder is not writable by the game, which breaks the game's ability to save.";
+
+    constexpr const char* SaveFileReadOnlyWarning_Section = "Enable Game Warnings";
+    constexpr const char* SaveFileReadOnlyWarning_Setting = "Warn When Save Files Are Read-Only";
+    constexpr const char* SaveFileReadOnlyWarning_Help = "";
+    constexpr const char* SaveFileReadOnlyWarning_Tooltip = "Warn the user when individual save files are set to read only, which breaks the game's ability to save.";
 
     constexpr const char* VerboseLogging_Section = "Internal Settings";
     constexpr const char* VerboseLogging_Setting = "Debug Logging";

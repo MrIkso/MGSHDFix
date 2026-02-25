@@ -18,6 +18,7 @@
 //#include "texture_buffer_size.hpp"
 #include "background_shuffle_warning.hpp"
 #include "bugfix_mod_checks.hpp"
+#include "check_gamesave_folder.hpp"
 #include "cpu_core_limit.hpp"
 #include "distance_culling.hpp"
 #include "version_checking.hpp"
@@ -583,5 +584,15 @@ void Config::Read()
     ConfigHelper::getValue(ini, ConfigKeys::CorruptSaveData_Notification_Section, ConfigKeys::CorruptSaveData_Notification_Setting, DamagedSaveFix::bEnableConsoleNotification);
     LOG_CONFIG(ConfigKeys::CorruptSaveData_Notification_Section, ConfigKeys::CorruptSaveData_Notification_Setting, DamagedSaveFix::bEnableConsoleNotification);
 
+    ConfigHelper::getValue(ini, ConfigKeys::SaveFolderWriteWarning_Section, ConfigKeys::SaveFolderWriteWarning_Setting, CheckGamesaveFolderWritable::bVerifySameDirectoryWriteable);
+    LOG_CONFIG(ConfigKeys::SaveFolderWriteWarning_Section, ConfigKeys::SaveFolderWriteWarning_Setting, CheckGamesaveFolderWritable::bVerifySameDirectoryWriteable);
+
+
+    ConfigHelper::getValue(ini, ConfigKeys::SaveFileReadOnlyWarning_Section, ConfigKeys::SaveFileReadOnlyWarning_Setting, CheckGamesaveFolderWritable::bCheckSaveFilesReadOnly);
+    LOG_CONFIG(ConfigKeys::SaveFileReadOnlyWarning_Section, ConfigKeys::SaveFileReadOnlyWarning_Setting, CheckGamesaveFolderWritable::bCheckSaveFilesReadOnly);
+
+    
+
+        
     ConfigLogger::Flush();
 }

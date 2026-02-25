@@ -4,6 +4,7 @@ namespace CheckGamesaveFolderWritable
 {
     void CheckStatus();
 
-    inline bool CheckSaveFiles = true;
+    inline bool bCheckSaveFilesReadOnly = true;
+    inline bool bVerifySameDirectoryWriteable = true;
 }
 
