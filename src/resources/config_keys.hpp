@@ -273,21 +273,6 @@ namespace ConfigKeys
     constexpr const char* SkipLauncherMSX_Option_MG1 = "Metal Gear (MSX)";
     constexpr const char* SkipLauncherMSX_Option_MG2 = "Metal Gear 2: Solid Snake";
 
-    constexpr const char* MSXWallType_Section = "Launcher Config";
-    constexpr const char* MSXWallType_Setting = "MSX Wallpaper";
-    constexpr const char* MSXWallType_Help = "";
-    constexpr const char* MSXWallType_Tooltip = "Which wallpaper to use while playing the MSX games.\n"
-                                                "\n"
-                                                "You can see which image corresponds to each number in the main launcher's options.";
-
-    constexpr const char* MSXWallAlign_Section = "Launcher Config";
-    constexpr const char* MSXWallAlign_Setting = "MSX Display Area";
-    constexpr const char* MSXWallAlign_Help = "";
-    constexpr const char* MSXWallAlign_Tooltip = "If you want the gameplay window of the MSX games aligned to the left, right, or center of the screen.";
-    constexpr const char* MSXWallAlign_Option_Left = "Align Left";
-    constexpr const char* MSXWallAlign_Option_Right = "Align Right";
-    constexpr const char* MSXWallAlign_Option_Center = "Align Center";
-
     constexpr const char* ForceStereoAudio_Section = "System Specific Fixes";
     constexpr const char* ForceStereoAudio_Setting = "Force Stereo Audio Output";
     constexpr const char* ForceStereoAudio_Help = "(Fixes codec / radio conversation volume)";
@@ -485,7 +470,17 @@ inline const std::initializer_list<std::string> kLauncherConfigCtrlTypes = { //T
     ConfigKeys::ControllerType_NintendoSwitch,  //3
     ConfigKeys::ControllerType_SteamDeck,       //4
     ConfigKeys::ControllerType_KeyboardMouse,   //5
-    ConfigKeys::ControllerType_PS2,             //6
+    ConfigKeys::ControllerType_PS2,             //6 - custom, use ovr_ps2 folder.
+};
+
+inline const std::initializer_list<std::string> kLauncherConfigCtrlTypesInternal = { // !!! KEEP IN SYNC WITH THE LIST ABOVE !!!
+    "PS5",
+    "PS4",
+    "XBOX",
+    "NX",
+    "STMD",
+    "KBD", 
+    "PS4" //intentional for PS2, we override the ovr_ps4 folder to search for ovr_ps2 instead.
 };
 
 struct Game_Language_Pair_View

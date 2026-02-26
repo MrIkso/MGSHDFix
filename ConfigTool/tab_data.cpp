@@ -147,12 +147,6 @@ const std::vector<std::pair<wxString, std::vector<Field>>> kTabs = {
         { ConfigKeys::SkipLauncherMSXGame_Section, ConfigKeys::SkipLauncherMSXGame_Setting, ConfigKeys::SkipLauncherMSXGame_Help, ConfigKeys::SkipLauncherMSXGame_Tooltip,
           std::make_pair(ConfigKeys::SkipLauncher_Section, ConfigKeys::SkipLauncher_Setting), false, Field::Choice, 0, 0, 0, ConfigKeys::SkipLauncherMSX_Option_MG1, {ConfigKeys::SkipLauncherMSX_Option_MG1,ConfigKeys::SkipLauncherMSX_Option_MG2}},
 
-        { ConfigKeys::MSXWallType_Section, ConfigKeys::MSXWallType_Setting, ConfigKeys::MSXWallType_Help, ConfigKeys::MSXWallType_Tooltip,
-          std::nullopt, false, Field::Int, 0 , 0, 6},
-
-        { ConfigKeys::MSXWallAlign_Section, ConfigKeys::MSXWallAlign_Setting, ConfigKeys::MSXWallAlign_Help, ConfigKeys::MSXWallAlign_Tooltip,
-          std::nullopt, false, Field::Choice, 0, 0, 0, ConfigKeys::MSXWallAlign_Option_Center, {ConfigKeys::MSXWallAlign_Option_Center, ConfigKeys::MSXWallAlign_Option_Left, ConfigKeys::MSXWallAlign_Option_Right} },
-
         { ConfigKeys::EnablePauseOnFocusLoss_Section, ConfigKeys::EnablePauseOnFocusLoss_Setting, ConfigKeys::EnablePauseOnFocusLoss_Help, ConfigKeys::EnablePauseOnFocusLoss_Tooltip,
           std::nullopt, false, Field::Bool, false },
 

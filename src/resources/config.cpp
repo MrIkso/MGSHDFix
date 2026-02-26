@@ -517,8 +517,6 @@ void Config::Read()
     iLauncherConfigCtrlType = Util::findStringInVector(sLauncherConfigCtrlType, kLauncherConfigCtrlTypes);
 
     ConfigHelper::getValue(ini, ConfigKeys::SkipLauncherMSXGame_Section, ConfigKeys::SkipLauncherMSXGame_Setting, sLauncherConfigMSXGame);
-    ConfigHelper::getValue(ini, ConfigKeys::MSXWallType_Section, ConfigKeys::MSXWallType_Setting, iLauncherConfigMSXWallType);
-    ConfigHelper::getValue(ini, ConfigKeys::MSXWallAlign_Section, ConfigKeys::MSXWallAlign_Setting, sLauncherConfigMSXWallAlign);
 
     std::string ps2Type(ConfigKeys::ControllerType_PS2);
     if (iLauncherConfigCtrlType == Util::findStringInVector(ps2Type, kLauncherConfigCtrlTypes))
@@ -533,8 +531,6 @@ void Config::Read()
     LOG_CONFIG(ConfigKeys::CtrlType_Section, ConfigKeys::CtrlType_Setting, Util::GetNameAtIndex(kLauncherConfigCtrlTypes, iLauncherConfigCtrlType));
 
     LOG_CONFIG(ConfigKeys::SkipLauncherMSXGame_Section, ConfigKeys::SkipLauncherMSXGame_Setting, sLauncherConfigMSXGame);
-    LOG_CONFIG(ConfigKeys::MSXWallType_Section, ConfigKeys::MSXWallType_Setting, iLauncherConfigMSXWallType);
-    LOG_CONFIG(ConfigKeys::MSXWallAlign_Section, ConfigKeys::MSXWallAlign_Setting, sLauncherConfigMSXWallAlign);
 
 
     ConfigHelper::getValue(ini, ConfigKeys::CaptureInputsWhileAltTabbedHotkey_Section, ConfigKeys::CaptureInputsWhileAltTabbedHotkey_Setting, g_InputHandler.bCaptureInputsWhileAltTabbed);
