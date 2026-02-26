@@ -206,7 +206,7 @@ static void Init_LauncherConfigOverride()
                     commandLine += L" -mgst " + std::wstring(sLauncherConfigMSXGame == ConfigKeys::SkipLauncherMSX_Option_MG1 ? L"mg1" : L"mg2"); // -mgst must be lowercase
                 }
 
-                commandLine += L" -region " + Util::UTF8toWide(sSkipLauncherRegion) + L" -lan " + Util::UTF8toWide(sSkipLauncherLanguage) + L" -selfregion EU -launcherpath launcher.exe " + L" -ctrltype " + Util::UTF8toWide(Util::GetUppercaseNameAtIndex(kLauncherConfigCtrlTypesInternal, iLauncherConfigCtrlType));
+                commandLine += L" -region " + Util::UTF8toWide(sSkipLauncherRegion) + L" -lan " + Util::UTF8toWide(sSkipLauncherLanguage) + L" -selfregion EU -launcherpath launcher.exe" + L" -ctrltype " + Util::UTF8toWide(Util::GetUppercaseNameAtIndex(kLauncherConfigCtrlTypesInternal, iLauncherConfigCtrlType));
                 std::string sCommandLine = Util::WideToUTF8(commandLine);
                 spdlog::info("MG/MG2 | MGS 2 | MGS 3: Launcher Config: Launch command line: {}", sCommandLine);
 
