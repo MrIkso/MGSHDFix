@@ -31,6 +31,7 @@
 #include "mgs2_restore_dogtags.hpp"
 #include "windows_fullscreen_optimization.hpp"
 #include "custom_resolution_and_borderless.hpp"
+#include "custom_font.hpp"
 
 // -----------------------------------------------------------------------------
 // ConfigHelper: A type-safe, case-insensitive, error-checked INI config reader.
@@ -588,7 +589,8 @@ void Config::Read()
     LOG_CONFIG(ConfigKeys::SaveFileReadOnlyWarning_Section, ConfigKeys::SaveFileReadOnlyWarning_Setting, CheckGamesaveFolderWritable::bCheckSaveFilesReadOnly);
 
     
-
+    ConfigHelper::getValue(ini, ConfigKeys::Custom_Font_Section, ConfigKeys::Custom_Font_Setting, g_CustomFont.isEnabled);
+    ConfigHelper::getValue(ini, ConfigKeys::Custom_Font_Section, ConfigKeys::Custom_Font_Path, sCustomFontPath);
         
     ConfigLogger::Flush();
 }

@@ -161,6 +161,11 @@ const std::vector<std::pair<wxString, std::vector<Field>>> kTabs = {
 
         { ConfigKeys::DistanceCullingGrassScalar_Section, ConfigKeys::DistanceCullingGrassScalar_Setting, ConfigKeys::DistanceCullingGrassScalar_Help, ConfigKeys::DistanceCullingGrassScalar_Tooltip,
           std::make_pair(ConfigKeys::DistanceCullingGrassAlways_Section, ConfigKeys::DistanceCullingGrassAlways_Setting), true, Field::Float, 0 , 0, 0, "", {}, 1.0, 0},
+        
+        { ConfigKeys::Custom_Font_Section, ConfigKeys::Custom_Font_Setting, ConfigKeys::Custom_Font_Help, ConfigKeys::Custom_Font_Tooltip,
+          std::nullopt, false, Field::Bool, true },
+        { ConfigKeys::Custom_Font_Section, ConfigKeys::Custom_Font_Path, ConfigKeys::Custom_Font_Help, ConfigKeys::Custom_Font_Help,
+          std::make_pair(ConfigKeys::Custom_Font_Section, ConfigKeys::Custom_Font_Path_Setting), false, Field::Str, 0, 0, 0, "plugins\\MGS_Font_nht.raw.gz" },
     }},
     { wxString("Controls | Hotkeys"), {
         { ConfigKeys::CaptureInputsWhileAltTabbedHotkey_Section, ConfigKeys::CaptureInputsWhileAltTabbedHotkey_Setting, ConfigKeys::CaptureInputsWhileAltTabbedHotkey_Help, ConfigKeys::CaptureInputsWhileAltTabbedHotkey_Tooltip,

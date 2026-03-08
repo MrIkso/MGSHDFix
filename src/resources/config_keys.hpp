@@ -459,6 +459,13 @@ namespace ConfigKeys
     constexpr const char* VerboseLogging_Help = "";
     constexpr const char* VerboseLogging_Tooltip = "Enables verbose logging for debugging purposes.";
 
+    constexpr const char* Custom_Font_Section = "Custom Font";
+    constexpr const char* Custom_Font_Setting = "Enabled";
+    constexpr const char* Custom_Font_Path = "Path";
+    constexpr const char* Custom_Font_Help = "";
+    constexpr const char* Custom_Font_Tooltip = "When enabled, game using custom font from entered path.";
+    constexpr const char* Custom_Font_Path_Setting = "Custom Font Path";
+
 }
 
 

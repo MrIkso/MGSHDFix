@@ -22,6 +22,7 @@
 #include "stat_persistence.hpp"
 #include "mgs2_sunglasses.hpp"
 #include "mgs2_restore_dogtags.hpp"
+#include "custom_font.hpp"
 
 ///Fixes
 #include "aiming_full_tilt.hpp"
@@ -452,7 +453,7 @@ static void InitializeSubsystems()
     INITIALIZE(g_MGS2Sunglasses.Initialize());
     INITIALIZE(g_DistanceCulling.Initialize());
     INITIALIZE(MGS2_RestoreDogtags::Initialize());
-
+    INITIALIZE(g_CustomFont.Initialize());
 
 
         //Fixes

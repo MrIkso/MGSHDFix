@@ -25,3 +25,6 @@ inline int iLauncherConfigCtrlType = 5;
 inline std::string sSkipLauncherRegion = "us";
 inline std::string sSkipLauncherLanguage = "en";
 inline std::string sLauncherConfigMSXGame = ConfigKeys::SkipLauncherMSX_Option_MG1;
+
+inline bool bCustomFont;
+inline std::string sCustomFontPath;
