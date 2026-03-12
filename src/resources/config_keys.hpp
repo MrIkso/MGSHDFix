@@ -274,16 +274,18 @@ namespace ConfigKeys
     constexpr const char* SkipLauncherMSX_Option_MG2 = "Metal Gear 2: Solid Snake";
 
     constexpr const char* ForceStereoAudio_Section = "System Specific Fixes";
-    constexpr const char* ForceStereoAudio_Setting = "Force Stereo Audio Output";
-    constexpr const char* ForceStereoAudio_Help = "(Fixes codec / radio conversation volume)";
-    constexpr const char* ForceStereoAudio_Tooltip = "Forces stereo output if Windows (and SteamDeck) is incorrectly set to 5.1+, which makes the game send audio to non-existent channels."
+    constexpr const char* ForceStereoAudio_Setting = "Audio Output Mode";
+    constexpr const char* ForceStereoAudio_Help = "";
+    constexpr const char* ForceStereoAudio_Tooltip = "Fixes a bug where the game always outputs 5.1 surround sound, even on stereo systems.\n"
                                                      "\n"
-                                                     "For example, codec / radio conversations will be FAR QUIETER than other sound effects (such as rain), or outright missing throughout the game.\n"
+                                                     "When this occurs, audio may be routed to channels that do not exist, making some sounds extremely quiet or silent.\n"
                                                      "\n"
-                                                     "Razer Synapse's THX Virtualization and SteelSeries Sonar's ChatMix features are known to cause this.\n"
+                                                     "Symptoms include quiet codec conversations, rain overpowering other audio, quiet gunshots from behind, or missing punching sounds.\n"
                                                      "\n"
-                                                     "This is a workaround for a system configuration issue. Other games will still be affected.\n"
-                                                     "Fix your audio device setup if possible.";
+                                                     "Virtual surround software (such as Razer THX or SteelSeries Sonar) is not supported.\n"
+                                                     "Only systems with physical 5.1 speakers should use Surround Sound (5.1).";
+    constexpr const char* ForceStereoAudio_Option_Stereo = "Stereo (2.0)";
+    constexpr const char* ForceStereoAudio_Option_Surround = "Surround Sound (5.1)";
 
     constexpr const char* DisableMouseCursor_Section = "Bugfixes";
     constexpr const char* DisableMouseCursor_Setting = "Fix Mouse Cursor Showing";

@@ -404,8 +404,28 @@ void Config::Read()
     ConfigHelper::getValue(ini, ConfigKeys::SkipIntroLogos_Section, ConfigKeys::SkipIntroLogos_Setting, g_IntroSkip.isEnabled);
     LOG_CONFIG(ConfigKeys::SkipIntroLogos_Section, ConfigKeys::SkipIntroLogos_Setting, g_IntroSkip.isEnabled);
 
-    ConfigHelper::getValue(ini, ConfigKeys::ForceStereoAudio_Section, ConfigKeys::ForceStereoAudio_Setting, g_StereoAudioFix.isEnabled);
-    LOG_CONFIG(ConfigKeys::ForceStereoAudio_Section, ConfigKeys::ForceStereoAudio_Setting, g_StereoAudioFix.isEnabled);
+    std::string sAudioSetting;
+    ConfigHelper::getValue(ini, ConfigKeys::ForceStereoAudio_Section, ConfigKeys::ForceStereoAudio_Setting, sAudioSetting);
+    if (sAudioSetting == ConfigKeys::ForceStereoAudio_Option_Stereo)
+    {
+        g_StereoAudioFix.isEnabled = true;
+    }
+    else if (sAudioSetting == ConfigKeys::ForceStereoAudio_Option_Surround)
+    {
+        g_StereoAudioFix.isEnabled = false;
+    }
+    else
+    {
+        spdlog::error("Invalid config value for {}: {}", ConfigKeys::ForceStereoAudio_Setting, sAudioSetting);
+        spdlog::error("Defaulting to Stereo audio output.");
+        spdlog::error("Please run the {} to update your settings file.", sFixName + " Config Tool");
+        Logging::ShowConsole();
+        std::cout << "Invalid config value for " << ConfigKeys::ForceStereoAudio_Setting << ": " << sAudioSetting << std::endl;
+        std::cout << "Defaulting to Stereo audio output." << std::endl;
+        std::cout << "Please run the " << sFixName << " Config Tool" << " to update your settings file." << std::endl;
+        g_StereoAudioFix.isEnabled = true;
+    }
+    LOG_CONFIG(ConfigKeys::ForceStereoAudio_Section, ConfigKeys::ForceStereoAudio_Setting, sAudioSetting);
 
     ConfigHelper::getValue(ini, ConfigKeys::EnablePauseOnFocusLoss_Section, ConfigKeys::EnablePauseOnFocusLoss_Setting, g_PauseOnFocusLoss.bPauseOnFocusLoss);
     ConfigHelper::getValue(ini, ConfigKeys::PauseOnFocusLoss_SpeedrunnerBugfixOverride_Section, ConfigKeys::PauseOnFocusLoss_SpeedrunnerBugfixOverride_Setting, g_PauseOnFocusLoss.bFixAltTabBugs);
