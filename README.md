@@ -163,7 +163,7 @@ cd MGSHDFix
 ```
 
 ### Windows
-Open MGSFPSUnlock.sln in Visual Studio (2022) and build.
+Open MGSHDFix.sln in Visual Studio (2026) and build.
 
 ## Credits
 [@Lyall](https://codeberg.org/Lyall) for their amazing work making widescreen fix mods, and most importantly, the original creation of this mod!<br />
