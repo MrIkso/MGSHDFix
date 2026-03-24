@@ -47,10 +47,14 @@ const std::vector<std::pair<wxString, std::vector<Field>>> kTabs = {
           std::nullopt, false, Field::Bool, true },
 
         { ConfigKeys::ForceStereoAudio_Section, ConfigKeys::ForceStereoAudio_Setting, ConfigKeys::ForceStereoAudio_Help, ConfigKeys::ForceStereoAudio_Tooltip,
-          std::nullopt, false, Field::Bool, false },
+          std::nullopt, false, Field::Choice, 0, 0, 0, "", {ConfigKeys::ForceStereoAudio_Option_Stereo, ConfigKeys::ForceStereoAudio_Option_Surround} },
 
         { ConfigKeys::CPUCoreLimit_Section, ConfigKeys::CPUCoreLimit_Setting, ConfigKeys::CPUCoreLimit_Help, ConfigKeys::CPUCoreLimit_Tooltip,
           std::nullopt, false, Field::Bool, false },
+
+        { ConfigKeys::ForceStereoAudio_Section, "",
+          "", "",
+          std::nullopt, false, Field::Spacer },
 
         { ConfigKeys::DisableFullscreenOptimization_Section, ConfigKeys::DisableFullscreenOptimization_Setting, ConfigKeys::DisableFullscreenOptimization_Help, ConfigKeys::DisableFullscreenOptimization_Tooltip,
           std::nullopt, false, Field::Bool, false },
