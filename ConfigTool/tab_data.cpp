@@ -275,6 +275,11 @@ std::nullopt, false, Field::Int, 100, 1, 100},
                     { (MGS2), ConfigKeys::MGS2_Hostage_Type_Section, ConfigKeys::MGS2_Hostage_Type_Setting, ConfigKeys::MGS2_Hostage_Type_Help, ConfigKeys::MGS2_Hostage_Type_Tooltip,
           std::nullopt, false, Field::Choice, 0, 0, 0, ConfigKeys::MGS2_Hostage_Type_Option_Normal, {ConfigKeys::MGS2_Hostage_Type_Option_Normal, ConfigKeys::MGS2_Hostage_Type_Option_OnePM, ConfigKeys::MGS2_Hostage_Type_Option_TenPM, ConfigKeys::MGS2_Hostage_Type_Option_Midnight,} },
 
+      
+       { (MGS2 | MGS3), ConfigKeys::Custom_Font_Section, ConfigKeys::Custom_Font_Setting, ConfigKeys::Custom_Font_Help, ConfigKeys::Custom_Font_Tooltip,
+          std::nullopt, false, Field::Bool, true },
+       { (MGS2 | MGS3), ConfigKeys::Custom_Font_Section, ConfigKeys::Custom_Font_Path, ConfigKeys::Custom_Font_Help, ConfigKeys::Custom_Font_Help,
+          std::make_pair(ConfigKeys::Custom_Font_Section, ConfigKeys::Custom_Font_Path_Setting), false, Field::Str, 0, 0, 0, "plugins\\MGS_Font_nht.raw.gz" },
     }},
     { wxString("Restoration"), {
 

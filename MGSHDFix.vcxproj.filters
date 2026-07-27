@@ -344,6 +344,9 @@
     <ClCompile Include="src\fixes\screenspace_fixes.cpp">
       <Filter>Fixes</Filter>
     </ClCompile>
+    <ClCompile Include="src\features\custom_font.cpp">
+      <Filter>Features</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\fixes\effect_speeds.hpp">
@@ -705,6 +708,9 @@
     </ClInclude>
     <ClInclude Include="src\fixes\screenspace_fixes.hpp">
       <Filter>Fixes\Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="src\features\custom_font.hpp">
+      <Filter>Features\Headers</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

@@ -31,6 +31,7 @@
 #include "original_camera_positions.hpp"
 #include "expand_bp_assets.hpp"
 #include "mgs2_vamp_punch_fix.hpp"
+#include "custom_font.hpp"
 
 ///Fixes
 #include "aiming_full_tilt.hpp"
@@ -552,6 +553,8 @@ static void InitializeSubsystems()
     INITIALIZE(OriginalCameraPositions::Activate());
     INITIALIZE(AdjustableCaptions::Apply());
 
+    INITIALIZE(MGS2_RestoreDogtags::Initialize());
+    INITIALIZE(g_CustomFont.Initialize());
 
     INITIALIZE(ColorCorrection::Setup());
 

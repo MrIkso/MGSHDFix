@@ -48,6 +48,7 @@
     <ClCompile Include="src\fixes\mgs2_tanker_snake_snap.cpp" />
     <ClCompile Include="src\fixes\mgs2_snakearm_voice.cpp" />
     <ClCompile Include="src\fixes\resolution_scaling_fixes.cpp" />
+    <ClCompile Include="src\features\custom_font.cpp" />
     <ClCompile Include="src\features\custom_resolution_and_borderless.cpp" />
     <ClCompile Include="src\features\mgs2_restore_dogtags.cpp" />
     <ClCompile Include="src\fixes\texture_live_swaps.cpp" />
@@ -190,6 +191,7 @@
     <ClInclude Include="src\fixes\mgs2_preshade_lights.hpp" />
     <ClInclude Include="src\fixes\mgs2_snakearm_voice.hpp" />
     <ClInclude Include="src\fixes\resolution_scaling_fixes.hpp" />
+    <ClInclude Include="src\features\custom_font.hpp" />
     <ClInclude Include="src\features\custom_resolution_and_borderless.hpp" />
     <ClInclude Include="src\features\mgs2_restore_dogtags.hpp" />
     <ClInclude Include="src\fixes\busy_loop_fix.hpp" />
@@ -284,7 +286,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>v145</PlatformToolset>
+    <PlatformToolset>v143</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>

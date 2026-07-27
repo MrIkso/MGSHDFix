@@ -78,6 +78,7 @@
 #include "mgs3_film_grain.hpp"
 #include "playtime_fixes.hpp"
 #include "windows_preferred_gpu.hpp"
+#include "custom_font.hpp"
 
 // -----------------------------------------------------------------------------
 // ConfigHelper: A type-safe, case-insensitive, error-checked INI config reader.
@@ -895,6 +896,9 @@ void Config::Read()
         InputHandler::GetKeybind(ini, ConfigKeys::MGS2_ThirdPersonFreecam_Camera_Distance_Increase_Hotkey_Section, ConfigKeys::MGS2_ThirdPersonFreecam_Camera_Distance_Increase_Hotkey_Setting, MGS2_ThirdPersonFreecam::vkToggle_Increase_Camera_Distance);
         InputHandler::GetKeybind(ini, ConfigKeys::MGS2_ThirdPersonFreecam_Camera_Distance_Decrease_Hotkey_Section, ConfigKeys::MGS2_ThirdPersonFreecam_Camera_Distance_Decrease_Hotkey_Setting, MGS2_ThirdPersonFreecam::vkToggle_Decrease_Camera_Distance);
         InputHandler::GetKeybind(ini, ConfigKeys::MGS2_ThirdPersonFreecam_Camera_Distance_Reset_Hotkey_Section, ConfigKeys::MGS2_ThirdPersonFreecam_Camera_Distance_Reset_Hotkey_Setting, MGS2_ThirdPersonFreecam::vkToggle_Reset_Camera_Distance);
+    }
+      ConfigHelper::getValue(ini, ConfigKeys::Custom_Font_Section, ConfigKeys::Custom_Font_Setting, g_CustomFont.isEnabled);
+      ConfigHelper::getValue(ini, ConfigKeys::Custom_Font_Section, ConfigKeys::Custom_Font_Path, sCustomFontPath);
         
         ConfigHelper::getValue(ini, ConfigKeys::MGS2_ThirdPersonFreecam_Camera_Distance_Step_Amount_Section, ConfigKeys::MGS2_ThirdPersonFreecam_Camera_Distance_Step_Amount_Setting, MGS2_ThirdPersonFreecam::iCameraDistanceStep);
         LOG_CONFIG(ConfigKeys::MGS2_ThirdPersonFreecam_Camera_Distance_Step_Amount_Section, ConfigKeys::MGS2_ThirdPersonFreecam_Camera_Distance_Step_Amount_Setting, MGS2_ThirdPersonFreecam::iCameraDistanceStep);
