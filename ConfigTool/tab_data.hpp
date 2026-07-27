@@ -28,8 +28,17 @@
 #include <wx/string.h>
 #include <optional>
 
+enum ConfigGameFlag
+{
+    MG = 1 << 0,
+    MGS2 = 1 << 1,
+    MGS3 = 1 << 2
+};
+
 struct Field
 {
+    int gameFlags;
+
     wxString section;
     wxString key;
 
@@ -41,7 +50,7 @@ struct Field
 
     enum Type
     {
-        Bool, Int, Float, Str, Choice, Hotkey, Spacer
+        Bool, Int, Float, Str, Choice, Hotkey, StickHotkey, Spacer
     } type;
 
     int defaultInt = 0;

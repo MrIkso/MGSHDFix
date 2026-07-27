@@ -1,16 +1,15 @@
-name: MGSHDFix CI Builds
+name: MGSHDFix CI Nightly Builds
 
 env:
   CI: true
 
 on:
   push:
-    branches: ["**"]
-  pull_request:
-    branches: ["**"]
+    branches:
+        - master
 
 permissions:
-  contents: read
+  contents: write
 
 defaults:
   run:
@@ -40,6 +39,20 @@ jobs:
       with:
         path: external/wxWidgets/lib/vc_x64_lib
         key: wxwidgets-${{ runner.os }}-${{ steps.wxhash.outputs.hash }}
+
+    # SDL3 cache setup
+    - name: Get SDL3 submodule hash
+      id: sdlhash
+      run: |
+        cd external/SDL
+        $hash = git rev-parse HEAD
+        "hash=$hash" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
+
+    - name: Cache SDL3
+      uses: actions/cache@v4
+      with:
+        path: external/SDL/build/msvc-x64-static
+        key: sdl3-${{ runner.os }}-vs2022-v143-x64-static-v2-${{ steps.sdlhash.outputs.hash }}
 
     # Zydis cache setup
     - name: Get Zydis submodule hash
@@ -86,6 +99,31 @@ jobs:
     # -------------------------
     # Build
     # -------------------------
+    - name: Set CI build number in version.h
+      shell: bash
+      run: |
+        VERSION_FILE="src/resources/version.h"
+        echo "Setting VERSION_CI_BUILD in $VERSION_FILE to $GITHUB_RUN_NUMBER"
+
+        sed -i "s/^#define VERSION_CI_BUILD .*/#define VERSION_CI_BUILD $GITHUB_RUN_NUMBER/" "$VERSION_FILE"
+
+    - name: Extract version from version.h
+      id: extract_version
+      shell: bash
+      run: |
+        VERSION_FILE="src/resources/version.h"
+        echo "Reading version from $VERSION_FILE"
+
+        VERSION_MAJOR=$(grep '#define VERSION_MAJOR' "$VERSION_FILE" | awk '{print $3}')
+        VERSION_MINOR=$(grep '#define VERSION_MINOR' "$VERSION_FILE" | awk '{print $3}')
+        VERSION_PATCH=$(grep '#define VERSION_PATCH' "$VERSION_FILE" | awk '{print $3}')
+        VERSION_CI_BUILD=$(grep '#define VERSION_CI_BUILD' "$VERSION_FILE" | awk '{print $3}')
+
+        version="${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}.${VERSION_CI_BUILD}"
+        echo "Parsed version: $version"
+
+        echo "version=$version" >> $GITHUB_OUTPUT
+
     - name: Build
       run: msbuild "${{ github.event.repository.name }}.sln" /m -t:rebuild -verbosity:minimal -property:Configuration=Release -property:Platform=x64 -property:PlatformToolset=v143
 
@@ -98,14 +136,31 @@ jobs:
     - run: Copy-Item README.md "dist/logs/${{ github.event.repository.name }}_Launcher.log"
     - run: Copy-Item README.md "dist/plugins/${{ github.event.repository.name }}_README.md"
     - run: Copy-Item LICENSE.md "dist/plugins/${{ github.event.repository.name }}_LICENSE.md"
+    
+    - run: Copy-Item "external\SMAA\LICENSE.txt" "dist/plugins/SMAA_LICENSE.md"
+    - run: Copy-Item "external\SMAA\SMAA.hlsl" "dist/plugins/SMAA.hlsl"
 
     # Package everything
     - name: Create release zip
       working-directory: dist
-      run: 7z a -tzip "../${{ github.event.repository.name }}-run-${{ github.run_number }}.zip" *
+      run: 7z a -tzip "../${{ github.event.repository.name }}_${{ steps.extract_version.outputs.version }}.zip" *
 
     - name: Upload Artifact
       uses: actions/upload-artifact@v4
       with:
-        name: ${{ github.event.repository.name }}-run-${{ github.run_number }}
+        name: ${{ github.event.repository.name }}_${{ steps.extract_version.outputs.version }}
         path: dist/
+
+    - uses: ncipollo/release-action@v1
+      if: github.event_name == 'push' && github.ref == 'refs/heads/master'
+      with:
+        tag: nightly
+        artifacts: "${{ github.event.repository.name }}_${{ steps.extract_version.outputs.version }}.zip"
+        token: ${{ secrets.GITHUB_TOKEN }}
+        name: "MGSHDFix Nightly Builds"
+        prerelease: true
+        artifactErrorsFailBuild: true
+        allowUpdates: true
+        removeArtifacts: true
+        replacesArtifacts: true
+        bodyFile: "nightly_build_body.txt"

@@ -6,6 +6,7 @@
 #include "input_handler.hpp"
 #include "logging.hpp"
 #include "custom_resolution_and_borderless.hpp"
+#include "mgs3_film_grain.hpp"
 
 namespace
 {
@@ -87,7 +88,7 @@ namespace
         D3D11_PRIMITIVE_TOPOLOGY topology = D3D11_PRIMITIVE_TOPOLOGY_UNDEFINED;
         context->IAGetPrimitiveTopology(&topology);
 
-        if (g_VectorScalingFix.bToggleUIShader && (topology == D3D11_PRIMITIVE_TOPOLOGY_LINELIST || topology == D3D11_PRIMITIVE_TOPOLOGY_LINESTRIP))
+        if (g_VectorScalingFix.bToggleRainShader && (topology == D3D11_PRIMITIVE_TOPOLOGY_LINELIST || topology == D3D11_PRIMITIVE_TOPOLOGY_LINESTRIP))
         {
             ID3D11GeometryShader* currentGS = nullptr;
             context->GSGetShader(&currentGS, nullptr, nullptr);
@@ -109,10 +110,13 @@ namespace
             {
                 currentGS->Release();
             }
+
+            MGS3FilmGrain::OnAfterGameDraw(context, VertexCount);
         }
         else
         {
             D3D11_Draw_Hook.call<void>(context, VertexCount, StartVertexLocation);
+            MGS3FilmGrain::OnAfterGameDraw(context, VertexCount);
         }
     }
 
@@ -197,24 +201,12 @@ void VectorScalingFix::LoadCompiledShader() const
     LOG_HOOK(D3D11_Draw_Hook, "ID3D11DeviceContext::Draw");
 
     spdlog::info("MGS 2 | MGS 3: Vector Line Fix - Load Shader: Successfully loaded geometry shader on device.");
-
-    g_InputHandler.RegisterHotkey(vkUIShaderToggle, "UI Shader Toggle", []()
-        {
-            g_VectorScalingFix.bToggleUIShader = !g_VectorScalingFix.bToggleUIShader;
-        });
 }
 
 bool VectorScalingFix::CompileGeometryShader()
 {
-    HMODULE d3dcompiler = LoadLibraryA("d3dcompiler_43.dll");
-    if (!d3dcompiler)
-    {
-        spdlog::error("MGS 2 | MGS 3: Vector Line Fix - CompileGeometryShader: Failed to load d3dcompiler_43.dll");
-        return false;
-    }
 
-    pD3DCompile D3DCompileFunc = reinterpret_cast<pD3DCompile>(GetProcAddress(d3dcompiler, "D3DCompile"));
-    if (!D3DCompileFunc)
+    if (!g_D3D11Hooks.D3DCompileFunc)
     {
         spdlog::error("MGS 2 | MGS 3: Vector Line Fix - CompileGeometryShader: Failed to get address for D3DCompile");
         return false;
@@ -308,7 +300,7 @@ bool VectorScalingFix::CompileGeometryShader()
 
     ComPtr<ID3DBlob> compiledShader;
     ComPtr<ID3DBlob> errorMsgs;
-    HRESULT hr = D3DCompileFunc(
+    HRESULT hr = g_D3D11Hooks.D3DCompileFunc(
         shaderString.c_str(),
         shaderString.size(),
         "geometry_shader",
@@ -321,9 +313,6 @@ bool VectorScalingFix::CompileGeometryShader()
         compiledShader.GetAddressOf(),
         errorMsgs.GetAddressOf()
     );
-
-    bNeedsCompiler = false;
-    D3D11Hooks::UnloadCompiler(d3dcompiler);
 
     if (FAILED(hr))
     {
@@ -356,6 +345,7 @@ void VectorScalingFix::Initialize()
         spdlog::info("MGS 2 | MGS 3: Vector Line Fix: Config disabled. Skipping");
         return;
     }
+    spdlog::info("MGS 2 | MGS 3: Vector Line Fix - Initialize: Initializing vector line fix...");
 
     if (!CompileGeometryShader())
     {

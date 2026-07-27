@@ -15,14 +15,11 @@ public:
     bool bFixUI = true;
 
     bool bToggleRainShader = true;
-    bool bToggleUIShader = true;
     int bToggleWireframe = false;
 
     int vkRainShaderToggle = 0;
-    int vkUIShaderToggle = 0;
     int vkWireframeToggle = 0;
 
-    bool bNeedsCompiler = false;
     double iVectorLineScale = 360;
 };
 

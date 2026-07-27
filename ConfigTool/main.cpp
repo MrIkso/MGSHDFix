@@ -34,6 +34,7 @@
 #include <wx/choice.h>
 #include <wx/stdpaths.h>
 #include <wx/mstream.h>
+#include <SDL3/SDL.h>
 
 #include "helper.hpp"
 #include "version.h"
@@ -46,7 +47,7 @@
 
 
 constexpr int iWindowSizeX = 716;
-constexpr int iWindowSizeY = 680;
+constexpr int iWindowSizeY = 700;
 constexpr const char* sSettingsFileName = "MGSHDFix.settings";
 constexpr bool bFullLengthFields = false; //if you want the boxes to span half the window's width.
 
@@ -109,20 +110,241 @@ static wxString Unquote(const wxString& value)
     return s;
 }
 
+
+namespace
+{
+    constexpr int kPadTriggerThreshold = 8192;
+    constexpr int kPadStickThreshold = 12000;
+
+    bool g_SDLGamepadInitialized = false;
+    std::vector<SDL_Gamepad*> g_OpenGamepads;
+
+    bool EnsureSDLGamepadInitialized()
+    {
+        if (g_SDLGamepadInitialized)
+        {
+            return true;
+        }
+
+        g_SDLGamepadInitialized = SDL_InitSubSystem(SDL_INIT_GAMEPAD);
+        if (!g_SDLGamepadInitialized)
+        {
+            wxLogError("Failed to initialize SDL Gamepad support:\n\n%s", SDL_GetError());
+            return false;
+        }
+
+        return true;
+    }
+
+    void CloseOpenGamepads()
+    {
+        for (SDL_Gamepad* gamepad : g_OpenGamepads)
+        {
+            if (gamepad != nullptr)
+            {
+                SDL_CloseGamepad(gamepad);
+            }
+        }
+
+        g_OpenGamepads.clear();
+    }
+
+    void RefreshOpenGamepads()
+    {
+        if (!EnsureSDLGamepadInitialized())
+        {
+            return;
+        }
+
+        CloseOpenGamepads();
+
+        SDL_PumpEvents();
+        SDL_UpdateGamepads();
+
+        int gamepadCount = 0;
+        SDL_JoystickID* gamepadIds = SDL_GetGamepads(&gamepadCount);
+        if (gamepadIds == nullptr)
+        {
+            return;
+        }
+
+        for (int i = 0; i < gamepadCount; ++i)
+        {
+            SDL_Gamepad* gamepad = SDL_OpenGamepad(gamepadIds[i]);
+            if (gamepad != nullptr)
+            {
+                g_OpenGamepads.push_back(gamepad);
+            }
+        }
+
+        SDL_free(gamepadIds);
+    }
+
+    bool TryGetGamepadButtonInputName(SDL_Gamepad* gamepad, wxString& outName)
+    {
+        if (gamepad == nullptr)
+        {
+            return false;
+        }
+
+        if (SDL_GetGamepadButton(gamepad, SDL_GAMEPAD_BUTTON_SOUTH)) { outName = "Pad_A"; return true; }
+        if (SDL_GetGamepadButton(gamepad, SDL_GAMEPAD_BUTTON_EAST)) { outName = "Pad_B"; return true; }
+        if (SDL_GetGamepadButton(gamepad, SDL_GAMEPAD_BUTTON_WEST)) { outName = "Pad_X"; return true; }
+        if (SDL_GetGamepadButton(gamepad, SDL_GAMEPAD_BUTTON_NORTH)) { outName = "Pad_Y"; return true; }
+        if (SDL_GetGamepadButton(gamepad, SDL_GAMEPAD_BUTTON_LEFT_SHOULDER)) { outName = "Pad_LB"; return true; }
+        if (SDL_GetGamepadButton(gamepad, SDL_GAMEPAD_BUTTON_RIGHT_SHOULDER)) { outName = "Pad_RB"; return true; }
+        if (SDL_GetGamepadButton(gamepad, SDL_GAMEPAD_BUTTON_BACK)) { outName = "Pad_Back"; return true; }
+        if (SDL_GetGamepadButton(gamepad, SDL_GAMEPAD_BUTTON_START)) { outName = "Pad_Start"; return true; }
+        if (SDL_GetGamepadButton(gamepad, SDL_GAMEPAD_BUTTON_LEFT_STICK)) { outName = "Pad_LStick"; return true; }
+        if (SDL_GetGamepadButton(gamepad, SDL_GAMEPAD_BUTTON_RIGHT_STICK)) { outName = "Pad_RStick"; return true; }
+        if (SDL_GetGamepadButton(gamepad, SDL_GAMEPAD_BUTTON_DPAD_UP)) { outName = "Pad_DPad_Up"; return true; }
+        if (SDL_GetGamepadButton(gamepad, SDL_GAMEPAD_BUTTON_DPAD_DOWN)) { outName = "Pad_DPad_Down"; return true; }
+        if (SDL_GetGamepadButton(gamepad, SDL_GAMEPAD_BUTTON_DPAD_LEFT)) { outName = "Pad_DPad_Left"; return true; }
+        if (SDL_GetGamepadButton(gamepad, SDL_GAMEPAD_BUTTON_DPAD_RIGHT)) { outName = "Pad_DPad_Right"; return true; }
+        if (SDL_GetGamepadAxis(gamepad, SDL_GAMEPAD_AXIS_LEFT_TRIGGER) >= kPadTriggerThreshold) { outName = "Pad_LT"; return true; }
+        if (SDL_GetGamepadAxis(gamepad, SDL_GAMEPAD_AXIS_RIGHT_TRIGGER) >= kPadTriggerThreshold) { outName = "Pad_RT"; return true; }
+
+        return false;
+    }
+
+    bool TryGetGamepadStickInputName(SDL_Gamepad* gamepad, wxString& outName)
+    {
+        if (gamepad == nullptr)
+        {
+            return false;
+        }
+
+        const int leftX = SDL_GetGamepadAxis(gamepad, SDL_GAMEPAD_AXIS_LEFTX);
+        const int leftY = SDL_GetGamepadAxis(gamepad, SDL_GAMEPAD_AXIS_LEFTY);
+        const int rightX = SDL_GetGamepadAxis(gamepad, SDL_GAMEPAD_AXIS_RIGHTX);
+        const int rightY = SDL_GetGamepadAxis(gamepad, SDL_GAMEPAD_AXIS_RIGHTY);
+
+        if (leftY <= -kPadStickThreshold) { outName = "Pad_LThumb_Up"; return true; }
+        if (leftY >= kPadStickThreshold) { outName = "Pad_LThumb_Down"; return true; }
+        if (leftX <= -kPadStickThreshold) { outName = "Pad_LThumb_Left"; return true; }
+        if (leftX >= kPadStickThreshold) { outName = "Pad_LThumb_Right"; return true; }
+        if (rightY <= -kPadStickThreshold) { outName = "Pad_RThumb_Up"; return true; }
+        if (rightY >= kPadStickThreshold) { outName = "Pad_RThumb_Down"; return true; }
+        if (rightX <= -kPadStickThreshold) { outName = "Pad_RThumb_Left"; return true; }
+        if (rightX >= kPadStickThreshold) { outName = "Pad_RThumb_Right"; return true; }
+
+        return false;
+    }
+}
+
 class HotkeyCaptureCtrl final : public wxTextCtrl
 {
 public:
-    HotkeyCaptureCtrl(wxWindow* parent, wxWindowID id, const wxString& value = "")
+    HotkeyCaptureCtrl(wxWindow* parent, wxWindowID id, const wxString& value = "", bool captureStickInputs = false)
         : wxTextCtrl(parent, id, value, wxDefaultPosition, wxDefaultSize,
-                     wxTE_PROCESS_TAB | wxTE_PROCESS_ENTER)
+                     wxTE_PROCESS_TAB | wxTE_PROCESS_ENTER),
+          m_gamepadCaptureTimer(this),
+          m_captureStickInputs(captureStickInputs)
     {
         Bind(wxEVT_KEY_DOWN, &HotkeyCaptureCtrl::OnKeyDown, this);
         Bind(wxEVT_MIDDLE_DOWN, &HotkeyCaptureCtrl::OnMouseClick, this);
         Bind(wxEVT_AUX1_DOWN, &HotkeyCaptureCtrl::OnMouseClick, this);
         Bind(wxEVT_AUX2_DOWN, &HotkeyCaptureCtrl::OnMouseClick, this);
+        Bind(wxEVT_MOUSEWHEEL, &HotkeyCaptureCtrl::OnMouseWheel, this);
+        Bind(wxEVT_SET_FOCUS, &HotkeyCaptureCtrl::OnFocus, this);
+        Bind(wxEVT_KILL_FOCUS, &HotkeyCaptureCtrl::OnKillFocus, this);
+        Bind(wxEVT_TIMER, &HotkeyCaptureCtrl::OnGamepadTimer, this, m_gamepadCaptureTimer.GetId());
+    }
+
+    ~HotkeyCaptureCtrl() override
+    {
+        StopGamepadCapture();
+    }
+
+    void StopGamepadCapture()
+    {
+        if (m_gamepadCaptureTimer.IsRunning())
+        {
+            m_gamepadCaptureTimer.Stop();
+        }
+    }
+
+    void CancelGamepadCaptureFocus()
+    {
+        StopGamepadCapture();
+        SetInsertionPointEnd();
+        SetSelection(GetLastPosition(), GetLastPosition());
     }
 
 private:
+    wxTimer m_gamepadCaptureTimer;
+    bool m_captureStickInputs = false;
+
+    void OnFocus(wxFocusEvent& event)
+    {
+        if (EnsureSDLGamepadInitialized())
+        {
+            if (g_OpenGamepads.empty())
+            {
+                RefreshOpenGamepads();
+            }
+
+            m_gamepadCaptureTimer.Start(16);
+        }
+
+        event.Skip();
+    }
+
+    void OnKillFocus(wxFocusEvent& event)
+    {
+        StopGamepadCapture();
+        event.Skip();
+    }
+
+    void OnGamepadTimer(wxTimerEvent&)
+    {
+        if (!EnsureSDLGamepadInitialized())
+        {
+            return;
+        }
+
+        if (g_OpenGamepads.empty())
+        {
+            RefreshOpenGamepads();
+            if (g_OpenGamepads.empty())
+            {
+                return;
+            }
+        }
+
+        SDL_PumpEvents();
+        SDL_UpdateGamepads();
+
+        bool hasDisconnectedGamepad = false;
+
+        for (SDL_Gamepad* gamepad : g_OpenGamepads)
+        {
+            if (gamepad == nullptr || !SDL_GamepadConnected(gamepad))
+            {
+                hasDisconnectedGamepad = true;
+                continue;
+            }
+
+            wxString name;
+            const bool hasInput = m_captureStickInputs
+                ? TryGetGamepadStickInputName(gamepad, name)
+                : TryGetGamepadButtonInputName(gamepad, name);
+
+            if (!hasInput)
+            {
+                continue;
+            }
+
+            SetValue(name);
+            return;
+        }
+
+        if (hasDisconnectedGamepad)
+        {
+            RefreshOpenGamepads();
+        }
+    }
+
     void OnKeyDown(const wxKeyEvent& event)
     {
         const int code = event.GetKeyCode();
@@ -186,6 +408,23 @@ private:
         // Special key mapping table
         switch (raw)
         {
+
+        case VK_MBUTTON:   SetValue("Mouse3"); return;
+        case VK_XBUTTON1:  SetValue("Mouse4"); return;
+        case VK_XBUTTON2:  SetValue("Mouse5"); return;
+
+        case VK_CAPITAL:   SetValue("CapsLock"); return;
+        case VK_SHIFT:     SetValue("Shift"); return;
+        case VK_CONTROL:   SetValue("Ctrl"); return;
+        case VK_MENU:      SetValue("Alt"); return;
+        case VK_LMENU:     SetValue("LAlt"); return;
+        case VK_RMENU:     SetValue("RAlt"); return;
+        case VK_LCONTROL:  SetValue("LCtrl"); return;
+        case VK_RCONTROL:  SetValue("RCtrl"); return;
+        case VK_LSHIFT:    SetValue("LShift"); return;
+        case VK_RSHIFT:    SetValue("RShift"); return;
+        case VK_LWIN:      SetValue("LWin"); return;
+        case VK_RWIN:      SetValue("RWin"); return;
         case VK_BACK:      SetValue("Backspace"); return;
         case VK_TAB:       SetValue("Tab"); return;
         case VK_RETURN:    SetValue("Enter"); return;
@@ -243,14 +482,46 @@ private:
     void OnMouseClick(wxMouseEvent& event)
     {
         wxString name;
+
         if (event.GetButton() == wxMOUSE_BTN_MIDDLE)
+        {
             name = "Mouse3";
+        }
         else if (event.GetButton() == wxMOUSE_BTN_AUX1)
+        {
             name = "Mouse4";
+        }
         else if (event.GetButton() == wxMOUSE_BTN_AUX2)
+        {
             name = "Mouse5";
+        }
+
+        if (name.IsEmpty())
+        {
+            event.Skip();
+            return;
+        }
 
         SetValue(name);
+    }
+
+    void OnMouseWheel(wxMouseEvent& event)
+    {
+        const int wheelRotation = event.GetWheelRotation();
+
+        if (wheelRotation > 0)
+        {
+            SetValue("WheelUp");
+            return;
+        }
+
+        if (wheelRotation < 0)
+        {
+            SetValue("WheelDown");
+            return;
+        }
+
+        event.Skip();
     }
 };
 
@@ -329,7 +600,8 @@ class BannerPanel : public wxPanel
 {
 public:
     BannerPanel(wxWindow* parent, int bannerResId)
-        : wxPanel(parent, wxID_ANY, wxDefaultPosition, wxSize(700, 100), wxBORDER_NONE)
+        : wxPanel(parent, wxID_ANY, wxDefaultPosition,
+                  parent->FromDIP(wxSize(700, 100)), wxBORDER_NONE)
     {
         wxImage img;
         wxMemoryInputStream memStream(
@@ -338,25 +610,40 @@ public:
         );
         if (img.LoadFile(memStream, wxBITMAP_TYPE_PNG) && img.IsOk())
         {
+            m_image = img;            // keep the source image for rescaling
             m_bitmap = wxBitmap(img);
         }
 
-        SetMinSize(wxSize(700, 100));
-        SetMaxSize(wxSize(700, 100));
+        const wxSize banner = FromDIP(wxSize(700, 100));
+        SetMinSize(banner);
+        SetMaxSize(banner);
         Bind(wxEVT_PAINT, &BannerPanel::OnPaint, this);
         SetBackgroundStyle(wxBG_STYLE_PAINT); // Needed for buffered paint
     }
 
 private:
-    wxBitmap m_bitmap;
+    wxImage  m_image;   // unscaled source
+    wxBitmap m_bitmap;  // cached bitmap scaled to the current client size
+    wxSize   m_cachedFor = wxSize(-1, -1);
 
     void OnPaint(wxPaintEvent&)
     {
         wxAutoBufferedPaintDC dc(this);
         dc.Clear();
-        if (m_bitmap.IsOk())
+
+        const wxSize sz = GetClientSize();
+        if (m_image.IsOk() && sz.x > 0 && sz.y > 0)
         {
-            dc.DrawBitmap(m_bitmap, 0, 0, false); // Draw at native size
+            if (sz != m_cachedFor)
+            {
+                m_bitmap = wxBitmap(
+                    m_image.Scale(sz.x, sz.y, wxIMAGE_QUALITY_HIGH));
+                m_cachedFor = sz;
+            }
+            if (m_bitmap.IsOk())
+            {
+                dc.DrawBitmap(m_bitmap, 0, 0, false);
+            }
         }
     }
 };
@@ -366,15 +653,44 @@ class ConfigFrame : public wxFrame
 public:
     ConfigFrame()
         : wxFrame(nullptr, wxID_ANY, FIX_NAME " v" VERSION_STRING " - Universal Config Tool",
-                  wxDefaultPosition, wxSize(iWindowSizeX, iWindowSizeY),
+                  wxDefaultPosition, wxDefaultSize,
                   wxDEFAULT_FRAME_STYLE & ~(wxRESIZE_BORDER | wxMAXIMIZE_BOX))
     {
-        SetMinSize(wxSize(iWindowSizeX, iWindowSizeY));
-        SetMaxSize(wxSize(iWindowSizeX, iWindowSizeY));
+        const wxSize clientSize = FromDIP(wxSize(iWindowSizeX, iWindowSizeY));
+        SetClientSize(clientSize);
+        SetMinClientSize(clientSize);
+        SetMaxClientSize(clientSize);
 
         HWND hwnd = (HWND)GetHWND();
-        SendMessage(hwnd, WM_SETICON, ICON_SMALL, 0);
-        SendMessage(hwnd, WM_SETICON, ICON_BIG, 0);
+        HINSTANCE instance = GetModuleHandleW(nullptr);
+
+        m_iconSmall = (HICON)LoadImageW(
+            instance,
+            MAKEINTRESOURCEW(IDI_ICON1),
+            IMAGE_ICON,
+            GetSystemMetrics(SM_CXSMICON),
+            GetSystemMetrics(SM_CYSMICON),
+            LR_DEFAULTCOLOR
+        );
+
+        m_iconBig = (HICON)LoadImageW(
+            instance,
+            MAKEINTRESOURCEW(IDI_ICON1),
+            IMAGE_ICON,
+            GetSystemMetrics(SM_CXICON),
+            GetSystemMetrics(SM_CYICON),
+            LR_DEFAULTCOLOR
+        );
+
+        if (m_iconSmall)
+        {
+            SendMessageW(hwnd, WM_SETICON, ICON_SMALL, (LPARAM)m_iconSmall);
+        }
+
+        if (m_iconBig)
+        {
+            SendMessageW(hwnd, WM_SETICON, ICON_BIG, (LPARAM)m_iconBig);
+        }
 
         if (!std::filesystem::exists(std::filesystem::path(m_iniPath.ToStdWstring())))
         {
@@ -382,7 +698,25 @@ public:
         }
         m_conf = new wxFileConfig("", "", m_iniPath, "", wxCONFIG_USE_LOCAL_FILE | wxCONFIG_USE_NO_ESCAPE_CHARACTERS);
 
+        m_focusSink = new wxTextCtrl(this, wxID_ANY, "", wxPoint(-10000, -10000), wxSize(1, 1), wxTE_READONLY | wxBORDER_NONE);
+
+        const int bannerID = GetBannerResourceID();
+        const int targetGameFlag =
+            iTargetGame == TARGET_GAME_MG1 ? MG :
+            iTargetGame == TARGET_GAME_MGS2 ? MGS2 :
+            iTargetGame == TARGET_GAME_MGS3 ? MGS3 : 0;
+
         m_tabs = new wxNotebook(this, wxID_ANY);
+        m_tabs->Bind(wxEVT_NOTEBOOK_PAGE_CHANGING, [this](wxBookCtrlEvent& event)
+                     {
+                         ClearHotkeyCaptureFocus();
+                         event.Skip();
+                     });
+        m_tabs->Bind(wxEVT_NOTEBOOK_PAGE_CHANGED, [this](wxBookCtrlEvent& event)
+                     {
+                         ClearHotkeyCaptureFocus();
+                         event.Skip();
+                     });
 
         for (auto& tab : kTabs)
         {
@@ -394,6 +728,8 @@ public:
 
             for (auto& field : tab.second)
             {
+                const bool fieldVisible = (field.gameFlags & targetGameFlag) != 0;
+
                 if (field.section != currentSection)
                 {
                     currentSection = field.section;
@@ -403,10 +739,21 @@ public:
                     grid->AddGrowableCol(3, 1);
                     sectionSizer->Add(grid, 0, wxEXPAND | wxALL, 5);
                     vbox->Add(sectionSizer, 0, wxEXPAND | wxALL, 5);
+
+                    const bool sectionVisible = std::any_of(tab.second.begin(), tab.second.end(), [&](const Field& sectionField)
+                    {
+                        return sectionField.section == currentSection && (sectionField.gameFlags & targetGameFlag) != 0;
+                    });
+                    vbox->Show(sectionSizer, sectionVisible);
                 }
 
                 if (field.section == "About")
                 {
+                    if (!fieldVisible)
+                    {
+                        continue;
+                    }
+
                     wxBoxSizer* aboutSizer = new wxBoxSizer(wxVERTICAL);
 
                     auto* aboutText = new wxStaticText(
@@ -414,11 +761,12 @@ public:
                         wxID_ANY,
                         "Universal Config Tool, licensed under MIT.\n" //Do not remove this notice.
                         "     Created by Afevis.\n"                            //Do not remove this notice.
+                        "     Gamepad support powered by SDL3, licensed under zlib.\n" //Do not remove this notice.
                         "\n"
                         "MGSHDFix, licensed under MIT.\n"
-                        "     Originally created by Lyall.\n"
                         "     Maintained by Afevis (aka ShizCalev.)\n"
-                        "     Additional contributions by Emoose, Cipherxof (aka TriggerHappy), Bud11, and Zenf0."
+                        "     Originally created by Lyall.\n"
+                        "     Contributors: Emoose, Cipherxof (aka TriggerHappy), Bud11, SpaceCore (aka Jacky720), gibletto, Zenf0."
                     );
                     aboutSizer->Add(aboutText, 0, wxALL, 5);
 
@@ -427,16 +775,19 @@ public:
                 }
 
                 // Label + optional help stacked vertically
-                wxBoxSizer* labelBox = new wxBoxSizer(wxVERTICAL);
-                labelBox->Add(new wxStaticText(sectionSizer->GetStaticBox(), wxID_ANY, field.key),
-                              0, wxALIGN_LEFT | wxBOTTOM, 2);
-                if (!field.help.IsEmpty())
+                if (fieldVisible)
                 {
-                    auto* helpText = new wxStaticText(sectionSizer->GetStaticBox(), wxID_ANY, field.help);
-                    helpText->SetForegroundColour(*wxBLUE);
-                    labelBox->Add(helpText, 0, wxALIGN_LEFT);
+                    wxBoxSizer* labelBox = new wxBoxSizer(wxVERTICAL);
+                    labelBox->Add(new wxStaticText(sectionSizer->GetStaticBox(), wxID_ANY, field.key),
+                                  0, wxALIGN_LEFT | wxBOTTOM, 2);
+                    if (!field.help.IsEmpty())
+                    {
+                        auto* helpText = new wxStaticText(sectionSizer->GetStaticBox(), wxID_ANY, field.help);
+                        helpText->SetForegroundColour(*wxBLUE);
+                        labelBox->Add(helpText, 0, wxALIGN_LEFT);
+                    }
+                    grid->Add(labelBox, 0, wxALIGN_CENTER_VERTICAL | wxRIGHT, 5);
                 }
-                grid->Add(labelBox, 0, wxALIGN_CENTER_VERTICAL | wxRIGHT, 5);
 
                 // Create control
                 wxWindow* ctrl = nullptr;
@@ -449,7 +800,7 @@ public:
                     bool v = field.defaultInt != 0;
                     if (!m_conf->HasEntry(path))
                     {
-                        m_missingKeys = true;
+                        MarkMissingKey(field.section, field.key);
                     }
                     m_conf->Read(path, &v);
 
@@ -474,7 +825,7 @@ public:
                     int v = field.defaultInt;
                     if (!m_conf->HasEntry(path))
                     {
-                        m_missingKeys = true;
+                        MarkMissingKey(field.section, field.key);
                     }
                     m_conf->Read(path, &v);
 
@@ -501,7 +852,7 @@ public:
                     wxString v = field.defaultString;
                     if (!m_conf->HasEntry(path))
                     {
-                        m_missingKeys = true;
+                        MarkMissingKey(field.section, field.key);
                     }
                     m_conf->Read(path, &v);
                     v = Unquote(v);
@@ -558,7 +909,7 @@ public:
                     wxString v = field.defaultString;
                     if (!m_conf->HasEntry(path))
                     {
-                        m_missingKeys = true;
+                        MarkMissingKey(field.section, field.key);
                     }
                     m_conf->Read(path, &v);
                     v = Unquote(v);
@@ -570,7 +921,7 @@ public:
                                  ApplyPrerequisites();
                                  e.Skip();
                              });
-                    
+
                     for (auto& c : field.choices)
                         ch->Append(c);
 
@@ -604,18 +955,37 @@ public:
                     wxString v = field.defaultString;
                     if (!m_conf->HasEntry(path))
                     {
-                        m_missingKeys = true;
+                        MarkMissingKey(field.section, field.key);
                     }
                     m_conf->Read(path, &v);
                     v = Unquote(v);
                     ctrl = new HotkeyCaptureCtrl(sectionSizer->GetStaticBox(), wxID_ANY, v);
                     break;
                 }
+                case Field::StickHotkey:
+                {
+                    wxString v = field.defaultString;
+                    if (!m_conf->HasEntry(path))
+                    {
+                        MarkMissingKey(field.section, field.key);
+                    }
+                    m_conf->Read(path, &v);
+                    v = Unquote(v);
+                    ctrl = new HotkeyCaptureCtrl(sectionSizer->GetStaticBox(), wxID_ANY, v, true);
+                    break;
+                }
                 case Field::Spacer:
                 {
                     auto* spacer = new wxPanel(sectionSizer->GetStaticBox(), wxID_ANY);
-                    spacer->SetMinSize(wxSize(0, 10));
-                    grid->Add(spacer, 0, wxEXPAND);
+                    spacer->SetMinSize(FromDIP(wxSize(0, 10)));
+                    if (fieldVisible)
+                    {
+                        grid->Add(spacer, 0, wxEXPAND);
+                    }
+                    else
+                    {
+                        spacer->Hide();
+                    }
                     continue;
                 }
                 case Field::Float:
@@ -623,7 +993,7 @@ public:
                     double v = field.defaultFloat;
                     if (!m_conf->HasEntry(path))
                     {
-                        m_missingKeys = true;
+                        MarkMissingKey(field.section, field.key);
                     }
                     m_conf->Read(path, &v);
 
@@ -644,8 +1014,8 @@ public:
                     );
 
                     ctrl = sp;
-                    sp->SetMinSize(wxSize(90, -1));
-                    sp->SetSizeHints(90, -1);
+                    sp->SetMinSize(FromDIP(wxSize(90, -1)));
+                    sp->SetSizeHints(FromDIP(wxSize(90, -1)));
                     ctrl->Bind(wxEVT_ANY, &ConfigFrame::MarkDirty, this);
                     break;
                 }
@@ -710,6 +1080,7 @@ public:
 
                             case Field::Str:
                             case Field::Hotkey:
+                            case Field::StickHotkey:
                                 if (!field.defaultString.IsEmpty())
                                     tip += "\"" + field.defaultString + "\"";
                                 else
@@ -748,19 +1119,38 @@ public:
                         flags |= wxEXPAND;
                     }
 
-                    grid->Add(ctrl, 0, flags);
+                    if (fieldVisible)
+                    {
+                        grid->Add(ctrl, 0, flags);
+                    }
+                    else
+                    {
+                        ctrl->Hide();
+                    }
 
                     m_controls[{field.section, field.key}] = ctrl;
                 }
             }
 
             panel->SetSizer(vbox);
-            m_tabs->AddPage(panel, tab.first, false);
+
+            const bool tabVisible = std::any_of(tab.second.begin(), tab.second.end(), [&](const Field& field)
+            {
+                return (field.gameFlags & targetGameFlag) != 0;
+            });
+
+            if (tabVisible)
+            {
+                m_tabs->AddPage(panel, tab.first, false);
+            }
+            else
+            {
+                panel->Hide();
+            }
         }
 
         wxBoxSizer* mainSizer = new wxBoxSizer(wxVERTICAL);
 
-        int bannerID = GetBannerResourceID();
         BannerPanel* banner = new BannerPanel(this, bannerID);
         banner->SetCursor(wxCursor(wxCURSOR_HAND));
         banner->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent&)
@@ -774,6 +1164,87 @@ public:
 
         mainSizer->Add(m_tabs, 1, wxEXPAND | wxALL, 5);
 
+        // Bugfix Compilation status
+        if (iTargetGame == TARGET_GAME_MGS2 || iTargetGame == TARGET_GAME_MGS3)
+        {
+            const std::filesystem::path exePath = Helper::FindASILocation(sFixName).parent_path();
+
+            const char* asiName = (iTargetGame == TARGET_GAME_MGS2)
+                ? "MGS2-Community-Bugfix-Compilation.asi"
+                : "MGS3-Community-Bugfix-Compilation.asi";
+
+            const char* compilationName = (iTargetGame == TARGET_GAME_MGS2)
+                ? "MGS2 Community Bugfix Compilation"
+                : "MGS3 Community Bugfix Compilation";
+
+            const bool bugfixInstalled = std::filesystem::exists(
+                exePath / "plugins" / asiName);
+
+            auto* statusPanel = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxBORDER_THEME);
+            statusPanel->SetBackgroundColour(m_tabs->GetPage(0)->GetBackgroundColour());
+
+            auto* statusSizer = new wxBoxSizer(wxHORIZONTAL);
+
+            auto* icon = new wxStaticText(statusPanel, wxID_ANY,
+                                          bugfixInstalled ? L"\u2714" : L"\u2718");
+            icon->SetForegroundColour(bugfixInstalled ? wxColour(0, 128, 0) : wxColour(192, 0, 0));
+            wxFont iconFont = icon->GetFont();
+            iconFont.SetPointSize(iconFont.GetPointSize() + 2);
+            icon->SetFont(iconFont);
+
+            auto* label = new wxStaticText(statusPanel, wxID_ANY,
+                                           wxString::Format("%s: ", compilationName));
+            label->SetForegroundColour(bugfixInstalled ? wxColour(0, 128, 0) : wxColour(192, 0, 0));
+
+            auto* statusLabel = new wxStaticText(statusPanel, wxID_ANY,
+                                                 bugfixInstalled ? "Installed" : "Not Installed");
+            statusLabel->SetForegroundColour(bugfixInstalled ? wxColour(0, 128, 0) : wxColour(192, 0, 0));
+            statusLabel->SetFont(statusLabel->GetFont().Bold());
+
+            statusSizer->AddStretchSpacer();
+            statusSizer->Add(icon, 0, wxALIGN_CENTER_VERTICAL | wxRIGHT, 4);
+            statusSizer->Add(label, 0, wxALIGN_CENTER_VERTICAL);
+            statusSizer->Add(statusLabel, 0, wxALIGN_CENTER_VERTICAL | wxRIGHT, 8);
+
+            if (!bugfixInstalled)
+            {
+                const char* nexusUrl = (iTargetGame == TARGET_GAME_MGS2)
+                    ? "https://www.nexusmods.com/metalgearsolid2mc/mods/52"
+                    : "https://www.nexusmods.com/metalgearsolid3mc/mods/189";
+
+                const char* githubUrl = (iTargetGame == TARGET_GAME_MGS2)
+                    ? "https://github.com/ShizCalev/MGS2-Community-Bugfix-Compilation"
+                    : "https://github.com/ShizCalev/MGS3-Community-Bugfix-Compilation";
+
+                auto* nexusBtn = new wxButton(statusPanel, wxID_ANY, "Nexus Page");
+                nexusBtn->Bind(wxEVT_BUTTON, [nexusUrl](wxCommandEvent&) {
+                    wxLaunchDefaultBrowser(nexusUrl);
+                               });
+                statusSizer->Add(nexusBtn, 0, wxALIGN_CENTER_VERTICAL | wxRIGHT, 4);
+
+                auto* githubBtn = new wxButton(statusPanel, wxID_ANY, "GitHub Page");
+                githubBtn->Bind(wxEVT_BUTTON, [githubUrl](wxCommandEvent&) {
+                    wxLaunchDefaultBrowser(githubUrl);
+                                });
+                statusSizer->Add(githubBtn, 0, wxALIGN_CENTER_VERTICAL);
+
+                const char* tooltip = (iTargetGame == TARGET_GAME_MGS2)
+                    ? "This mod fixes nearly 14,000 texture issues, hundreds of transparent textures/models, missing audio/music, and countless localization errors/typos introduced by the 2011 Bluepoint HD remaster."
+                    : "This mod fixes nearly 4000 texture issues, over 500 transparent textures/models, restores missing regional content, and corrects countless localization errors/typos introduced by the 2011 Bluepoint HD remaster.";
+
+                //statusPanel->SetToolTip(tooltip);
+                icon->SetToolTip(tooltip);
+                label->SetToolTip(tooltip);
+                statusLabel->SetToolTip(tooltip);
+                nexusBtn->SetToolTip(tooltip);
+                githubBtn->SetToolTip(tooltip);
+            }
+
+            statusSizer->AddStretchSpacer();
+
+            statusPanel->SetSizer(statusSizer);
+            mainSizer->Add(statusPanel, 0, wxEXPAND | wxLEFT | wxRIGHT, 5);
+        }
         wxBoxSizer* btnSizer = new wxBoxSizer(wxHORIZONTAL);
 
         auto* resetBtn = new wxButton(this, wxID_ANY, "Reset to Defaults");
@@ -813,6 +1284,23 @@ public:
 
         ApplyPrerequisites();
         HandleUpdateCheckPreference();
+
+        SnapshotCurrentValues();
+    }
+
+    ~ConfigFrame() override
+    {
+        if (m_iconSmall)
+        {
+            DestroyIcon(m_iconSmall);
+            m_iconSmall = nullptr;
+        }
+
+        if (m_iconBig)
+        {
+            DestroyIcon(m_iconBig);
+            m_iconBig = nullptr;
+        }
     }
 
     void HandleUpdateCheckPreference()
@@ -876,11 +1364,26 @@ public:
     }
 
 private:
+    using Key = std::pair<wxString, wxString>;
+
+    struct KeyHash
+    {
+        size_t operator()(const Key& k) const
+        {
+            return std::hash<std::string>()((k.first + k.second).ToStdString());
+        }
+    };
+
+    wxStaticText* m_bugfixStatus = nullptr;
+    HICON m_iconSmall = nullptr;
+    HICON m_iconBig = nullptr;
     bool m_dirty = false;
     bool m_firstRun = false;
     bool m_missingKeys = false;
+    std::vector<Key> m_missingKeyList;
 
     wxNotebook* m_tabs = nullptr;
+    wxTextCtrl* m_focusSink = nullptr;
 
     wxChoice* m_regionChoice = nullptr;
     wxChoice* m_languageChoice = nullptr;
@@ -889,6 +1392,270 @@ private:
     {
         m_dirty = true;
         e.Skip();
+    }
+
+    void StopAllHotkeyCaptures()
+    {
+        for (const auto& kv : m_controls)
+        {
+            if (auto* hotkey = dynamic_cast<HotkeyCaptureCtrl*>(kv.second))
+            {
+                hotkey->StopGamepadCapture();
+            }
+        }
+    }
+
+    void ClearHotkeyCaptureFocus()
+    {
+        for (const auto& kv : m_controls)
+        {
+            if (auto* hotkey = dynamic_cast<HotkeyCaptureCtrl*>(kv.second))
+            {
+                hotkey->CancelGamepadCaptureFocus();
+            }
+        }
+
+        if (m_focusSink != nullptr)
+        {
+            m_focusSink->SetFocus();
+        }
+    }
+
+    void MarkMissingKey(const wxString& section, const wxString& key)
+    {
+        m_missingKeys = true;
+
+        const Key missingKey{ section, key };
+        if (std::find(m_missingKeyList.begin(), m_missingKeyList.end(), missingKey) == m_missingKeyList.end())
+        {
+            m_missingKeyList.push_back(missingKey);
+        }
+    }
+
+    bool IsMissingKey(const wxString& section, const wxString& key) const
+    {
+        const Key missingKey{ section, key };
+        return std::find(m_missingKeyList.begin(), m_missingKeyList.end(), missingKey) != m_missingKeyList.end();
+    }
+
+    static wxString GetControlDisplayValue(wxWindow* ctrl)
+    {
+        if (!ctrl)
+            return wxString();
+
+        if (auto* cb = wxDynamicCast(ctrl, wxCheckBox))
+            return cb->GetValue() ? "Enabled" : "Disabled";
+        if (auto* sp = wxDynamicCast(ctrl, wxSpinCtrl))
+            return wxString::Format("%d", sp->GetValue());
+        if (auto* spd = wxDynamicCast(ctrl, wxSpinCtrlDouble))
+            return wxString::Format("%g", spd->GetValue());
+        if (auto* tc = wxDynamicCast(ctrl, wxTextCtrl))
+            return "\"" + tc->GetValue() + "\"";
+        if (auto* ch = wxDynamicCast(ctrl, wxChoice))
+            return "\"" + ch->GetStringSelection() + "\"";
+
+        return wxString();
+    }
+
+    void SnapshotCurrentValues()
+    {
+        m_snapshot.clear();
+        for (const auto& kv : m_controls)
+            m_snapshot[kv.first] = GetControlDisplayValue(kv.second);
+    }
+
+    wxString BuildChangeList() const
+    {
+        wxString out;
+        for (const auto& tab : kTabs)
+        {
+            // wxWidgets freaks the fuck out with &'s, lets normalize them
+            wxString tabTitle = tab.first;
+            tabTitle.Replace("&&", "\x01");      
+            tabTitle.Replace("&", "");           
+            tabTitle.Replace("\x01", "&");       
+            wxString tabChunk;
+            wxString currentSection;
+            wxString sectionChunk;
+
+            auto flushSection = [&]()
+                {
+                    if (!sectionChunk.IsEmpty())
+                    {
+                        if (!currentSection.IsEmpty())
+                            tabChunk += "  [" + currentSection + "]\n";
+                        tabChunk += sectionChunk;
+                        sectionChunk.Clear();
+                    }
+                };
+
+            for (const auto& field : tab.second)
+            {
+                auto it = m_controls.find({ field.section, field.key });
+                if (it == m_controls.end())
+                    continue;
+
+                wxString now = GetControlDisplayValue(it->second);
+                auto snapIt = m_snapshot.find({ field.section, field.key });
+                wxString before = (snapIt != m_snapshot.end()) ? snapIt->second : wxString();
+
+                if (now == before)
+                    continue;
+
+                if (field.section != currentSection)
+                {
+                    flushSection();
+                    currentSection = field.section;
+                }
+                sectionChunk += wxString::Format("    %s: %s -> %s\n",
+                                                 field.key.c_str(),
+                                                 before.c_str(),
+                                                 now.c_str());
+            }
+            flushSection();
+
+            if (!tabChunk.IsEmpty())
+            {
+                if (!out.IsEmpty())
+                    out += "\n";
+                out += tabTitle + "\n" + tabChunk;
+            }
+        }
+        return out;
+    }
+
+    wxString BuildMissingKeyList() const
+    {
+        wxString out;
+
+        for (const auto& tab : kTabs)
+        {
+            wxString tabTitle = tab.first;
+            tabTitle.Replace("&&", "\x01");
+            tabTitle.Replace("&", "");
+            tabTitle.Replace("\x01", "&");
+
+            wxString tabChunk;
+            wxString currentSection;
+            wxString sectionChunk;
+
+            auto flushSection = [&]()
+                {
+                    if (!sectionChunk.IsEmpty())
+                    {
+                        if (!currentSection.IsEmpty())
+                            tabChunk += "  [" + currentSection + "]\n";
+                        tabChunk += sectionChunk;
+                        sectionChunk.Clear();
+                    }
+                };
+
+            for (const auto& field : tab.second)
+            {
+                if (!IsMissingKey(field.section, field.key))
+                    continue;
+
+                auto it = m_controls.find({ field.section, field.key });
+                if (it == m_controls.end())
+                    continue;
+
+                if (field.section != currentSection)
+                {
+                    flushSection();
+                    currentSection = field.section;
+                }
+
+                sectionChunk += wxString::Format("    %s: <missing> -> %s\n",
+                                                 field.key.c_str(),
+                                                 GetControlDisplayValue(it->second).c_str());
+            }
+            flushSection();
+
+            if (!tabChunk.IsEmpty())
+            {
+                if (!out.IsEmpty())
+                    out += "\n";
+                out += tabTitle + "\n" + tabChunk;
+            }
+        }
+
+        return out;
+    }
+
+    wxString BuildUnsavedChangeList() const
+    {
+        wxString changeList = BuildChangeList();
+        const wxString missingList = BuildMissingKeyList();
+
+        if (!missingList.IsEmpty())
+        {
+            if (!changeList.IsEmpty())
+                changeList += "\n\n";
+
+            changeList += "Missing settings:\n";
+            changeList += missingList;
+        }
+
+        return changeList;
+    }
+
+
+    int ShowUnsavedChangesDialog(const wxString& prompt,
+                                 const wxString& yesLabel,
+                                 const wxString& noLabel,
+                                 const wxString& changeList)
+    {
+        // No diff to show (first run, missing keys, or odd state) -> simple dialog.
+        if (changeList.IsEmpty())
+        {
+            wxMessageDialog dlg(this, prompt, "Unsaved Changes",
+                                wxYES_NO | wxCANCEL | wxICON_WARNING);
+            dlg.SetYesNoCancelLabels(yesLabel, noLabel, "Cancel");
+            return dlg.ShowModal();
+        }
+
+        wxDialog dlg(this, wxID_ANY, "Unsaved Changes",
+                     wxDefaultPosition, wxDefaultSize,
+                     wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER);
+        dlg.SetClientSize(dlg.FromDIP(wxSize(560, 420)));
+
+        auto* sizer = new wxBoxSizer(wxVERTICAL);
+
+        auto* msg = new wxStaticText(&dlg, wxID_ANY, prompt);
+        sizer->Add(msg, 0, wxALL, 12);
+
+        auto* listLabel = new wxStaticText(&dlg, wxID_ANY, "Changes since last save:");
+        sizer->Add(listLabel, 0, wxLEFT | wxRIGHT, 12);
+
+        auto* list = new wxTextCtrl(&dlg, wxID_ANY, changeList,
+                                    wxDefaultPosition, wxDefaultSize,
+                                    wxTE_MULTILINE | wxTE_READONLY | wxTE_DONTWRAP);
+
+        wxFont mono(wxFontInfo().Family(wxFONTFAMILY_TELETYPE));
+        if (mono.IsOk())
+            list->SetFont(mono);
+        sizer->Add(list, 1, wxEXPAND | wxLEFT | wxRIGHT | wxTOP, 12);
+
+        auto* btnSizer = new wxBoxSizer(wxHORIZONTAL);
+        auto* yesBtn = new wxButton(&dlg, wxID_YES, yesLabel);
+        auto* noBtn = new wxButton(&dlg, wxID_NO, noLabel);
+        auto* cancelBtn = new wxButton(&dlg, wxID_CANCEL, "Cancel");
+        btnSizer->AddStretchSpacer();
+        btnSizer->Add(yesBtn, 0, wxRIGHT, 5);
+        btnSizer->Add(noBtn, 0, wxRIGHT, 5);
+        btnSizer->Add(cancelBtn, 0);
+        sizer->Add(btnSizer, 0, wxEXPAND | wxALL, 12);
+
+        dlg.SetSizer(sizer);
+        dlg.SetAffirmativeId(wxID_YES);
+        dlg.SetEscapeId(wxID_CANCEL);
+
+        auto routeBtn = [&dlg](wxCommandEvent& e) { dlg.EndModal(e.GetId()); };
+        yesBtn->Bind(wxEVT_BUTTON, routeBtn);
+        noBtn->Bind(wxEVT_BUTTON, routeBtn);
+        cancelBtn->Bind(wxEVT_BUTTON, routeBtn);
+
+        return dlg.ShowModal();
     }
 
     // ----------------------------
@@ -1136,9 +1903,14 @@ private:
         bool hasRegion = m_conf->HasEntry(pathRegion);
         bool hasLang = m_conf->HasEntry(pathLang);
 
-        if (!hasRegion || !hasLang)
+        if (!hasRegion)
         {
-            m_missingKeys = true;
+            MarkMissingKey(sectionRegion, keyRegion);
+        }
+
+        if (!hasLang)
+        {
+            MarkMissingKey(sectionLang, keyLang);
         }
 
         if (hasRegion)
@@ -1161,7 +1933,8 @@ private:
         {
             regionCodeStd = defaultRegionCode;
             langCodeStd = defaultLangCode;
-            m_missingKeys = true;
+            MarkMissingKey(sectionRegion, keyRegion);
+            MarkMissingKey(sectionLang, keyLang);
         }
 
         std::string regionName;
@@ -1175,7 +1948,8 @@ private:
                 regionName.assign(pairs[0].Region_Name);
                 langName.assign(pairs[0].Language_Name);
             }
-            m_missingKeys = true;
+            MarkMissingKey(sectionRegion, keyRegion);
+            MarkMissingKey(sectionLang, keyLang);
         }
 
         // Fill region list (select correct region name if present, else first)
@@ -1273,6 +2047,7 @@ private:
 
             case Field::Str:
             case Field::Hotkey:
+            case Field::StickHotkey:
                 if (auto* c = wxDynamicCast(ctrl, wxTextCtrl))
                 {
                     c->SetValue(field.defaultString);
@@ -1359,7 +2134,10 @@ private:
 
     void OnSaveAndLaunch(wxCommandEvent& event)
     {
-        if (m_dirty || m_firstRun || m_missingKeys)
+        wxString changeList = BuildUnsavedChangeList();
+        const bool hasRealChanges = !changeList.IsEmpty();
+
+        if (hasRealChanges || m_firstRun || m_missingKeys)
         {
             wxString message;
             if (m_firstRun)
@@ -1367,12 +2145,13 @@ private:
                 message =
                     "This appears to be your first time running the config tool.\n\n"
                     "You must save your settings before starting the game.";
+                changeList.Clear(); // first-run baseline isn't meaningful to diff
             }
             else if (m_missingKeys)
             {
                 message =
-                    "Some settings were missing from your config file.\n\n"
-                    "You must save your settings before starting the game.";
+                    "Some settings were missing from your config file and will be restored.\n\n"
+                    "Review the changes below and save before starting the game.";
             }
             else
             {
@@ -1380,15 +2159,8 @@ private:
                     "You have unsaved changes.\n\n"
                     "Do you want to save them before launching the game?";
             }
-            wxMessageDialog dlg(
-                this,
-                message,
-                "Unsaved Changes",
-                wxYES_NO | wxCANCEL | wxICON_WARNING
-            );
-            dlg.SetYesNoCancelLabels("Save", "Discard", "Cancel");
 
-            int choice = dlg.ShowModal();
+            int choice = ShowUnsavedChangesDialog(message, "Save", "Discard", changeList);
             if (choice == wxID_YES)
             {
                 wxCommandEvent dummy;
@@ -1403,6 +2175,10 @@ private:
             {
                 return;
             }
+        }
+        else
+        {
+            m_dirty = false;
         }
 
         std::wstring wGameToLaunch = iTargetGame == TARGET_GAME_MG1 ? L"steam://launch/2131680" : iTargetGame == TARGET_GAME_MGS2 ? L"steam://launch/2131640" : iTargetGame == TARGET_GAME_MGS3 ? L"steam://launch/2131650" : L"";
@@ -1427,7 +2203,10 @@ private:
 
     void OnClose(wxCloseEvent& event)
     {
-        if (m_dirty || m_firstRun || m_missingKeys)
+        wxString changeList = BuildUnsavedChangeList();
+        const bool hasRealChanges = !changeList.IsEmpty();
+
+        if (hasRealChanges || m_firstRun || m_missingKeys)
         {
             wxString message;
             if (m_firstRun)
@@ -1435,12 +2214,13 @@ private:
                 message =
                     "This appears to be your first time running the config tool.\n\n"
                     "You must save your settings before starting the game.";
+                changeList.Clear();
             }
             else if (m_missingKeys)
             {
                 message =
-                    "Some settings were missing from your config file.\n\n"
-                    "You must save your settings before starting the game.";
+                    "Some settings were missing from your config file and will be restored.\n\n"
+                    "Review the changes below and save before starting the game.";
             }
             else
             {
@@ -1448,15 +2228,8 @@ private:
                     "You have unsaved changes.\n\n"
                     "What would you like to do?";
             }
-            wxMessageDialog dlg(
-                this,
-                message,
-                "Unsaved Changes",
-                wxYES_NO | wxCANCEL | wxICON_WARNING
-            );
-            dlg.SetYesNoCancelLabels("Save and Exit", "Exit Without Saving", "Cancel");
 
-            int choice = dlg.ShowModal();
+            int choice = ShowUnsavedChangesDialog(message, "Save and Exit", "Exit Without Saving", changeList);
             if (choice == wxID_YES)
             {
                 wxCommandEvent dummy;
@@ -1573,7 +2346,7 @@ private:
                     boolVal = field.defaultInt != 0;
                     if (!m_conf->HasEntry(path))
                     {
-                        m_missingKeys = true;
+                        MarkMissingKey(field.section, field.key);
                     }
                     m_conf->Read(path, &boolVal);
                     if (auto* c = wxDynamicCast(ctrl, wxCheckBox))
@@ -1586,7 +2359,7 @@ private:
                     intVal = field.defaultInt;
                     if (!m_conf->HasEntry(path))
                     {
-                        m_missingKeys = true;
+                        MarkMissingKey(field.section, field.key);
                     }
                     m_conf->Read(path, &intVal);
                     if (auto* c = wxDynamicCast(ctrl, wxSpinCtrl))
@@ -1599,7 +2372,7 @@ private:
                     dblVal = field.defaultFloat;
                     if (!m_conf->HasEntry(path))
                     {
-                        m_missingKeys = true;
+                        MarkMissingKey(field.section, field.key);
                     }
                     m_conf->Read(path, &dblVal);
                     if (auto* c = wxDynamicCast(ctrl, wxSpinCtrlDouble))
@@ -1610,10 +2383,11 @@ private:
 
                 case Field::Str:
                 case Field::Hotkey:
+                case Field::StickHotkey:
                     strVal = field.defaultString;
                     if (!m_conf->HasEntry(path))
                     {
-                        m_missingKeys = true;
+                        MarkMissingKey(field.section, field.key);
                     }
                     m_conf->Read(path, &strVal);
                     strVal = Unquote(strVal);
@@ -1627,7 +2401,7 @@ private:
                     strVal = field.defaultString;
                     if (!m_conf->HasEntry(path))
                     {
-                        m_missingKeys = true;
+                        MarkMissingKey(field.section, field.key);
                     }
                     m_conf->Read(path, &strVal);
                     strVal = Unquote(strVal);
@@ -1742,21 +2516,16 @@ private:
         m_dirty = false;
         m_firstRun = false;
         m_missingKeys = false;
+        m_missingKeyList.clear();
+        SnapshotCurrentValues();
         Close();
     }
 
     wxFileConfig* m_conf;
     wxString m_iniPath = wxString((Helper::FindASILocation(sFixName) / sSettingsFileName).wstring());
 
-    using Key = std::pair<wxString, wxString>;
-    struct KeyHash
-    {
-        size_t operator()(const Key& k) const
-        {
-            return std::hash<std::string>()((k.first + k.second).ToStdString());
-        }
-    };
     std::unordered_map<Key, wxWindow*, KeyHash> m_controls;
+    std::unordered_map<Key, wxString, KeyHash> m_snapshot;
 };
 
 class MyApp : public wxApp
@@ -1772,6 +2541,20 @@ public:
         ConfigFrame* frame = new ConfigFrame();
         frame->Show();
         return true;
+    }
+
+    int OnExit() override
+    {
+        CloseOpenGamepads();
+
+        if (g_SDLGamepadInitialized)
+        {
+            SDL_QuitSubSystem(SDL_INIT_GAMEPAD);
+            SDL_Quit();
+            g_SDLGamepadInitialized = false;
+        }
+
+        return wxApp::OnExit();
     }
 };
 

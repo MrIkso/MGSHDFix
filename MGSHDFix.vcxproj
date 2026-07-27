@@ -1,102 +1,118 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
-    <ProjectConfiguration Include="Debug|Win32">
-      <Configuration>Debug</Configuration>
-      <Platform>Win32</Platform>
-    </ProjectConfiguration>
-    <ProjectConfiguration Include="Debug|x64">
-      <Configuration>Debug</Configuration>
-      <Platform>x64</Platform>
-    </ProjectConfiguration>
-    <ProjectConfiguration Include="Release|Win32">
-      <Configuration>Release</Configuration>
-      <Platform>Win32</Platform>
-    </ProjectConfiguration>
     <ProjectConfiguration Include="Release|x64">
       <Configuration>Release</Configuration>
       <Platform>x64</Platform>
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="src\fixes\screenspace_fixes.cpp" />
+    <ClCompile Include="src\fixes\caption_replacements.cpp" />
+    <ClCompile Include="src\features\mg1_display_scaling.cpp" />
+    <ClCompile Include="src\features\mgs_smaa.cpp" />
+    <ClCompile Include="src\fixes\color_correction.cpp" />
+    <ClCompile Include="src\features\mgs2_vamp_punch_fix.cpp" />
+    <ClCompile Include="src\fixes\mgs2_newscrconcentrateblur.cpp" />
+    <ClCompile Include="src\resources\d3d11_text_overlay.cpp" />
+    <ClCompile Include="src\resources\mgs2_status_flags.cpp" />
+    <ClCompile Include="src\resources\game_funcs.cpp" />
+    <ClCompile Include="src\features\mgs2_snake_tales_radar.cpp" />
+    <ClCompile Include="src\features\expand_bp_assets.cpp" />
+    <ClCompile Include="src\features\mgs2_restore_sol_radar.cpp" />
+    <ClCompile Include="src\features\mgs2_restore_elevator_glitch.cpp" />
+    <ClCompile Include="src\features\mgs2_restore_action_level_selection.cpp" />
+    <ClCompile Include="src\features\custom_player_name.cpp" />
+    <ClCompile Include="src\features\mgs2_msx_colonel.cpp" />
+    <ClCompile Include="src\fixes\mgs2_hostage_model.cpp" />
+    <ClCompile Include="src\fixes\mgs2_ray_photo_voice.cpp" />
+    <ClCompile Include="src\fixes\mgs2_parrot_radar_fix.cpp" />
+    <ClCompile Include="src\fixes\playtime_fixes.cpp" />
+    <ClCompile Include="src\fixes\mgs2_contrast_fix.cpp" />
+    <ClCompile Include="src\fixes\mgs2_shimmer.cpp" />
+    <ClCompile Include="src\fixes\mgs2_crossfade.cpp" />
+    <ClCompile Include="src\fixes\mgs2_thermal_goggles.cpp" />
+    <ClCompile Include="src\features\cutscene_pausing.cpp" />
+    <ClCompile Include="src\features\adjustable_captions.cpp" />
+    <ClCompile Include="src\features\mgs2_hostage_type_easter_egg.cpp" />
+    <ClCompile Include="src\features\mgs2_3rd_person_freecam.cpp" />
+    <ClCompile Include="src\features\mgs2_difficulty.cpp" />
+    <ClCompile Include="src\features\mgs2_first_person_view_mode.cpp" />
+    <ClCompile Include="src\features\mgs2_restore_dogtag_viewer.cpp" />
+    <ClCompile Include="src\features\original_camera_positions.cpp" />
+    <ClCompile Include="src\features\mgs3_first_person_view_mode.cpp" />
+    <ClCompile Include="src\fixes\mgs2_coolant_mirror.cpp" />
+    <ClCompile Include="src\features\mgs2_restore_phone_jingle.cpp" />
+    <ClCompile Include="src\fixes\mgs2_kirari_sun2_fix.cpp" />
+    <ClCompile Include="src\fixes\mgs2_preshade_lights.cpp" />
+    <ClCompile Include="src\fixes\mgs2_tanker_snake_snap.cpp" />
+    <ClCompile Include="src\fixes\mgs2_snakearm_voice.cpp" />
+    <ClCompile Include="src\fixes\resolution_scaling_fixes.cpp" />
     <ClCompile Include="src\features\custom_font.cpp" />
     <ClCompile Include="src\features\custom_resolution_and_borderless.cpp" />
     <ClCompile Include="src\features\mgs2_restore_dogtags.cpp" />
+    <ClCompile Include="src\fixes\texture_live_swaps.cpp" />
     <ClCompile Include="src\warnings\background_shuffle_warning.cpp" />
     <ClCompile Include="src\warnings\bugfix_mod_checks.cpp" />
     <ClCompile Include="src\features\settings_pesistence.cpp" />
-    <ClCompile Include="src\features\mg1_crop_borders.cpp" />
     <ClCompile Include="src\fixes\mgs3_fix_camera_offset.cpp" />
     <ClCompile Include="src\fixes\mgs3_fix_holster_after_torture.cpp" />
     <ClCompile Include="src\fixes\cpu_core_limit.cpp" />
     <ClCompile Include="src\fixes\depth_of_field.cpp" />
+    <ClCompile Include="src\fixes\mgs2_underwater_filter.cpp" />
+    <ClCompile Include="src\fixes\mgs3_film_grain.cpp" />
     <ClCompile Include="src\fixes\mgs3_hud_fixes.cpp" />
+    <ClCompile Include="src\fixes\optical_camo.cpp" />
     <ClCompile Include="src\fixes\windows_fullscreen_optimization.cpp" />
     <ClCompile Include="src\resources\input_handler.cpp" />
     <ClCompile Include="src\fixes\fix_default_gpu.cpp" />
     <ClCompile Include="src\fixes\aiming_full_tilt.cpp" />
+    <ClCompile Include="src\fixes\mgs2_blood_stains.cpp" />
+    <ClCompile Include="src\fixes\mgs2_scope_warp.cpp" />
+    <ClCompile Include="src\fixes\mgs2_water_effects.cpp" />
+    <ClCompile Include="src\fixes\mgs2_lens_droplets.cpp" />
+    <ClCompile Include="src\fixes\mgs2_gas_haze.cpp" />
+    <ClCompile Include="src\fixes\mgs2_flare_occlusion.cpp" />
+    <ClCompile Include="src\fixes\mgs2_demo_blur.cpp" />
+    <ClCompile Include="src\fixes\mgs2_demo_camera_judder.cpp" />
+    <ClCompile Include="src\fixes\mgs2_hair_layering.cpp" />
+    <ClCompile Include="src\fixes\mgs2_rotor_procession.cpp" />
+    <ClCompile Include="src\fixes\mgs2_reverb_wet_level.cpp" />
+    <ClCompile Include="src\fixes\mgs2_railgun_beam.cpp" />
     <ClCompile Include="src\features\keep_aiming_after_firing.cpp" />
     <ClCompile Include="src\features\mgs2_sunglasses.cpp" />
     <ClCompile Include="src\resources\config.cpp" />
     <ClCompile Include="external\safetyhook\src\allocator.cpp">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="external\safetyhook\src\easy.cpp">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="external\safetyhook\src\inline_hook.cpp">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="external\safetyhook\src\mid_hook.cpp">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="external\safetyhook\src\os.linux.cpp">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="external\safetyhook\src\os.windows.cpp">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="external\safetyhook\src\utility.cpp">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="external\safetyhook\src\vmt_hook.cpp">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="src\resources\gpu_check.cpp" />
     <ClCompile Include="src\resources\logging.cpp" />
     <ClCompile Include="src\features\mg1_custom_loading_screens.cpp" />
     <ClCompile Include="src\features\distance_culling.cpp" />
     <ClCompile Include="src\fixes\aiming_after_equip.cpp" />
-    <ClCompile Include="src\resources\probe.cpp" />
     <ClCompile Include="src\resources\stdafx.cpp">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="src\resources\submodule_initiailization.hpp" />
     <ClCompile Include="src\resources\version_checking.cpp" />
@@ -106,26 +122,81 @@
     <ClCompile Include="src\warnings\reshade_compatibility_checks.cpp" />
     <ClCompile Include="src\dllmain.cpp" />
     <ClCompile Include="src\features\intro_skip.cpp" />
-    <ClCompile Include="src\fixes\color_filters.cpp" />
     <ClCompile Include="src\fixes\effect_speeds.cpp" />
     <ClCompile Include="src\fixes\line_scaling.cpp" />
     <ClCompile Include="src\warnings\mute_warning.cpp" />
     <ClCompile Include="src\fixes\pause_on_focus_loss.cpp" />
     <ClCompile Include="src\fixes\stereo_audio.cpp" />
     <ClCompile Include="src\resources\d3d11_api.cpp" />
+    <ClCompile Include="src\resources\d3d11_state_cache.cpp" />
+    <ClCompile Include="src\resources\scene_depth.cpp" />
     <ClCompile Include="src\resources\gamevars.cpp" />
     <ClCompile Include="src\resources\helper.cpp" />
     <ClCompile Include="src\fixes\water_reflections.cpp" />
+    <ClCompile Include="src\fixes\busy_loop_fix.cpp" />
     <ClCompile Include="src\features\texture_buffer_size.cpp" />
     <ClCompile Include="src\resources\steamworks_api.cpp" />
     <ClCompile Include="src\features\stat_persistence.cpp" />
     <ClCompile Include="src\resources\unit_tests.cpp" />
     <ClCompile Include="src\features\swap_menu_buttons.cpp" />
+    <ClCompile Include="src\warnings\windows_multiplane_overlay_warning.cpp" />
+    <ClCompile Include="src\fixes\windows_preferred_gpu.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\fixes\screenspace_fixes.hpp" />
+    <ClInclude Include="src\fixes\mgs2_tanker_snake_snap.hpp" />
+    <ClInclude Include="src\resources\game_strings.hpp" />
+    <ClInclude Include="src\fixes\caption_replacements.hpp" />
+    <ClInclude Include="src\resources\mgs3_status_flags.hpp" />
+    <ClInclude Include="src\resources\mgs3_linkvarbuf.hpp" />
+    <ClInclude Include="src\features\mg1_display_scaling.hpp" />
+    <ClInclude Include="src\features\mgs_smaa.hpp" />
+    <ClInclude Include="src\fixes\color_correction.hpp" />
+    <ClInclude Include="src\features\mgs2_vamp_punch_fix.hpp" />
+    <ClInclude Include="src\fixes\mgs2_crossfade.hpp" />
+    <ClInclude Include="src\fixes\mgs2_newscrconcentrateblur.hpp" />
+    <ClInclude Include="src\resources\d3d11_text_overlay.hpp" />
+    <ClInclude Include="src\resources\game_defines.hpp" />
+    <ClInclude Include="src\resources\game_funcs.hpp" />
+    <ClInclude Include="src\features\mgs2_snake_tales_radar.hpp" />
+    <ClInclude Include="src\features\expand_bp_assets.hpp" />
+    <ClInclude Include="src\features\mgs2_restore_sol_radar.hpp" />
+    <ClInclude Include="src\features\mgs2_restore_elevator_glitch.hpp" />
+    <ClInclude Include="src\features\mgs2_restore_action_level_selection.hpp" />
+    <ClInclude Include="src\features\custom_player_name.hpp" />
+    <ClInclude Include="src\features\mgs2_msx_colonel.hpp" />
+    <ClInclude Include="src\fixes\mgs2_hostage_model.hpp" />
+    <ClInclude Include="src\fixes\mgs2_ray_photo_voice.hpp" />
+    <ClInclude Include="src\fixes\mgs2_parrot_radar_fix.hpp" />
+    <ClInclude Include="src\fixes\playtime_fixes.hpp" />
+    <ClInclude Include="src\fixes\mgs2_contrast_fix.hpp" />
+    <ClInclude Include="src\fixes\mgs2_shimmer.hpp" />
+    <ClInclude Include="src\fixes\mgs2_shimmer_noise_map.hpp" />
+    <ClInclude Include="src\fixes\mgs2_thermal_goggles.hpp" />
+    <ClInclude Include="src\features\cutscene_pausing.hpp" />
+    <ClInclude Include="src\resources\mgs2_status_flags.hpp" />
+    <ClInclude Include="src\features\adjustable_captions.hpp" />
+    <ClInclude Include="src\features\mgs2_hostage_type_easter_egg.hpp" />
+    <ClInclude Include="src\resources\game_stages.hpp" />
+    <ClInclude Include="src\resources\mgs2_equipment_enums.hpp" />
+    <ClInclude Include="src\features\mgs2_3rd_person_freecam.hpp" />
+    <ClInclude Include="src\features\mgs2_difficulty.hpp" />
+    <ClInclude Include="src\features\mgs2_first_person_view_mode.hpp" />
+    <ClInclude Include="src\features\mgs2_restore_dogtag_viewer.hpp" />
+    <ClInclude Include="src\features\original_camera_positions.hpp" />
+    <ClInclude Include="src\features\mgs2_restore_phone_jingle.hpp" />
+    <ClInclude Include="src\features\mgs3_first_person_view_mode.hpp" />
+    <ClInclude Include="src\fixes\mgs2_coolant_mirror.hpp" />
+    <ClInclude Include="src\fixes\mgs2_kirari_sun2_fix.hpp" />
+    <ClInclude Include="src\fixes\mgs2_preshade_lights.hpp" />
+    <ClInclude Include="src\fixes\mgs2_snakearm_voice.hpp" />
+    <ClInclude Include="src\fixes\resolution_scaling_fixes.hpp" />
     <ClInclude Include="src\features\custom_font.hpp" />
     <ClInclude Include="src\features\custom_resolution_and_borderless.hpp" />
     <ClInclude Include="src\features\mgs2_restore_dogtags.hpp" />
+    <ClInclude Include="src\fixes\busy_loop_fix.hpp" />
+    <ClInclude Include="src\fixes\texture_live_swaps.hpp" />
+    <ClInclude Include="src\resources\mgs2_linkvarbuf.hpp" />
     <ClInclude Include="src\warnings\background_shuffle_warning.hpp" />
     <ClInclude Include="src\warnings\bugfix_mod_checks.hpp" />
     <ClInclude Include="src\features\settings_pesistence.hpp" />
@@ -133,12 +204,27 @@
     <ClInclude Include="src\fixes\mgs3_fix_camera_offset.hpp" />
     <ClInclude Include="src\fixes\mgs3_fix_holster_after_torture.hpp" />
     <ClInclude Include="src\fixes\cpu_core_limit.hpp" />
+    <ClInclude Include="src\fixes\optical_camo.hpp" />
     <ClInclude Include="src\fixes\windows_fullscreen_optimization.hpp" />
     <ClInclude Include="src\resources\config_keys.hpp" />
     <ClInclude Include="src\fixes\depth_of_field.hpp" />
+    <ClInclude Include="src\fixes\mgs2_underwater_filter.hpp" />
+    <ClInclude Include="src\fixes\mgs3_film_grain.hpp" />
     <ClInclude Include="src\fixes\mgs3_hud_fixes.hpp" />
-    <ClInclude Include="src\features\postfx.hpp" />
     <ClInclude Include="src\fixes\aiming_full_tilt.hpp" />
+    <ClInclude Include="src\fixes\mgs2_blood_stains.hpp" />
+    <ClInclude Include="src\fixes\mgs2_scope_warp.hpp" />
+    <ClInclude Include="src\fixes\mgs2_water_effects.hpp" />
+    <ClInclude Include="src\fixes\mgs2_lens_droplets.hpp" />
+    <ClInclude Include="src\fixes\mgs2_gas_haze.hpp" />
+    <ClInclude Include="src\fixes\mgs2_flare_occlusion.hpp" />
+    <ClInclude Include="src\fixes\mgs2_demo_blur.hpp" />
+    <ClInclude Include="src\fixes\mgs2_demo_camera_judder.hpp" />
+    <ClInclude Include="src\fixes\mgs2_hair_layering.hpp" />
+    <ClInclude Include="src\fixes\mgs2_rotor_procession.hpp" />
+    <ClInclude Include="src\fixes\mgs2_reverb_wet_level.hpp" />
+    <ClInclude Include="src\fixes\mgs2_railgun_beam.hpp" />
+    <ClInclude Include="src\fixes\mgs2_autopacket.hpp" />
     <ClInclude Include="src\features\keep_aiming_after_firing.hpp" />
     <ClInclude Include="src\features\mgs2_sunglasses.hpp" />
     <ClInclude Include="src\resources\config.hpp" />
@@ -147,7 +233,6 @@
     <ClInclude Include="src\resources\input_handler.hpp" />
     <ClInclude Include="src\resources\logging.hpp" />
     <ClInclude Include="src\fixes\aiming_after_equip.hpp" />
-    <ClInclude Include="src\fixes\color_filters.hpp" />
     <ClInclude Include="src\resources\RegStateHelpers.hpp" />
     <ClInclude Include="src\resources\version_checking.hpp" />
     <ClInclude Include="src\resources\version.h" />
@@ -159,13 +244,14 @@
     <ClInclude Include="src\warnings\asi_loader_checks.hpp" />
     <ClInclude Include="src\resources\gamevars.hpp" />
     <ClInclude Include="src\resources\common.hpp" />
-    <ClInclude Include="src\features\gamma_correction.hpp" />
     <ClInclude Include="src\features\intro_skip.hpp" />
     <ClInclude Include="src\fixes\effect_speeds.hpp" />
     <ClInclude Include="src\fixes\line_scaling.hpp" />
     <ClInclude Include="src\fixes\pause_on_focus_loss.hpp" />
     <ClInclude Include="src\fixes\stereo_audio.hpp" />
     <ClInclude Include="src\resources\d3d11_api.hpp" />
+    <ClInclude Include="src\resources\d3d11_state_cache.hpp" />
+    <ClInclude Include="src\resources\scene_depth.hpp" />
     <ClInclude Include="src\resources\helper.hpp" />
     <ClInclude Include="src\warnings\reshade_compatibility_checks.hpp" />
     <ClInclude Include="src\resources\stdafx.h" />
@@ -176,6 +262,8 @@
     <ClInclude Include="src\features\stat_persistence.hpp" />
     <ClInclude Include="src\resources\unit_tests.hpp" />
     <ClInclude Include="src\features\swap_menu_buttons.hpp" />
+    <ClInclude Include="src\warnings\windows_multiplane_overlay_warning.hpp" />
+    <ClInclude Include="src\fixes\windows_preferred_gpu.hpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="MGSHDFix.ini" />
@@ -195,28 +283,7 @@
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
-    <ConfigurationType>DynamicLibrary</ConfigurationType>
-    <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>v145</PlatformToolset>
-    <WholeProgramOptimization>true</WholeProgramOptimization>
-    <CharacterSet>Unicode</CharacterSet>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
-    <ConfigurationType>DynamicLibrary</ConfigurationType>
-    <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>v145</PlatformToolset>
-    <WholeProgramOptimization>true</WholeProgramOptimization>
-    <CharacterSet>Unicode</CharacterSet>
-  </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
-    <ConfigurationType>DynamicLibrary</ConfigurationType>
-    <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>v143</PlatformToolset>
-    <WholeProgramOptimization>true</WholeProgramOptimization>
-    <CharacterSet>Unicode</CharacterSet>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
     <PlatformToolset>v143</PlatformToolset>
@@ -228,117 +295,17 @@
   </ImportGroup>
   <ImportGroup Label="Shared">
   </ImportGroup>
-  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
-  </ImportGroup>
-  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="PropertySheets">
-    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
-  </ImportGroup>
   <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
-  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="PropertySheets">
-    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
-  </ImportGroup>
   <PropertyGroup Label="UserMacros" />
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-    <TargetExt>.asi</TargetExt>
-    <IntDir>Intermediate\$(ProjectName)\$(Platform)\$(Configuration)\</IntDir>
-    <ExternalIncludePath>external\SteamworksSDK\public\steam;external\inipp;external\spdlog\include;$(VC_IncludePath);$(WindowsSDK_IncludePath);external\zydis\include;external\zydis\dependencies\zycore\include;external\safetyhook\include</ExternalIncludePath>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-    <TargetExt>.asi</TargetExt>
-    <IntDir>Intermediate\$(ProjectName)\$(Platform)\$(Configuration)\</IntDir>
-    <ExternalIncludePath>external\SteamworksSDK\public\steam;external\inipp;external\spdlog\include;$(VC_IncludePath);$(WindowsSDK_IncludePath);external\zydis\include;external\zydis\dependencies\zycore\include;external\safetyhook\include</ExternalIncludePath>
-  </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <TargetExt>.asi</TargetExt>
-    <ExternalIncludePath>external\SteamworksSDK\public\steam;external\inipp;external\spdlog\include;$(VC_IncludePath);$(WindowsSDK_IncludePath);external\zydis\include;external\zydis\dependencies\zycore\include;external\safetyhook\include</ExternalIncludePath>
-    <IntDir>Intermediate\$(ProjectName)\$(Platform)\$(Configuration)\</IntDir>
-    <CustomBuildAfterTargets />
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <TargetExt>.asi</TargetExt>
-    <ExternalIncludePath>external\SteamworksSDK\public\steam;external\inipp;external\spdlog\include;$(VC_IncludePath);$(WindowsSDK_IncludePath);external\zydis\include;external\zydis\dependencies\zycore\include;external\safetyhook\include</ExternalIncludePath>
-    <IntDir>Intermediate\$(ProjectName)\$(Platform)\$(Configuration)\</IntDir>
+    <ExternalIncludePath>external\smaa;external\SteamworksSDK\public\steam;external\stb;external\inipp;external\spdlog\include;$(VC_IncludePath);$(WindowsSDK_IncludePath);external\zydis\include;external\zydis\dependencies\zycore\include;external\safetyhook\include</ExternalIncludePath>
+    <IntDir>Intermediate\$(ProjectName)\$(Platform)\Release\</IntDir>
     <CustomBuildAfterTargets />
     <OutDir>$(SolutionDir)$(Platform)\Release\</OutDir>
   </PropertyGroup>
-  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-    <ClCompile>
-      <WarningLevel>Level3</WarningLevel>
-      <FunctionLevelLinking>true</FunctionLevelLinking>
-      <IntrinsicFunctions>true</IntrinsicFunctions>
-      <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>RELEASE_BUILD;WIN32;NDEBUG;MGSHDFix_EXPORTS;_WINDOWS;_USRDLL;%(PreprocessorDefinitions);_CRT_SECURE_NO_WARNINGS;ZYDIS_STATIC_BUILD;ZYCORE_STATIC_BUILD</PreprocessorDefinitions>
-      <ConformanceMode>true</ConformanceMode>
-      <PrecompiledHeader>Use</PrecompiledHeader>
-      <PrecompiledHeaderFile>stdafx.h</PrecompiledHeaderFile>
-      <LanguageStandard>stdcpplatest</LanguageStandard>
-      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
-      <MultiProcessorCompilation>true</MultiProcessorCompilation>
-      <AdditionalIncludeDirectories>$(ProjectDir)src;$(ProjectDir)src\resources;$(ProjectDir)src\features;$(ProjectDir)src\fixes;$(ProjectDir)src\warnings</AdditionalIncludeDirectories>
-      <AdditionalOptions>/utf-8 %(AdditionalOptions)</AdditionalOptions>
-      <ExternalWarningLevel>TurnOffAllWarnings</ExternalWarningLevel>
-      <DisableAnalyzeExternal>true</DisableAnalyzeExternal>
-    </ClCompile>
-    <Link>
-      <SubSystem>Windows</SubSystem>
-      <EnableCOMDATFolding>true</EnableCOMDATFolding>
-      <OptimizeReferences>true</OptimizeReferences>
-      <GenerateDebugInformation>true</GenerateDebugInformation>
-      <EnableUAC>false</EnableUAC>
-      <ProgramDatabaseFile>$(OutDir)\pdb\$(TargetName).pdb</ProgramDatabaseFile>
-      <AdditionalDependencies>$(CoreLibraryDependencies);%(AdditionalDependencies);Zydis.lib</AdditionalDependencies>
-      <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories);$(SolutionDir)external\zydis\msvc\bin\ReleaseX86</AdditionalLibraryDirectories>
-      <ImportLibrary />
-    </Link>
-    <PostBuildEvent>
-      <Command>
-      </Command>
-    </PostBuildEvent>
-    <PreBuildEvent>
-      <Command>call "$(ProjectDir)build_zydis.cmd" $(Platform)</Command>
-    </PreBuildEvent>
-  </ItemDefinitionGroup>
-  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-    <ClCompile>
-      <WarningLevel>Level3</WarningLevel>
-      <FunctionLevelLinking>true</FunctionLevelLinking>
-      <IntrinsicFunctions>true</IntrinsicFunctions>
-      <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>RELEASE_BUILD;WIN32;NDEBUG;MGSHDFix_EXPORTS;_WINDOWS;_USRDLL;%(PreprocessorDefinitions);_CRT_SECURE_NO_WARNINGS;ZYDIS_STATIC_BUILD;ZYCORE_STATIC_BUILD</PreprocessorDefinitions>
-      <ConformanceMode>true</ConformanceMode>
-      <PrecompiledHeader>Use</PrecompiledHeader>
-      <PrecompiledHeaderFile>stdafx.h</PrecompiledHeaderFile>
-      <LanguageStandard>stdcpplatest</LanguageStandard>
-      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
-      <MultiProcessorCompilation>true</MultiProcessorCompilation>
-      <AdditionalIncludeDirectories>$(ProjectDir)src;$(ProjectDir)src\resources;$(ProjectDir)src\features;$(ProjectDir)src\fixes;$(ProjectDir)src\warnings</AdditionalIncludeDirectories>
-      <AdditionalOptions>/utf-8 %(AdditionalOptions)</AdditionalOptions>
-      <ExternalWarningLevel>TurnOffAllWarnings</ExternalWarningLevel>
-      <DisableAnalyzeExternal>true</DisableAnalyzeExternal>
-    </ClCompile>
-    <Link>
-      <SubSystem>Windows</SubSystem>
-      <EnableCOMDATFolding>true</EnableCOMDATFolding>
-      <OptimizeReferences>true</OptimizeReferences>
-      <GenerateDebugInformation>true</GenerateDebugInformation>
-      <EnableUAC>false</EnableUAC>
-      <ProgramDatabaseFile>$(OutDir)\pdb\$(TargetName).pdb</ProgramDatabaseFile>
-      <AdditionalDependencies>$(CoreLibraryDependencies);%(AdditionalDependencies);Zydis.lib</AdditionalDependencies>
-      <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories);$(SolutionDir)external\zydis\msvc\bin\ReleaseX86</AdditionalLibraryDirectories>
-      <ImportLibrary>
-      </ImportLibrary>
-    </Link>
-    <PostBuildEvent>
-      <Command>
-      </Command>
-    </PostBuildEvent>
-    <PreBuildEvent>
-      <Command>call "$(ProjectDir)build_zydis.cmd" $(Platform)</Command>
-    </PreBuildEvent>
-  </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
@@ -367,45 +334,6 @@
       <AdditionalDependencies>$(CoreLibraryDependencies);%(AdditionalDependencies);Zydis.lib</AdditionalDependencies>
       <ProgramDatabaseFile>$(OutDir)\pdb\$(TargetName).pdb</ProgramDatabaseFile>
       <ImportLibrary />
-      <AdditionalOptions>/NOIMPLIB %(AdditionalOptions)</AdditionalOptions>
-    </Link>
-    <PostBuildEvent>
-      <Command>call "update_local_game_files.py"</Command>
-    </PostBuildEvent>
-    <PreBuildEvent>
-      <Command>call "$(ProjectDir)build_zydis.cmd" $(Platform)
-powershell -NoProfile -ExecutionPolicy Bypass -File "$(ProjectDir)get_asi_loader_version.ps1"</Command>
-    </PreBuildEvent>
-  </ItemDefinitionGroup>
-  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <ClCompile>
-      <WarningLevel>Level3</WarningLevel>
-      <FunctionLevelLinking>true</FunctionLevelLinking>
-      <IntrinsicFunctions>true</IntrinsicFunctions>
-      <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>NDEBUG;MGSHDFix_EXPORTS;_WINDOWS;_USRDLL;%(PreprocessorDefinitions);_CRT_SECURE_NO_WARNINGS;ZYDIS_STATIC_BUILD;ZYCORE_STATIC_BUILD</PreprocessorDefinitions>
-      <ConformanceMode>true</ConformanceMode>
-      <PrecompiledHeader>Use</PrecompiledHeader>
-      <PrecompiledHeaderFile>stdafx.h</PrecompiledHeaderFile>
-      <LanguageStandard>stdcpplatest</LanguageStandard>
-      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
-      <MultiProcessorCompilation>true</MultiProcessorCompilation>
-      <AdditionalIncludeDirectories>$(ProjectDir)src;$(ProjectDir)src\resources;$(ProjectDir)src\features;$(ProjectDir)src\fixes;$(ProjectDir)src\warnings</AdditionalIncludeDirectories>
-      <AdditionalOptions>/utf-8 %(AdditionalOptions)</AdditionalOptions>
-      <ExternalWarningLevel>TurnOffAllWarnings</ExternalWarningLevel>
-      <DisableAnalyzeExternal>true</DisableAnalyzeExternal>
-    </ClCompile>
-    <Link>
-      <SubSystem>Windows</SubSystem>
-      <EnableCOMDATFolding>true</EnableCOMDATFolding>
-      <OptimizeReferences>true</OptimizeReferences>
-      <GenerateDebugInformation>true</GenerateDebugInformation>
-      <EnableUAC>false</EnableUAC>
-      <AdditionalLibraryDirectories>external\SteamworksSDK\redistributable_bin\win64;%(AdditionalLibraryDirectories);$(SolutionDir)external\zydis\msvc\bin\ReleaseX64</AdditionalLibraryDirectories>
-      <AdditionalDependencies>$(CoreLibraryDependencies);%(AdditionalDependencies);Zydis.lib</AdditionalDependencies>
-      <ProgramDatabaseFile>$(OutDir)\pdb\$(TargetName).pdb</ProgramDatabaseFile>
-      <ImportLibrary>
-      </ImportLibrary>
       <AdditionalOptions>/NOIMPLIB %(AdditionalOptions)</AdditionalOptions>
     </Link>
     <PostBuildEvent>

@@ -245,7 +245,7 @@ namespace
             " while update checks are enabled.\n\n"
             "Is your firewall or network blocking the game from reaching the update provider?";
 
-        MessageBoxA(nullptr, msg.c_str(), "MGSHDFix update checker", MB_OK | MB_ICONWARNING);
+        MessageBoxA(nullptr, msg.c_str(), (sFixName + " update checker").c_str(), MB_OK | MB_ICONWARNING);
         g_ShownUpdateContactError = true;
     }
 }
@@ -351,10 +351,15 @@ bool LatestVersionChecker::checkForUpdates()
     case VersionCheck::CompareResult::Newer:
         spdlog::info("Version Check: Welcome back, Commander! You are running a development build of {}!", FIX_NAME);
         spdlog::info("Version Check - Current Version: {}, Latest Release: {}", VERSION_STRING, cachedLatest);
+        bDebugBuild = true;
         return false;
     case VersionCheck::CompareResult::Older:
         spdlog::warn("Version Check: A new version of {} is available.", FIX_NAME);
         spdlog::warn("Version Check - Current Version: {}, Latest Version: {}", VERSION_STRING, cachedLatest);
+        if (!(eGameType & LAUNCHER))
+        {
+            bNewUpdateAvailable = true;
+        }
 
         if (warnedVersion != cachedLatest)
         {
@@ -383,20 +388,19 @@ bool LatestVersionChecker::loadCache(std::string& cachedLatest, std::string& war
 
     std::string versionLine;
     std::string timeLine;
+    std::string installedVersionLine;
 
-    if (!std::getline(file, versionLine) || !std::getline(file, timeLine))
+    if (!std::getline(file, versionLine) || !std::getline(file, timeLine) || !std::getline(file, warnedVersion) || !std::getline(file, installedVersionLine))
     {
         return false;
     }
 
     cachedLatest = versionLine;
 
-    std::getline(file, warnedVersion);
-
     auto cachedTime = parseISO8601(timeLine);
     auto now = std::chrono::system_clock::now();
     auto age = std::chrono::duration_cast<std::chrono::hours>(now - cachedTime);
-    cacheIsFresh = (age.count() <= iCacheTTLHours);
+    cacheIsFresh = age.count() <= iCacheTTLHours && installedVersionLine == VERSION_STRING;
 
     return true;
 }
@@ -412,6 +416,7 @@ void LatestVersionChecker::saveCache(const std::string& latestVersion, const std
     file << latestVersion << "\n";
     file << currentTimeISO8601() << "\n";
     file << warnedVersion << "\n";
+    file << VERSION_STRING << "\n";
 }
 
 std::wstring LatestVersionChecker::buildUserAgent() const

@@ -5,6 +5,7 @@
 #include "logging.hpp"
 
 #include "common.hpp"
+#include "config_keys.hpp"
 #include "d3d11_api.hpp"
 
 namespace
@@ -327,6 +328,7 @@ namespace CustomResolutionAndBorderless
     void Init_CalculateScreenSize()
     {
         // Calculate aspect ratio
+        fHeightDeltaFrom720p = static_cast<float>(iInternalResY) / 720.0f;
         fAspectRatio = (float)iInternalResX / (float)iInternalResY;
         fAspectMultiplier = fAspectRatio / fNativeAspect;
 
@@ -845,6 +847,11 @@ namespace CustomResolutionAndBorderless
 
     void Init_AspectFOVFix()
     {
+        if (std::abs(fAspectRatio - fNativeAspect) < 0.0001f)
+        {
+            spdlog::info("Aspect ratio matches native aspect ratio. Skipping {} and {}.", ConfigKeys::FixAspectRatio_Setting, ConfigKeys::FixFOV_Setting);
+            return;
+        }
         // Fix aspect ratio
         if (eGameType & MGS3 && bAspectFix)
         {
@@ -923,6 +930,11 @@ namespace CustomResolutionAndBorderless
 
     void Init_HUDFix()
     {
+        if (std::abs(fAspectRatio - fNativeAspect) < 0.0001f)
+        {
+            spdlog::info("Aspect ratio matches native aspect ratio. Skipping {}.", ConfigKeys::FixHUD_Setting);
+            return;
+        }
         if (eGameType & MGS2 && bHUDFix)
         {
             // MGS 2: HUD
@@ -1030,21 +1042,16 @@ namespace CustomResolutionAndBorderless
                 spdlog::error("MGS 2: Codec Portraits: Pattern scan failed.");
             }
 
-            // MGS 2: Disable motion blur. 
-            uint8_t* MGS2_MotionBlurScanResult = Memory::PatternScanSilent(baseModule, "F3 48 ?? ?? ?? ?? 48 ?? ?? ?? 48 ?? ?? ?? F3 0F ?? ?? ?? ?? ?? ?? 0F ?? ??");
-            if (MGS2_MotionBlurScanResult)
+            if (fAspectRatio > fNativeAspect)
             {
-                spdlog::info("MGS 2: Motion Blur: Address is {:s}+{:X}", sExeName.c_str(), (uintptr_t)MGS2_MotionBlurScanResult - (uintptr_t)baseModule);
+                if (uint8_t* MGS2_MotionBlurScanResult = Memory::PatternScanSilent(baseModule, "F3 48 ?? ?? ?? ?? 48 ?? ?? ?? 48 ?? ?? ?? F3 0F ?? ?? ?? ?? ?? ?? 0F ?? ??"))
+                {
+                    Memory::PatchBytes((uintptr_t)MGS2_MotionBlurScanResult, "\x48\x31\xDB\x90\x90\x90", 6);
+                }
+            }
 
-                Memory::PatchBytes((uintptr_t)MGS2_MotionBlurScanResult, "\x48\x31\xDB\x90\x90\x90", 6);
-                spdlog::info("MGS 2: Motion Blur: Patched instruction.");
-            }
-            else if (!MGS2_MotionBlurScanResult)
-            {
-                spdlog::error("MGS 2: Motion Blur: Pattern scan failed.");
-            }
         }
-        else if (eGameType & MGS3 && bHUDFix || eGameType & MG && fAspectRatio != fNativeAspect)
+        else if (eGameType & MGS3 && bHUDFix || eGameType & MG)
         {
             // MG1/2 | MGS 3: HUD
             uint8_t* MGS3_HUDWidthScanResult = Memory::PatternScanSilent(baseModule, "0F ?? ?? ?? ?? ?? F3 44 ?? ?? ?? ?? ?? ?? ?? 4C ?? ?? ?? ?? ?? ?? F3 44 ?? ?? ?? ?? ?? ?? ?? 41 ?? 00 02 00 00");

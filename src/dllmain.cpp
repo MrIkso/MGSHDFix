@@ -22,17 +22,50 @@
 #include "stat_persistence.hpp"
 #include "mgs2_sunglasses.hpp"
 #include "mgs2_restore_dogtags.hpp"
+#include "swap_menu_buttons.hpp"
+#include "mgs2_restore_phone_jingle.hpp"
+#include "mgs2_restore_action_level_selection.hpp"
+#include "mgs2_3rd_person_freecam.hpp"
+#include "mgs2_difficulty.hpp"
+#include "mgs2_hostage_type_easter_egg.hpp"
+#include "original_camera_positions.hpp"
+#include "expand_bp_assets.hpp"
+#include "mgs2_vamp_punch_fix.hpp"
 #include "custom_font.hpp"
 
 ///Fixes
 #include "aiming_full_tilt.hpp"
+#include "mgs2_blood_stains.hpp"
+#include "mgs2_scope_warp.hpp"
+#include "mgs2_water_effects.hpp"
+#include "mgs2_lens_droplets.hpp"
+#include "mgs2_gas_haze.hpp"
+#include "mgs2_demo_camera_judder.hpp"
+#include "mgs2_hair_layering.hpp"
+#include "mgs2_rotor_procession.hpp"
+#include "mgs2_reverb_wet_level.hpp"
+#include "mgs2_flare_occlusion.hpp"
+#include "mgs2_railgun_beam.hpp"
+#include "mgs2_demo_blur.hpp"
+#include "mgs2_tanker_snake_snap.hpp"
 #include "cpu_core_limit.hpp"
 #include "aiming_after_equip.hpp"
 #include "line_scaling.hpp"
+#include "optical_camo.hpp"
 #include "stereo_audio.hpp"
 #include "water_reflections.hpp"
 #include "mgs3_hud_fixes.hpp"
+#include "mgs3_film_grain.hpp"
 #include "windows_fullscreen_optimization.hpp"
+#include "busy_loop_fix.hpp"
+#include "mgs2_snakearm_voice.hpp"
+#include "resolution_scaling_fixes.hpp"
+#include "texture_live_swaps.hpp"
+#include "mgs2_coolant_mirror.hpp"
+#include "mgs2_restore_dogtag_viewer.hpp"
+#include "mgs2_underwater_filter.hpp"
+#include "mgs2_hostage_model.hpp"
+#include "mgs2_ray_photo_voice.hpp"
 
 //Warnings
 #include "asi_loader_checks.hpp"
@@ -45,12 +78,33 @@
 
 ///WIP
 #include "depth_of_field.hpp"
-#include "color_filters.hpp"
-#include "gamma_correction.hpp"
 #include "mg1_custom_loading_screens.hpp"
+#include "mgs2_kirari_sun2_fix.hpp"
+#include "mgs2_preshade_lights.hpp"
 #include "mgs3_fix_camera_offset.hpp"
 #include "mgs3_fix_holster_after_torture.hpp"
-#include "swap_menu_buttons.hpp"
+#include "mgs2_msx_colonel.hpp"
+#include "adjustable_captions.hpp"
+#include "color_correction.hpp"
+#include "custom_player_name.hpp"
+#include "mgs2_first_person_view_mode.hpp"
+#include "cutscene_pausing.hpp"
+#include "d3d11_text_overlay.hpp"
+#include "mg1_display_scaling.hpp"
+#include "mgs2_contrast_fix.hpp"
+#include "mgs2_parrot_radar_fix.hpp"
+#include "mgs2_restore_sol_radar.hpp"
+#include "mgs2_restore_elevator_glitch.hpp"
+#include "mgs2_shimmer.hpp"
+#include "mgs2_crossfade.hpp"
+#include "mgs2_newscrconcentrateblur.hpp"
+#include "playtime_fixes.hpp"
+#include "mgs2_snake_tales_radar.hpp"
+#include "mgs2_thermal_goggles.hpp"
+#include "mgs_smaa.hpp"
+#include "caption_replacements.hpp"
+#include "screenspace_fixes.hpp"
+#include "windows_preferred_gpu.hpp"
 //#include "texture_buffer_size.hpp" //disabled for now, the vanilla limit was increased to 128MB/texture in 2.0.0, so there's no much need until 8k gaming is standard & there's a need for a 16k texture pack lol.
 
 
@@ -411,11 +465,36 @@ void afterPresent()
     }
     bInitialized = true;
     spdlog::info("afterPresent() started");
-    g_VectorScalingFix.LoadCompiledShader();
+    if (!(eGameType & MG))
+    {
+        g_VectorScalingFix.LoadCompiledShader();
+    }
     g_MuteWarning.CheckStatus();
     g_SteamAPI.OnSteamInputLoaded();
 
+    if (eGameType & (MGS2|MGS3))
+    {
+        CaptionReplacements::InitializeCaptionOverrides();
 
+    }
+
+    if (eGameType & MGS2)
+    {
+        MGS2_ContrastShader::Init();
+        MGS2_ShimmerEffect::Init();
+        MGS2_Crossfade::Initialize();
+        g_MGS2UnderwaterFilterFix.InstallD3D11StateHooks();
+    }
+    else if (eGameType & MG)
+    {
+        MG1_DisplayScaling::Init();
+    }
+    ColorCorrection::Init();
+    if (!(eGameType & MG))
+    {
+        SMAA_AA::Init();
+    }
+    D3D11TextOverlay::Init();
     spdlog::info("afterPresent() completed");
 }
 
@@ -444,39 +523,126 @@ static void InitializeSubsystems()
     INITIALIZE(CustomResolutionAndBorderless::Init_AspectFOVFix());
     INITIALIZE(CustomResolutionAndBorderless::Init_HUDFix());
     INITIALIZE(Init_Miscellaneous());
+    INITIALIZE(BP_FilesysChanges::Initialize()); //keep this early. liveswaps & other asset replacements need to check its state.
 
         //Features
     //INITIALIZE(g_TextureBufferSize.Initialize());
+    if (eGameType & MGS2)
+    {
+        INITIALIZE(g_MGS2Sunglasses.Initialize());
+        INITIALIZE(MGS2_RestoreDogtags::Initialize());
+        INITIALIZE(MGS2_RestoreOriginalDifficulty::Apply());
+        INITIALIZE(MGS2_RestorePhoneJingle::Apply());
+        INITIALIZE(MGS2_RestoreActionLevelSelection::Apply());
+        INITIALIZE(MGS2_RestoreSoLRadar::Apply());
+        INITIALIZE(MGS2_RestoreElevatorGlitch::Initialize());
+        INITIALIZE(SwapMenuButtons::SetMenuButtonInputs());
+        INITIALIZE(MGS2_ThirdPersonFreecam::Activate());
+        INITIALIZE(MGS2_Hostage_Type_Easter_Egg::Force());
+        INITIALIZE(MGS2_First_Person_View::Activate());
+        INITIALIZE(MGS2RetroColonel::Initialize());
+        INITIALIZE(MGS2_SnakeTalesRadar::Apply());
+        INITIALIZE(MGS2ThermalGoggles::Setup());
+        INITIALIZE(CustomPlayerName::Apply());
+        INITIALIZE(MGS2VampFPVPunch::Apply());
+    }
     INITIALIZE(g_PauseOnFocusLoss.Initialize());
     INITIALIZE(g_IntroSkip.Initialize());
     INITIALIZE(g_KeepAimingAfterFiring.Initialize());
-    INITIALIZE(g_MGS2Sunglasses.Initialize());
     INITIALIZE(g_DistanceCulling.Initialize());
+    INITIALIZE(OriginalCameraPositions::Activate());
+    INITIALIZE(AdjustableCaptions::Apply());
+
     INITIALIZE(MGS2_RestoreDogtags::Initialize());
     INITIALIZE(g_CustomFont.Initialize());
 
+    INITIALIZE(ColorCorrection::Setup());
 
         //Fixes
+    if (eGameType & MGS2)
+    {
+        INITIALIZE(g_OpticalCamoFix.Initialize());
+        INITIALIZE(FixAimingFullTilt::Initialize());
+        INITIALIZE(MGS2BloodStains::Initialize());
+        INITIALIZE(MGS2ScopeWarp::Initialize());
+        INITIALIZE(MGS2WaterEffects::Initialize());
+        INITIALIZE(MGS2LensDroplets::Initialize());
+        INITIALIZE(MGS2GasHaze::Initialize());
+        INITIALIZE(MGS2DemoCameraJudder::Initialize());
+        INITIALIZE(MGS2HairLayering::Initialize());
+        INITIALIZE(MGS2RotorProcession::Initialize());
+        INITIALIZE(MGS2TankerSnakeSnap::Initialize());
+        INITIALIZE(FixReverbWetLevel::Initialize());
+        INITIALIZE(MGS2FlareOcclusion::Initialize());
+        INITIALIZE(MGS2RailgunBeam::InitializeEarly());
+        INITIALIZE(MGS2DemoBlur::Initialize());
+        INITIALIZE(CoolantMirrorFix::ApplyFix());
+        INITIALIZE(ResolutionScalingFixes::ApplyFixes()); // Always load after custom resolution
+        INITIALIZE(TextureLiveSwaps::ApplyFixes());
+        INITIALIZE(SnakeArmFixes::ApplyFixes());
+        INITIALIZE(MGS2_Kirari_Sun2Fix::ApplyFix());
+        INITIALIZE(MGS2PreshadeLights::Initialize());
+        INITIALIZE(MGS2_RestoreDogtagViewer::Restore());
+        INITIALIZE(g_DepthOfFieldFixes.Initialize());
+        INITIALIZE(g_MGS2UnderwaterFilterFix.Initialize());
+        INITIALIZE(MGS2_ShimmerEffect::SetupHooks());
+        INITIALIZE(MGS2_ParrotRadarFix::Apply());
+        INITIALIZE(HostageModel::ApplyFix());
+        INITIALIZE(MGS2RayPhotoVoice::Initialize());
+        INITIALIZE(MGS2_ContrastShader::Setup());
+        INITIALIZE(MGS2ConcentrateBlur::Initialize());
+        INITIALIZE(CaptionReplacements::Setup());
+        INITIALIZE(SMAA_AA::CompileShaders());
+        INITIALIZE(ScreenspaceFixes::Apply());
+    }
+    else if (eGameType & MGS3)
+    {
+        INITIALIZE(ResolutionScalingFixes::ApplyFixes()); // Always load after custom resolution
+        INITIALIZE(g_WaterReflectionFix.Initialize());
+        INITIALIZE(MGS3HudFixes::Initialize());
+        INITIALIZE(MGS3FilmGrain::Initialize());
+        INITIALIZE(MGS3FixCameraOffset::Activate());
+        INITIALIZE(g_DepthOfFieldFixes.Initialize());
+        INITIALIZE(CaptionReplacements::Setup());
+        INITIALIZE(SMAA_AA::CompileShaders());
+        INITIALIZE(ScreenspaceFixes::Apply());
+
+        MAKE_HOOK_MID(baseModule, "89 44 24 ?? 0F B7 05 ?? ?? ?? ?? 66 89 44 24 ?? 0F B6 05", "MGS 3: Hires Textures Enabled Check", {
+                static bool printed = false;
+                if (printed)
+                {
+                    return;
+                }
+                printed = true;
+                spdlog::info("High Resolution Texture Pack is enabled.");
+                      });
+            
+    }
+    else if (eGameType & MG)
+    {
+        INITIALIZE(MG1_DisplayScaling::Setup());
+    }
     INITIALIZE(g_CPUCoreLimitFix.ApplyFix());
     INITIALIZE(g_VectorScalingFix.Initialize());
-    INITIALIZE(g_WaterReflectionFix.Initialize());
     INITIALIZE(g_EffectSpeedFix.Initialize()); //todo - fix more effects, ie rain speed, bullet trails, helicopter rotors
     INITIALIZE(g_StereoAudioFix.Initialize());
     INITIALIZE(DamagedSaveFix::Initialize());
     INITIALIZE(g_FixAimAfterEquip.Initialize());
-    INITIALIZE(FixAimingFullTilt::Initialize());
-    INITIALIZE(MGS3HudFixes::Initialize());
     INITIALIZE(FixFullscreenOptimization::Fix());
+    INITIALIZE(HighPerformanceGpu::Fix());
+    INITIALIZE(g_BusyLoopFix.Initialize());
+    INITIALIZE(FixPlaytime::Apply());
+    INITIALIZE(D3D11TextOverlay::Setup());
+
+
 
 #if !defined(RELEASE_BUILD) //todo category
-    //todo: Make ultrawide reposition HUD elements correctly instead of stretching them
-    //INITIALIZE(DepthOfFieldFixes.Initialize());
-    //INITIALIZE(MGS2ColorFilterFix::Initialize());
-    //INITIALIZE(GammaCorrection::Initialize());
-    //INITIALIZE(MGS3FixCameraOffsets::Initialize());
+
+    INITIALIZE(CutscenePausing::Setup());
+
+    //todo: Make ultrawide & 4:3 reposition HUD elements correctly instead of stretching them
     //INITIALIZE(MGS3FixHolster::Initialize());
     //INITIALIZE(MG1CropBorders::Initialize());
-    //INITIALIZE(SwapMenuButtons::Initialize());
     //INITIALIZE(MG1CustomLoadingScreens::Initialize());
     //INITIALIZE(AntiAliasing::Initialize());
 #endif
@@ -498,7 +664,6 @@ static void InitializeSubsystems()
 
 #if !defined(RELEASE_BUILD)
     INITIALIZE(UnitTests::runAllTests());
-    ScanAndPatchSkybox();
 
 #endif
 }
@@ -590,8 +755,9 @@ BOOL APIENTRY DllMain(HMODULE hModule, DWORD ul_reason_for_call, LPVOID lpReserv
     }
     else if (ul_reason_for_call == DLL_PROCESS_DETACH)
     {
-        spdlog::info("DLL_PROCESS_DETACH called, shutting down MGSHDFix.");
+        //spdlog::info("DLL_PROCESS_DETACH called, shutting down MGSHDFix.");
         g_StatPersistence.SaveStats();
+        g_BusyLoopFix.Shutdown();
         spdlog::shutdown();
     }
     return TRUE;

@@ -1,6 +1,7 @@
 #include "stdafx.h"
 #include "helper.hpp"
 #include "common.hpp"
+#include "config.hpp"
 
 #include "logging.hpp"
 
@@ -11,6 +12,134 @@
 
 namespace Memory
 {
+    std::vector<int> PatternToBytes(const char* pattern)
+    {
+        std::vector<int> bytes {};
+        const char* current = pattern;
+        const char* end = pattern + strlen(pattern);
+
+        while (current < end)
+        {
+            if (*current == ' ')
+            {
+                ++current;
+                continue;
+            }
+
+            if (*current == '?')
+            {
+                ++current;
+                if (current < end && *current == '?')
+                {
+                    ++current;
+                }
+                bytes.push_back(-1);
+                continue;
+            }
+
+            bytes.push_back(static_cast<int>(strtoul(current, const_cast<char**>(&current), 16)));
+        }
+
+        return bytes;
+    }
+
+    bool IsReadable(const void* ptr, size_t size)
+    {
+        if (!ptr || size == 0)
+        {
+            return false;
+        }
+
+        MEMORY_BASIC_INFORMATION mbi {};
+        if (!VirtualQuery(ptr, &mbi, sizeof(mbi)))
+        {
+            return false;
+        }
+
+        if (mbi.State != MEM_COMMIT || (mbi.Protect & (PAGE_NOACCESS | PAGE_GUARD)))
+        {
+            return false;
+        }
+
+        const uintptr_t begin = reinterpret_cast<uintptr_t>(ptr);
+        const uintptr_t end = begin + size;
+        const uintptr_t regionEnd = reinterpret_cast<uintptr_t>(mbi.BaseAddress) + mbi.RegionSize;
+        return end >= begin && end <= regionEnd;
+    }
+
+    bool IsWritable(const void* ptr, size_t size)
+    {
+        if (!ptr || size == 0)
+        {
+            return false;
+        }
+
+        MEMORY_BASIC_INFORMATION mbi {};
+        if (!VirtualQuery(ptr, &mbi, sizeof(mbi)))
+        {
+            return false;
+        }
+
+        if (mbi.State != MEM_COMMIT || (mbi.Protect & (PAGE_NOACCESS | PAGE_GUARD)))
+        {
+            return false;
+        }
+
+        constexpr DWORD writable =
+            PAGE_READWRITE |
+            PAGE_WRITECOPY |
+            PAGE_EXECUTE_READWRITE |
+            PAGE_EXECUTE_WRITECOPY;
+
+        const uintptr_t begin = reinterpret_cast<uintptr_t>(ptr);
+        const uintptr_t end = begin + size;
+        const uintptr_t regionEnd = reinterpret_cast<uintptr_t>(mbi.BaseAddress) + mbi.RegionSize;
+        return end >= begin && end <= regionEnd && (mbi.Protect & writable);
+    }
+
+    bool IsExecutable(const void* ptr)
+    {
+        if (!ptr)
+        {
+            return false;
+        }
+
+        MEMORY_BASIC_INFORMATION mbi {};
+        if (!VirtualQuery(ptr, &mbi, sizeof(mbi)) || mbi.State != MEM_COMMIT ||
+            (mbi.Protect & (PAGE_NOACCESS | PAGE_GUARD)))
+        {
+            return false;
+        }
+
+        const DWORD protect = mbi.Protect & 0xff;
+        return protect == PAGE_EXECUTE ||
+            protect == PAGE_EXECUTE_READ ||
+            protect == PAGE_EXECUTE_READWRITE ||
+            protect == PAGE_EXECUTE_WRITECOPY;
+    }
+
+    size_t ReadableBytes(const void* ptr)
+    {
+        if (!ptr)
+        {
+            return 0;
+        }
+
+        MEMORY_BASIC_INFORMATION mbi {};
+        if (!VirtualQuery(ptr, &mbi, sizeof(mbi)))
+        {
+            return 0;
+        }
+
+        if (mbi.State != MEM_COMMIT || (mbi.Protect & (PAGE_NOACCESS | PAGE_GUARD)))
+        {
+            return 0;
+        }
+
+        const uintptr_t begin = reinterpret_cast<uintptr_t>(ptr);
+        const uintptr_t regionEnd = reinterpret_cast<uintptr_t>(mbi.BaseAddress) + mbi.RegionSize;
+        return regionEnd > begin ? regionEnd - begin : 0;
+    }
 
     void PatchBytes(uintptr_t address, const char* pattern, unsigned int numBytes)
     {
@@ -18,6 +147,17 @@ namespace Memory
         VirtualProtect((LPVOID)address, numBytes, PAGE_EXECUTE_READWRITE, &oldProtect);
         memcpy((LPVOID)address, pattern, numBytes);
         VirtualProtect((LPVOID)address, numBytes, oldProtect, &oldProtect);
+    }
+
+    bool PatchFloatImmediate(void* module, const char* signature, ptrdiff_t immediateOffset, uint32_t value, const char* prefix)
+    {
+        if (uint8_t* address = PatternScan(module, signature, prefix))
+        {
+            Write<uint32_t>(reinterpret_cast<uintptr_t>(address) + immediateOffset, value);
+            return true;
+        }
+
+        return false;
     }
    
     static HMODULE GetThisDllHandle()
@@ -95,6 +235,36 @@ namespace Memory
         return foundPattern;
     }
 
+    std::vector<std::uint8_t*> FindMultiplePatternMatches(void* module, const char* signature)
+    {
+        std::vector<std::uint8_t*> matches {};
+        auto* dosHeader = reinterpret_cast<PIMAGE_DOS_HEADER>(module);
+        auto* ntHeaders = reinterpret_cast<PIMAGE_NT_HEADERS>(reinterpret_cast<std::uint8_t*>(module) + dosHeader->e_lfanew);
+        const size_t sizeOfImage = ntHeaders->OptionalHeader.SizeOfImage;
+        const std::vector<int> patternBytes = PatternToBytes(signature);
+        auto* scanBytes = reinterpret_cast<std::uint8_t*>(module);
+
+        for (size_t i = 0; i + patternBytes.size() <= sizeOfImage; ++i)
+        {
+            bool found = true;
+            for (size_t j = 0; j < patternBytes.size(); ++j)
+            {
+                if (patternBytes[j] != -1 && scanBytes[i + j] != static_cast<std::uint8_t>(patternBytes[j]))
+                {
+                    found = false;
+                    break;
+                }
+            }
+
+            if (found)
+            {
+                matches.push_back(scanBytes + i);
+            }
+        }
+
+        return matches;
+    }
+
     uintptr_t GetAbsolute(uintptr_t address) noexcept
     {
         return (address + 4 + *reinterpret_cast<std::int32_t*>(address));
@@ -104,6 +274,19 @@ namespace Memory
     {
         return reinterpret_cast<uintptr_t>(addr) + 4 + *reinterpret_cast<int32_t*>(addr);
     }
+
+    uintptr_t GetRipRelativeAddress(std::uint8_t* instruction, std::size_t displacementOffset, std::size_t instructionLength) noexcept
+    {
+        const auto displacement = *reinterpret_cast<std::int32_t*>(instruction + displacementOffset);
+        return reinterpret_cast<uintptr_t>(instruction) + instructionLength + displacement;
+    }
+
+    uint8_t* ResolveCall(uint8_t* callInsn)
+    {
+        int32_t rel = *reinterpret_cast<int32_t*>(callInsn + 1);
+        return callInsn + 5 + rel;
+    }
+
 
     BOOL HookIAT(HMODULE callerModule, char const* targetModule, const void* targetFunction, void* detourFunction)
     {
@@ -210,11 +393,27 @@ namespace Memory
         return FALSE;
     }
 
+
+    void AddStackInt32(uint64_t rsp, ptrdiff_t offset, int32_t amount)
+    {
+        auto* value = reinterpret_cast<int32_t*>(rsp + offset);
+        if (Memory::IsWritable(value, sizeof(*value)))
+        {
+            *value += amount;
+        }
+    }
+
+    void HookMidAtOffset(uint8_t* address, ptrdiff_t offset, SafetyHookMid& hook, const char* name, void (*callback)(SafetyHookContext&))
+    {
+        hook = safetyhook::create_mid(address + offset, callback);
+        LOG_HOOK(hook, name)
+    }
+
 }
 
 namespace Util
 {
-#if !defined(RELEASE_BUILD)
+#if defined(ENABLE_DUMP_CONTEXT)
     void DumpContext(const safetyhook::Context& ctx)
     {
         spdlog::info("\n"
@@ -256,13 +455,39 @@ namespace Util
         );
     }
 
-    void DumpBytes(uint64_t address)
+    void DumpBytes(uintptr_t address, size_t count = 16)
     {
-        BYTE* fn = reinterpret_cast<BYTE*>(address);
-        spdlog::info("First 6 bytes at DrawInstanced address:");
-        for (int i = 0; i < 6; ++i)
+        if (address == 0)
         {
-            spdlog::info("  0x{:02X}", fn[i]);
+            spdlog::error("DumpBytes: null address");
+            return;
+        }
+
+        MEMORY_BASIC_INFORMATION mbi {};
+        if (!VirtualQuery(reinterpret_cast<void*>(address), &mbi, sizeof(mbi)))
+        {
+            spdlog::error("DumpBytes: VirtualQuery failed for 0x{:X}", address);
+            return;
+        }
+
+        const bool readable =
+            mbi.State == MEM_COMMIT &&
+            !(mbi.Protect & PAGE_NOACCESS) &&
+            !(mbi.Protect & PAGE_GUARD);
+
+        if (!readable)
+        {
+            spdlog::error("DumpBytes: unreadable address 0x{:X}, protect=0x{:X}", address, mbi.Protect);
+            return;
+        }
+
+        auto* bytes = reinterpret_cast<const uint8_t*>(address);
+
+        spdlog::info("Bytes at 0x{:X}:", address);
+
+        for (size_t i = 0; i < count; ++i)
+        {
+            spdlog::info("  +0x{:02X}: 0x{:02X}", i, bytes[i]);
         }
     }
 #endif
@@ -409,6 +634,13 @@ namespace Util
             }
         }
         return "File description not found.";
+    }
+
+    bool IsRunningUnderWine()
+    {
+        HMODULE ntdll = GetModuleHandleA("ntdll.dll");
+        if (!ntdll) return false;
+        return GetProcAddress(ntdll, "wine_get_version") != nullptr;
     }
 
     ///Scans all valid ASI directories for any .asi files matching the fileName.
@@ -747,4 +979,9 @@ namespace Util
         return (attrs & FILE_ATTRIBUTE_READONLY) != 0;
     }
 
+
+    bool IsJapanese()
+    {
+        return sSkipLauncherLanguage == "jp" || sSkipLauncherRegion == "jp";
+    }
 }

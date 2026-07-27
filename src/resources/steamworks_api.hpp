@@ -16,9 +16,9 @@ private:
     static void OnSteamInitialized();
     static void FetchAndCacheSteamID();
     static void ResetAllAchievements();
-    bool bInitialized = false;
 
 public:
+    bool bInitialized = false;
     void Setup() const;
 
     static void OnSteamInputLoaded();
@@ -31,6 +31,7 @@ public:
     bool bIsOnline = true;
     std::optional<uint64_t> steamID;
     bool bResetAchievements = false;
+    bool bDisableSteamAchievementUnlocking = false;
 
     int* iNumberOfControllers = nullptr;
 

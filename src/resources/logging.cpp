@@ -9,6 +9,7 @@
 #include "steamworks_api.hpp"
 #include "version.h"
 #include "version_checking.hpp"
+#include "windows_multiplane_overlay_warning.hpp"
 
 
 // Spdlog sink (truncate on startup, single file)
@@ -201,36 +202,74 @@ void Logging::LogSysInfo()
 
     spdlog::info("System Details - CPU: {}", cpu);
 
+
     int gpuIndex = 0;
-    std::string deviceString;
+    std::vector<std::string> uniqueGpus;
+    std::unordered_set<std::string> seenGpus;
+
     if (Util::IsSteamOS())
     {
         spdlog::info("System Details - Detected Steam Deck (SteamOS / Proton).");
     }
     else
     {
-        for (int i = 0; ; i++)
+        for (DWORD i = 0; ; i++)
         {
-            DISPLAY_DEVICE dd = { sizeof(dd), 0 };
-            BOOL f = EnumDisplayDevices(NULL, i, &dd, EDD_GET_DEVICE_INTERFACE_NAME);
-            if (!f)
+            DISPLAY_DEVICEW dd = {};
+            dd.cb = sizeof(dd);
+
+            BOOL found = EnumDisplayDevicesW(nullptr, i, &dd, EDD_GET_DEVICE_INTERFACE_NAME);
+            if (!found)
             {
-                break; //that's all, folks.
+                break;
             }
-            gpuIndex++;
-            char deviceStringBuffer[128];
-            WideCharToMultiByte(CP_UTF8, 0, dd.DeviceString, -1, deviceStringBuffer, sizeof(deviceStringBuffer), NULL, NULL);
-            if (deviceString == deviceStringBuffer) //each monitor reports what gpu is driving it, lets just double check in case we're looking at a laptop with mixed usage.
+
+            if ((dd.StateFlags & DISPLAY_DEVICE_MIRRORING_DRIVER) != 0)
             {
                 continue;
             }
-            deviceString = deviceStringBuffer;
-            spdlog::info("System Details - GPU #{}: {}", gpuIndex, deviceString);
+
+            if ((dd.StateFlags & DISPLAY_DEVICE_ATTACHED_TO_DESKTOP) == 0)
+            {
+                continue;
+            }
+
+            char deviceStringBuffer[256] = {};
+            WideCharToMultiByte(CP_UTF8, 0, dd.DeviceString, -1, deviceStringBuffer, static_cast<int>(sizeof(deviceStringBuffer)), nullptr, nullptr);
+
+            std::string currentGpu = deviceStringBuffer;
+            if (currentGpu.empty())
+            {
+                continue;
+            }
+
+            if (!seenGpus.insert(currentGpu).second)
+            {
+                continue;
+            }
+
+            uniqueGpus.push_back(currentGpu);
+            gpuIndex = static_cast<int>(uniqueGpus.size());
+
+            spdlog::info("System Details - GPU #{}: {}", gpuIndex, currentGpu);
         }
     }
-    if (gpuIndex == 1) //only one gpu found
+
+    if ((uniqueGpus.size() == 1))
     {
-        CheckMinimumGPU(deviceString, false, 0, 0, 0, 0);
+        CheckMinimumGPU(uniqueGpus[0], false, 0, 0, 0, 0);
+    }
+    else if (Util::IsSteamOS())
+    {
+        spdlog::info("System Details - SteamOS / Wine.");
+    }
+    else if (uniqueGpus.size() == 0)
+    {
+        spdlog::error("System Details - No display-attached GPUs were detected during early enumeration. Please report this issue with your system specifications on our GitHub.");
+    }
+    else
+    {
+        spdlog::info("System Details - Multiple GPUs detected. Driver details & minimum system requirement report will be provided after first Present() call at the end of the log.");
     }
 
 
@@ -243,6 +282,7 @@ void Logging::LogSysInfo()
 
     std::string os;
     std::string WindowsVersionNumber;
+    DWORD windowsBuildNumber = 0;
     bool isWindows11 = false;
 
     if (Util::IsSteamOS())
@@ -291,7 +331,7 @@ void Logging::LogSysInfo()
 
                 if (RtlGetVersion(&info) == 0)
                 {
-                    // Build the semantic version number
+                    windowsBuildNumber = info.dwBuildNumber;
                     WindowsVersionNumber = std::to_string(info.dwMajorVersion) + "." + std::to_string(info.dwMinorVersion) + "." + std::to_string(info.dwBuildNumber) + "." + std::to_string(ubr);
                     // Append build number and UBR (e.g. " (26100.4652)")
                     os += " (" + std::to_string(info.dwBuildNumber) + "." + std::to_string(ubr) + ")";
@@ -319,14 +359,28 @@ void Logging::LogSysInfo()
             constexpr auto MinimumWindows10Version = "10.0.19045.6332"; //September 9, 2025 / 22H2 / KB5065429
             constexpr auto MinimumWindows11Version = "10.0.26100.4946"; //August 12, 2025 / 24H2 / KB5063878
 
-            const auto minRequired = isWindows11 ? MinimumWindows11Version : MinimumWindows10Version;
-            if (VersionCheck::CompareSemanticVersion(WindowsVersionNumber, minRequired) == VersionCheck::CompareResult::Older)
+            const char* minRequired = nullptr;
+            if (isWindows11)
+            {
+                minRequired = MinimumWindows11Version;
+            }
+            else if (windowsBuildNumber == 19045)
+            {
+                minRequired = MinimumWindows10Version;
+            }
+
+            if (minRequired && VersionCheck::CompareSemanticVersion(WindowsVersionNumber, minRequired) == VersionCheck::CompareResult::Older)
             {
                 spdlog::warn("-------------------    SYSTEM WARNING     ----------------------");
                 spdlog::warn("SYSTEM WARNING: Outdated Windows version detected: {}", os);
                 spdlog::warn("SYSTEM WARNING: Performance issues, controller connection problems, or crashes may occur.");
                 spdlog::warn("SYSTEM WARNING: Please fully run Windows Updates for the best experience.");
                 spdlog::warn("-------------------    SYSTEM WARNING     ----------------------");
+            }
+
+            if (isWindows11)
+            {
+                Win11AltTabPerformanceWarning::Check();
             }
         }
     }

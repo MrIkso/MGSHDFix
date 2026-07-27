@@ -1,9 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <ClCompile Include="src\fixes\line_scaling.cpp">
-      <Filter>Fixes</Filter>
-    </ClCompile>
     <ClCompile Include="src\fixes\stereo_audio.cpp">
       <Filter>Fixes</Filter>
     </ClCompile>
@@ -19,9 +16,6 @@
     <ClCompile Include="src\features\intro_skip.cpp">
       <Filter>Features</Filter>
     </ClCompile>
-    <ClCompile Include="src\fixes\color_filters.cpp">
-      <Filter>WIP</Filter>
-    </ClCompile>
     <ClCompile Include="src\features\mg1_custom_loading_screens.cpp">
       <Filter>WIP</Filter>
     </ClCompile>
@@ -32,7 +26,7 @@
     <ClCompile Include="src\warnings\reshade_compatibility_checks.cpp">
       <Filter>Warnings</Filter>
     </ClCompile>
-    <ClCompile Include="src\fixes\water_reflections.cpp">
+    <ClCompile Include="src\fixes\busy_loop_fix.cpp">
       <Filter>Fixes</Filter>
     </ClCompile>
     <ClCompile Include="src\features\texture_buffer_size.cpp">
@@ -107,6 +101,15 @@
     <ClCompile Include="src\fixes\aiming_full_tilt.cpp">
       <Filter>Fixes</Filter>
     </ClCompile>
+    <ClCompile Include="src\fixes\mgs2_scope_warp.cpp">
+      <Filter>Fixes</Filter>
+    </ClCompile>
+    <ClCompile Include="src\fixes\mgs2_water_effects.cpp">
+      <Filter>Fixes</Filter>
+    </ClCompile>
+    <ClCompile Include="src\fixes\mgs2_lens_droplets.cpp">
+      <Filter>Fixes</Filter>
+    </ClCompile>
     <ClCompile Include="src\fixes\fix_default_gpu.cpp">
       <Filter>Fixes</Filter>
     </ClCompile>
@@ -116,11 +119,8 @@
     <ClCompile Include="src\fixes\mgs3_hud_fixes.cpp">
       <Filter>Fixes</Filter>
     </ClCompile>
-    <ClCompile Include="src\fixes\depth_of_field.cpp">
+    <ClCompile Include="src\fixes\mgs2_underwater_filter.cpp">
       <Filter>Fixes</Filter>
-    </ClCompile>
-    <ClCompile Include="src\resources\probe.cpp">
-      <Filter>WIP</Filter>
     </ClCompile>
     <ClCompile Include="src\fixes\cpu_core_limit.cpp">
       <Filter>Fixes</Filter>
@@ -137,19 +137,7 @@
     <ClCompile Include="src\resources\stdafx.cpp">
       <Filter>Utility</Filter>
     </ClCompile>
-    <ClCompile Include="src\features\mg1_crop_borders.cpp">
-      <Filter>WIP</Filter>
-    </ClCompile>
-    <ClCompile Include="src\fixes\mgs3_fix_camera_offset.cpp">
-      <Filter>WIP</Filter>
-    </ClCompile>
     <ClCompile Include="src\fixes\mgs3_fix_holster_after_torture.cpp">
-      <Filter>WIP</Filter>
-    </ClCompile>
-    <ClCompile Include="src\features\settings_pesistence.cpp">
-      <Filter>WIP</Filter>
-    </ClCompile>
-    <ClCompile Include="src\features\swap_menu_buttons.cpp">
       <Filter>WIP</Filter>
     </ClCompile>
     <ClCompile Include="src\warnings\bugfix_mod_checks.cpp">
@@ -167,14 +155,200 @@
     <ClCompile Include="src\features\custom_resolution_and_borderless.cpp">
       <Filter>Features</Filter>
     </ClCompile>
+    <ClCompile Include="src\fixes\water_reflections.cpp">
+      <Filter>Fixes</Filter>
+    </ClCompile>
+    <ClCompile Include="src\fixes\resolution_scaling_fixes.cpp">
+      <Filter>Fixes</Filter>
+    </ClCompile>
+    <ClCompile Include="src\features\swap_menu_buttons.cpp">
+      <Filter>Features</Filter>
+    </ClCompile>
+    <ClCompile Include="src\fixes\texture_live_swaps.cpp">
+      <Filter>Fixes</Filter>
+    </ClCompile>
+    <ClCompile Include="src\fixes\mgs2_snakearm_voice.cpp">
+      <Filter>Fixes</Filter>
+    </ClCompile>
+    <ClCompile Include="src\fixes\mgs2_kirari_sun2_fix.cpp">
+      <Filter>Fixes</Filter>
+    </ClCompile>
+    <ClCompile Include="src\fixes\mgs2_preshade_lights.cpp">
+      <Filter>Fixes</Filter>
+    </ClCompile>
+    <ClCompile Include="src\features\mgs2_restore_phone_jingle.cpp">
+      <Filter>Features</Filter>
+    </ClCompile>
+    <ClCompile Include="src\fixes\mgs2_coolant_mirror.cpp">
+      <Filter>Fixes</Filter>
+    </ClCompile>
+    <ClCompile Include="src\features\mgs2_msx_colonel.cpp">
+      <Filter>Features</Filter>
+    </ClCompile>
+    <ClCompile Include="src\features\mgs2_3rd_person_freecam.cpp">
+      <Filter>Features</Filter>
+    </ClCompile>
+    <ClCompile Include="src\features\mgs2_difficulty.cpp">
+      <Filter>Features</Filter>
+    </ClCompile>
+    <ClCompile Include="src\features\mgs3_first_person_view_mode.cpp">
+      <Filter>Features</Filter>
+    </ClCompile>
+    <ClCompile Include="src\features\mgs2_first_person_view_mode.cpp">
+      <Filter>Features</Filter>
+    </ClCompile>
+    <ClCompile Include="src\features\original_camera_positions.cpp">
+      <Filter>Features</Filter>
+    </ClCompile>
+    <ClCompile Include="src\features\mgs2_restore_dogtag_viewer.cpp">
+      <Filter>Features</Filter>
+    </ClCompile>
+    <ClCompile Include="src\features\mgs2_hostage_type_easter_egg.cpp">
+      <Filter>Features</Filter>
+    </ClCompile>
+    <ClCompile Include="src\fixes\mgs3_fix_camera_offset.cpp">
+      <Filter>Fixes</Filter>
+    </ClCompile>
+    <ClCompile Include="src\features\adjustable_captions.cpp">
+      <Filter>Features</Filter>
+    </ClCompile>
+    <ClCompile Include="src\features\cutscene_pausing.cpp">
+      <Filter>Features</Filter>
+    </ClCompile>
+    <ClCompile Include="src\fixes\mgs2_thermal_goggles.cpp">
+      <Filter>Features</Filter>
+    </ClCompile>
+    <ClCompile Include="src\fixes\playtime_fixes.cpp">
+      <Filter>Fixes</Filter>
+    </ClCompile>
+    <ClCompile Include="src\fixes\mgs2_parrot_radar_fix.cpp">
+      <Filter>Fixes</Filter>
+    </ClCompile>
+    <ClCompile Include="src\fixes\mgs2_hostage_model.cpp">
+      <Filter>Fixes</Filter>
+    </ClCompile>
+    <ClCompile Include="src\fixes\mgs2_ray_photo_voice.cpp">
+      <Filter>Fixes</Filter>
+    </ClCompile>
+    <ClCompile Include="src\features\custom_player_name.cpp">
+      <Filter>Features</Filter>
+    </ClCompile>
+    <ClCompile Include="src\features\mgs2_restore_sol_radar.cpp">
+      <Filter>Features</Filter>
+    </ClCompile>
+    <ClCompile Include="src\features\mgs2_restore_action_level_selection.cpp">
+      <Filter>Features</Filter>
+    </ClCompile>
+    <ClCompile Include="src\features\expand_bp_assets.cpp">
+      <Filter>Features</Filter>
+    </ClCompile>
+    <ClCompile Include="src\features\mgs2_snake_tales_radar.cpp">
+      <Filter>Features</Filter>
+    </ClCompile>
+    <ClCompile Include="src\resources\game_funcs.cpp">
+      <Filter>APIs</Filter>
+    </ClCompile>
+    <ClCompile Include="src\resources\mgs2_status_flags.cpp">
+      <Filter>APIs</Filter>
+    </ClCompile>
+    <ClCompile Include="src\features\mgs2_vamp_punch_fix.cpp">
+      <Filter>Features</Filter>
+    </ClCompile>
+    <ClCompile Include="src\resources\d3d11_text_overlay.cpp">
+      <Filter>APIs</Filter>
+    </ClCompile>
+    <ClCompile Include="src\fixes\mgs2_blood_stains.cpp">
+      <Filter>Shaders</Filter>
+    </ClCompile>
+    <ClCompile Include="src\fixes\mgs2_contrast_fix.cpp">
+      <Filter>Shaders</Filter>
+    </ClCompile>
+    <ClCompile Include="src\fixes\color_correction.cpp">
+      <Filter>Shaders</Filter>
+    </ClCompile>
+    <ClCompile Include="src\fixes\mgs2_shimmer.cpp">
+      <Filter>Shaders</Filter>
+    </ClCompile>
+    <ClCompile Include="src\features\mgs_smaa.cpp">
+      <Filter>Shaders</Filter>
+    </ClCompile>
+    <ClCompile Include="src\warnings\windows_multiplane_overlay_warning.cpp">
+      <Filter>Warnings</Filter>
+    </ClCompile>
+    <ClCompile Include="src\features\mg1_display_scaling.cpp">
+      <Filter>Shaders</Filter>
+    </ClCompile>
+    <ClCompile Include="src\features\settings_pesistence.cpp">
+      <Filter>Fixes</Filter>
+    </ClCompile>
+    <ClCompile Include="src\fixes\mgs2_gas_haze.cpp">
+      <Filter>Shaders</Filter>
+    </ClCompile>
+    <ClCompile Include="src\resources\scene_depth.cpp">
+      <Filter>APIs</Filter>
+    </ClCompile>
+    <ClCompile Include="src\resources\d3d11_state_cache.cpp">
+      <Filter>APIs</Filter>
+    </ClCompile>
+    <ClCompile Include="src\features\mgs2_restore_elevator_glitch.cpp">
+      <Filter>Features</Filter>
+    </ClCompile>
+    <ClCompile Include="src\fixes\mgs2_crossfade.cpp">
+      <Filter>Shaders</Filter>
+    </ClCompile>
+    <ClCompile Include="src\fixes\mgs3_film_grain.cpp">
+      <Filter>Shaders</Filter>
+    </ClCompile>
+    <ClCompile Include="src\fixes\depth_of_field.cpp">
+      <Filter>Shaders</Filter>
+    </ClCompile>
+    <ClCompile Include="src\fixes\line_scaling.cpp">
+      <Filter>Shaders</Filter>
+    </ClCompile>
+    <ClCompile Include="src\fixes\optical_camo.cpp">
+      <Filter>Fixes</Filter>
+    </ClCompile>
+    <ClCompile Include="src\fixes\mgs2_newscrconcentrateblur.cpp">
+      <Filter>Fixes</Filter>
+    </ClCompile>
+    <ClCompile Include="src\fixes\mgs2_flare_occlusion.cpp">
+      <Filter>Fixes</Filter>
+    </ClCompile>
+    <ClCompile Include="src\fixes\mgs2_demo_blur.cpp">
+      <Filter>Fixes</Filter>
+    </ClCompile>
+    <ClCompile Include="src\fixes\mgs2_demo_camera_judder.cpp">
+      <Filter>Fixes</Filter>
+    </ClCompile>
+    <ClCompile Include="src\fixes\mgs2_railgun_beam.cpp">
+      <Filter>Fixes</Filter>
+    </ClCompile>
+    <ClCompile Include="src\fixes\mgs2_reverb_wet_level.cpp">
+      <Filter>Fixes</Filter>
+    </ClCompile>
+    <ClCompile Include="src\fixes\mgs2_hair_layering.cpp">
+      <Filter>Fixes</Filter>
+    </ClCompile>
+    <ClCompile Include="src\fixes\mgs2_rotor_procession.cpp">
+      <Filter>Fixes</Filter>
+    </ClCompile>
+    <ClCompile Include="src\fixes\mgs2_tanker_snake_snap.cpp">
+      <Filter>Fixes</Filter>
+    </ClCompile>
+    <ClCompile Include="src\fixes\caption_replacements.cpp">
+      <Filter>Fixes</Filter>
+    </ClCompile>
+    <ClCompile Include="src\fixes\windows_preferred_gpu.cpp">
+      <Filter>Fixes</Filter>
+    </ClCompile>
+    <ClCompile Include="src\fixes\screenspace_fixes.cpp">
+      <Filter>Fixes</Filter>
+    </ClCompile>
     <ClCompile Include="src\features\custom_font.cpp">
       <Filter>Features</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="src\fixes\line_scaling.hpp">
-      <Filter>Fixes\Headers</Filter>
-    </ClInclude>
     <ClInclude Include="src\fixes\effect_speeds.hpp">
       <Filter>Fixes\Headers</Filter>
     </ClInclude>
@@ -184,13 +358,7 @@
     <ClInclude Include="src\fixes\aiming_after_equip.hpp">
       <Filter>Fixes\Headers</Filter>
     </ClInclude>
-    <ClInclude Include="src\fixes\color_filters.hpp">
-      <Filter>Fixes\Headers</Filter>
-    </ClInclude>
     <ClInclude Include="src\features\distance_culling.hpp">
-      <Filter>Features\Headers</Filter>
-    </ClInclude>
-    <ClInclude Include="src\features\gamma_correction.hpp">
       <Filter>Features\Headers</Filter>
     </ClInclude>
     <ClInclude Include="src\features\mg1_custom_loading_screens.hpp">
@@ -274,6 +442,18 @@
     <ClInclude Include="src\fixes\aiming_full_tilt.hpp">
       <Filter>Fixes\Headers</Filter>
     </ClInclude>
+    <ClInclude Include="src\fixes\mgs2_scope_warp.hpp">
+      <Filter>Fixes\Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="src\fixes\mgs2_water_effects.hpp">
+      <Filter>Fixes\Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="src\fixes\mgs2_lens_droplets.hpp">
+      <Filter>Fixes\Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="src\fixes\mgs2_autopacket.hpp">
+      <Filter>Fixes\Headers</Filter>
+    </ClInclude>
     <ClInclude Include="src\resources\input_handler.hpp">
       <Filter>Utility\Headers</Filter>
     </ClInclude>
@@ -282,9 +462,6 @@
     </ClInclude>
     <ClInclude Include="src\resources\config_keys.hpp">
       <Filter>Config</Filter>
-    </ClInclude>
-    <ClInclude Include="src\fixes\depth_of_field.hpp">
-      <Filter>Fixes\Headers</Filter>
     </ClInclude>
     <ClInclude Include="src\fixes\cpu_core_limit.hpp">
       <Filter>Fixes\Headers</Filter>
@@ -310,14 +487,8 @@
     <ClInclude Include="src\features\mg1_crop_borders.hpp">
       <Filter>Features\Headers</Filter>
     </ClInclude>
-    <ClInclude Include="src\features\postfx.hpp">
-      <Filter>Features\Headers</Filter>
-    </ClInclude>
     <ClInclude Include="src\warnings\bugfix_mod_checks.hpp">
       <Filter>Warnings\Headers</Filter>
-    </ClInclude>
-    <ClInclude Include="src\warnings\background_shuffle_warning.hpp">
-      <Filter>Warnings</Filter>
     </ClInclude>
     <ClInclude Include="src\warnings\check_gamesave_folder.hpp">
       <Filter>Warnings\Headers</Filter>
@@ -327,6 +498,216 @@
     </ClInclude>
     <ClInclude Include="src\features\custom_resolution_and_borderless.hpp">
       <Filter>Features\Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="src\fixes\busy_loop_fix.hpp">
+      <Filter>Fixes\Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="src\fixes\resolution_scaling_fixes.hpp">
+      <Filter>Fixes\Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="src\fixes\texture_live_swaps.hpp">
+      <Filter>Fixes\Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="src\fixes\mgs2_snakearm_voice.hpp">
+      <Filter>Fixes\Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="src\fixes\mgs2_kirari_sun2_fix.hpp">
+      <Filter>Fixes\Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="src\fixes\mgs2_preshade_lights.hpp">
+      <Filter>Fixes\Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="src\features\mgs2_restore_phone_jingle.hpp">
+      <Filter>Features\Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="src\features\mgs2_3rd_person_freecam.hpp">
+      <Filter>Features\Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="src\features\mgs3_first_person_view_mode.hpp">
+      <Filter>Features\Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="src\features\mgs2_difficulty.hpp">
+      <Filter>Features\Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="src\features\mgs2_first_person_view_mode.hpp">
+      <Filter>Features\Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="src\features\original_camera_positions.hpp">
+      <Filter>Features\Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="src\features\mgs2_restore_dogtag_viewer.hpp">
+      <Filter>Features\Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="src\fixes\mgs2_coolant_mirror.hpp">
+      <Filter>Fixes\Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="src\features\mgs2_msx_colonel.hpp">
+      <Filter>Features\Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="src\resources\mgs2_linkvarbuf.hpp">
+      <Filter>APIs\Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="src\resources\mgs2_equipment_enums.hpp">
+      <Filter>APIs\Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="src\resources\game_stages.hpp">
+      <Filter>APIs\Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="src\features\mgs2_hostage_type_easter_egg.hpp">
+      <Filter>Features\Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="src\features\adjustable_captions.hpp">
+      <Filter>Features\Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="src\features\cutscene_pausing.hpp">
+      <Filter>Features\Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="src\resources\mgs2_status_flags.hpp">
+      <Filter>APIs\Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="src\fixes\mgs2_thermal_goggles.hpp">
+      <Filter>Features\Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="src\fixes\mgs2_parrot_radar_fix.hpp">
+      <Filter>Fixes\Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="src\fixes\playtime_fixes.hpp">
+      <Filter>Fixes\Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="src\fixes\mgs2_hostage_model.hpp">
+      <Filter>Fixes\Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="src\fixes\mgs2_ray_photo_voice.hpp">
+      <Filter>Fixes\Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="src\features\custom_player_name.hpp">
+      <Filter>Features\Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="src\features\mgs2_restore_sol_radar.hpp">
+      <Filter>Features\Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="src\features\mgs2_restore_action_level_selection.hpp">
+      <Filter>Features\Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="src\features\expand_bp_assets.hpp">
+      <Filter>Features\Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="src\features\mgs2_snake_tales_radar.hpp">
+      <Filter>Features\Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="src\resources\game_funcs.hpp">
+      <Filter>APIs\Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="src\resources\game_defines.hpp">
+      <Filter>APIs\Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="src\features\mgs2_vamp_punch_fix.hpp">
+      <Filter>Features\Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="src\resources\d3d11_text_overlay.hpp">
+      <Filter>APIs\Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="src\fixes\color_correction.hpp">
+      <Filter>Shaders\Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="src\fixes\mgs2_blood_stains.hpp">
+      <Filter>Shaders\Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="src\fixes\mgs2_contrast_fix.hpp">
+      <Filter>Shaders\Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="src\fixes\mgs2_shimmer.hpp">
+      <Filter>Shaders\Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="src\fixes\mgs2_shimmer_noise_map.hpp">
+      <Filter>Shaders\Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="src\fixes\mgs2_underwater_filter.hpp">
+      <Filter>Shaders\Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="src\fixes\optical_camo.hpp">
+      <Filter>Shaders\Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="src\features\mgs_smaa.hpp">
+      <Filter>Shaders\Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="src\warnings\background_shuffle_warning.hpp">
+      <Filter>Warnings\Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="src\warnings\windows_multiplane_overlay_warning.hpp">
+      <Filter>Warnings\Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="src\features\mg1_display_scaling.hpp">
+      <Filter>Shaders\Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="src\fixes\mgs2_gas_haze.hpp">
+      <Filter>Shaders\Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="src\resources\scene_depth.hpp">
+      <Filter>APIs\Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="src\resources\d3d11_state_cache.hpp">
+      <Filter>APIs\Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="src\features\mgs2_restore_elevator_glitch.hpp">
+      <Filter>Features\Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="src\fixes\depth_of_field.hpp">
+      <Filter>Shaders\Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="src\fixes\line_scaling.hpp">
+      <Filter>Shaders\Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="src\fixes\mgs3_film_grain.hpp">
+      <Filter>Shaders\Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="src\fixes\mgs2_crossfade.hpp">
+      <Filter>Shaders\Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="src\fixes\mgs2_newscrconcentrateblur.hpp">
+      <Filter>Fixes\Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="src\fixes\mgs2_flare_occlusion.hpp">
+      <Filter>Fixes\Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="src\fixes\mgs2_demo_blur.hpp">
+      <Filter>Fixes\Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="src\fixes\mgs2_reverb_wet_level.hpp">
+      <Filter>Fixes\Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="src\fixes\mgs2_railgun_beam.hpp">
+      <Filter>Fixes\Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="src\fixes\mgs2_demo_camera_judder.hpp">
+      <Filter>Fixes\Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="src\resources\mgs3_linkvarbuf.hpp">
+      <Filter>APIs\Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="src\fixes\mgs2_rotor_procession.hpp">
+      <Filter>Fixes\Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="src\fixes\mgs2_hair_layering.hpp">
+      <Filter>Fixes\Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="src\resources\mgs3_status_flags.hpp">
+      <Filter>APIs\Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="src\fixes\caption_replacements.hpp">
+      <Filter>Fixes\Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="src\resources\game_strings.hpp">
+      <Filter>APIs\Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="src\fixes\mgs2_tanker_snake_snap.hpp">
+      <Filter>Fixes\Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="src\fixes\windows_preferred_gpu.hpp">
+      <Filter>Fixes\Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="src\fixes\screenspace_fixes.hpp">
+      <Filter>Fixes\Headers</Filter>
     </ClInclude>
     <ClInclude Include="src\features\custom_font.hpp">
       <Filter>Features\Headers</Filter>
@@ -387,6 +768,12 @@
     </Filter>
     <Filter Include="Config">
       <UniqueIdentifier>{cd1768eb-087f-41c0-a320-8702dca4749f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Shaders">
+      <UniqueIdentifier>{69e22145-5e0d-43e7-9e9f-34e7016229ad}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Shaders\Headers">
+      <UniqueIdentifier>{ef16eb0f-133c-4433-af73-3112a22c750d}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>

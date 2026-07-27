@@ -1,7 +1,4 @@
 #pragma once
-#include <d3d11.h>
-#include <dxgi.h>
-#include <wrl/client.h>
 
 using Microsoft::WRL::ComPtr;
 
@@ -9,7 +6,6 @@ class D3D11Hooks final
 {
 public:
     static void Initialize();
-    static void UnloadCompiler(HMODULE d3dcompiler);
 
     HWND MainHwnd = nullptr;
 
@@ -21,6 +17,11 @@ public:
     ComPtr<IDXGIAdapter> dxgiAdapter;
     ComPtr<IDXGIFactory> dxgiFactory;
     ComPtr<IDXGISwapChain> swapChain;
+
+    pD3DCompile D3DCompileFunc;
+
+    uint64_t FrameCount = 0;
+
 };
 
 inline D3D11Hooks g_D3D11Hooks;

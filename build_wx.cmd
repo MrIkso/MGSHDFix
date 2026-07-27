@@ -70,6 +70,23 @@ if exist "%HASH_FILE%" (
     set /p OLD_HASH=<"%HASH_FILE%"
     if not "!OLD_HASH!"=="%WX_HASH%" set "NEED_RELEASE_BUILD=1"
 )
+REM --- Check if build parameters changed (e.g. /MT to /MD) ---
+set "BUILD_PARAMS_VER=2"
+set "PARAMS_FILE=%WX_LIB_DIR%\.wx_build_params"
+set "NEED_PARAM_REBUILD=0"
+
+if not exist "%PARAMS_FILE%" set "NEED_PARAM_REBUILD=1"
+if exist "%PARAMS_FILE%" (
+    set "OLD_PARAMS="
+    set /p OLD_PARAMS=<"%PARAMS_FILE%"
+    if not "!OLD_PARAMS!"=="%BUILD_PARAMS_VER%" set "NEED_PARAM_REBUILD=1"
+)
+
+if "%NEED_PARAM_REBUILD%"=="1" (
+    echo [wxWidgets] Build parameters changed, forcing rebuild...
+    if exist "%HASH_FILE%" del "%HASH_FILE%"
+    >"%PARAMS_FILE%" echo %BUILD_PARAMS_VER%
+)
 
 REM --- If Release rebuilds, force Debug too ---
 if "%NEED_RELEASE_BUILD%"=="1" set "NEED_DEBUG_BUILD=1"
@@ -95,7 +112,7 @@ if "%NEED_RELEASE_BUILD%"=="1" (
 REM --- Build Release ---
 if "%NEED_RELEASE_BUILD%"=="1" (
     echo [wxWidgets] Building Release...
-    msbuild "%WX_SLN%" /p:Configuration=Release /p:Platform=x64 /m /t:Rebuild
+    msbuild "%WX_SLN%" /p:Configuration=Release /p:Platform=x64 /p:RuntimeLibrary=MultiThreaded /m /t:Rebuild
     if errorlevel 1 (
         echo ERROR: Release build failed.
         exit /b 1
@@ -109,7 +126,7 @@ REM --- Build Debug (only if not CI) ---
 if /i not "%CI%"=="true" (
     if "%NEED_DEBUG_BUILD%"=="1" (
         echo [wxWidgets] Building Debug...
-        msbuild "%WX_SLN%" /p:Configuration=Debug /p:Platform=x64 /m /t:Rebuild
+        msbuild "%WX_SLN%" /p:Configuration=Debug /p:Platform=x64 /p:RuntimeLibrary=MultiThreadedDebug /m /t:Rebuild
         if errorlevel 1 (
             echo ERROR: Debug build failed.
             exit /b 1
