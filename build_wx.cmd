@@ -95,7 +95,7 @@ if "%NEED_RELEASE_BUILD%"=="1" (
 REM --- Build Release ---
 if "%NEED_RELEASE_BUILD%"=="1" (
     echo [wxWidgets] Building Release...
-    msbuild "%WX_SLN%" /p:Configuration=Release /p:Platform=x64 /m /t:Rebuild
+    msbuild "%WX_SLN%" /p:Configuration=Release /p:Platform=x64 /p:RuntimeLibrary=MultiThreaded /m /t:Rebuild
     if errorlevel 1 (
         echo ERROR: Release build failed.
         exit /b 1
@@ -109,7 +109,7 @@ REM --- Build Debug (only if not CI) ---
 if /i not "%CI%"=="true" (
     if "%NEED_DEBUG_BUILD%"=="1" (
         echo [wxWidgets] Building Debug...
-        msbuild "%WX_SLN%" /p:Configuration=Debug /p:Platform=x64 /m /t:Rebuild
+        msbuild "%WX_SLN%" /p:Configuration=Debug /p:Platform=x64 /p:RuntimeLibrary=MultiThreadedDebug /m /t:Rebuild
         if errorlevel 1 (
             echo ERROR: Debug build failed.
             exit /b 1
